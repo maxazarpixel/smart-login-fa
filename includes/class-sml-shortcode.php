@@ -69,6 +69,8 @@ class SML_Shortcode {
 					'resend'         => __( 'Resend code', 'smart-login' ),
 					'resendIn'       => __( 'Resend in %ds', 'smart-login' ),
 					'genericError'   => __( 'Something went wrong. Please try again.', 'smart-login' ),
+					'show'           => __( 'Show', 'smart-login' ),
+					'hide'           => __( 'Hide', 'smart-login' ),
 				),
 			)
 		);
@@ -93,6 +95,11 @@ class SML_Shortcode {
 
 		$verified_status = isset( $_GET['sml_verified'] ) ? sanitize_text_field( wp_unslash( $_GET['sml_verified'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
+		$action         = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$initial_panel  = ( 'register' === $action && $show_register ) ? 'register' : 'login';
+		$register_url   = esc_url( add_query_arg( 'action', 'register' ) );
+		$login_url      = esc_url( remove_query_arg( 'action' ) );
+
 		ob_start();
 		?>
 		<div class="sml-card" data-sml-root>
@@ -104,34 +111,44 @@ class SML_Shortcode {
 				<?php endif; ?>
 			<?php endif; ?>
 
-			<?php if ( $show_register ) : ?>
-				<div class="sml-tabs" role="tablist">
-					<button type="button" class="sml-tab active" data-sml-tab="login" role="tab" aria-selected="true"><?php esc_html_e( 'Log In', 'smart-login' ); ?></button>
-					<button type="button" class="sml-tab" data-sml-tab="register" role="tab" aria-selected="false"><?php esc_html_e( 'Register', 'smart-login' ); ?></button>
-				</div>
-			<?php endif; ?>
-
 			<div class="sml-message" data-sml-message hidden></div>
 
-			<div class="sml-panel" data-sml-panel="login">
+			<div class="sml-panel" data-sml-panel="login"<?php echo 'login' === $initial_panel ? '' : ' hidden'; ?>>
+				<div class="sml-heading">
+					<div class="sml-heading-line1"><?php esc_html_e( 'Log In', 'smart-login' ); ?></div>
+					<div class="sml-heading-line2"><?php esc_html_e( 'to your account', 'smart-login' ); ?></div>
+				</div>
 				<form data-sml-form="login" novalidate>
-					<div class="sml-field">
-						<label for="sml-login-user"><?php esc_html_e( 'Username or Email', 'smart-login' ); ?></label>
-						<input type="text" id="sml-login-user" name="username" autocomplete="username" required>
+					<div class="sml-field-boxed">
+						<label for="sml-login-user"><?php esc_html_e( 'Email', 'smart-login' ); ?></label>
+						<input type="email" id="sml-login-user" name="username" autocomplete="username" required>
 					</div>
-					<div class="sml-field">
+					<div class="sml-field-boxed">
 						<label for="sml-login-pass"><?php esc_html_e( 'Password', 'smart-login' ); ?></label>
-						<input type="password" id="sml-login-pass" name="password" autocomplete="current-password" required>
+						<div class="sml-password-group">
+							<input type="password" id="sml-login-pass" name="password" autocomplete="current-password" required>
+							<button type="button" class="sml-password-toggle" data-sml-password-toggle aria-label="<?php esc_attr_e( 'Show password', 'smart-login' ); ?>">
+								<?php esc_html_e( 'Show', 'smart-login' ); ?>
+							</button>
+						</div>
 					</div>
+					<a class="sml-forgot-link" href="<?php echo esc_url( wp_lostpassword_url() ); ?>"><?php esc_html_e( 'Forgot password?', 'smart-login' ); ?></a>
 					<button type="submit" class="sml-btn sml-btn--primary"><?php esc_html_e( 'Log In', 'smart-login' ); ?></button>
 					<p class="sml-resend-link" data-sml-resend-prompt hidden>
 						<button type="button" class="sml-link-btn" data-sml-resend-from-login><?php esc_html_e( 'Resend verification email', 'smart-login' ); ?></button>
 					</p>
+					<?php if ( $show_register ) : ?>
+						<a class="sml-btn sml-btn--secondary" data-sml-tab="register" href="<?php echo $register_url; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"><?php esc_html_e( 'Create Account', 'smart-login' ); ?></a>
+					<?php endif; ?>
 				</form>
 			</div>
 
 			<?php if ( $show_register ) : ?>
-				<div class="sml-panel" data-sml-panel="register" hidden>
+				<div class="sml-panel" data-sml-panel="register"<?php echo 'register' === $initial_panel ? '' : ' hidden'; ?>>
+					<div class="sml-heading">
+						<div class="sml-heading-line1"><?php esc_html_e( 'Create Your', 'smart-login' ); ?></div>
+						<div class="sml-heading-line2"><?php esc_html_e( 'Account', 'smart-login' ); ?></div>
+					</div>
 					<form data-sml-form="register" novalidate>
 						<div class="sml-field sml-hp-field" aria-hidden="true">
 							<label for="sml-hp"><?php esc_html_e( 'Leave this field empty', 'smart-login' ); ?></label>
@@ -142,38 +159,105 @@ class SML_Shortcode {
 						<?php if ( 'turnstile' === SML_Settings::get( 'bot_protection_provider', 'none' ) && SML_Settings::get( 'bot_site_key' ) ) : ?>
 							<div class="cf-turnstile" data-sitekey="<?php echo esc_attr( SML_Settings::get( 'bot_site_key' ) ); ?>" data-callback="smlTurnstileCallback"></div>
 						<?php endif; ?>
-						<div class="sml-field">
-							<label for="sml-reg-user"><?php esc_html_e( 'Username', 'smart-login' ); ?></label>
-							<input type="text" id="sml-reg-user" name="username" autocomplete="username" required>
+						<div class="sml-field-row">
+							<div class="sml-field-boxed">
+								<label for="sml-reg-first"><?php esc_html_e( 'First name', 'smart-login' ); ?> <span class="sml-required">*</span></label>
+								<input type="text" id="sml-reg-first" name="first_name" autocomplete="given-name" required>
+							</div>
+							<div class="sml-field-boxed">
+								<label for="sml-reg-last"><?php esc_html_e( 'Last name', 'smart-login' ); ?> <span class="sml-required">*</span></label>
+								<input type="text" id="sml-reg-last" name="last_name" autocomplete="family-name" required>
+							</div>
 						</div>
-						<div class="sml-field">
-							<label for="sml-reg-email"><?php esc_html_e( 'Email', 'smart-login' ); ?></label>
+						<div class="sml-field-boxed">
+							<label for="sml-reg-email"><?php esc_html_e( 'Email', 'smart-login' ); ?> <span class="sml-required">*</span></label>
 							<input type="email" id="sml-reg-email" name="email" autocomplete="email" required>
 						</div>
-						<div class="sml-field">
-							<label for="sml-reg-pass"><?php esc_html_e( 'Password', 'smart-login' ); ?></label>
-							<input type="password" id="sml-reg-pass" name="password" autocomplete="new-password" required>
+						<div class="sml-field-boxed">
+							<label for="sml-reg-phone"><?php esc_html_e( 'Mobile number', 'smart-login' ); ?> <span class="sml-required">*</span></label>
+							<div class="sml-phone-group">
+								<select name="phone_country" id="sml-reg-phone-country" aria-label="<?php esc_attr_e( 'Country code', 'smart-login' ); ?>">
+									<?php foreach ( self::phone_country_options() as $dial => $country ) : ?>
+										<option value="<?php echo esc_attr( $dial ); ?>" title="<?php echo esc_attr( $country['name'] ); ?>"<?php selected( '+1', $dial ); ?>><?php echo esc_html( $country['flag'] . ' ' . $dial ); ?></option>
+									<?php endforeach; ?>
+								</select>
+								<input type="tel" id="sml-reg-phone" name="phone_number" autocomplete="tel-national" inputmode="numeric" placeholder="<?php esc_attr_e( '555 123 4567', 'smart-login' ); ?>" required>
+							</div>
+						</div>
+						<div class="sml-field-boxed">
+							<label for="sml-reg-pass"><?php esc_html_e( 'Password', 'smart-login' ); ?> <span class="sml-required">*</span></label>
+							<div class="sml-password-group">
+								<input type="password" id="sml-reg-pass" name="password" autocomplete="new-password" required>
+								<button type="button" class="sml-password-toggle" data-sml-password-toggle aria-label="<?php esc_attr_e( 'Show password', 'smart-login' ); ?>">
+									<?php esc_html_e( 'Show', 'smart-login' ); ?>
+								</button>
+							</div>
 						</div>
 						<button type="submit" class="sml-btn sml-btn--primary"><?php esc_html_e( 'Create Account', 'smart-login' ); ?></button>
+						<a class="sml-btn sml-btn--secondary" data-sml-tab="login" href="<?php echo $login_url; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"><?php esc_html_e( 'Log In', 'smart-login' ); ?></a>
 					</form>
 				</div>
 			<?php endif; ?>
 
 			<div class="sml-panel" data-sml-panel="verify" hidden>
-				<p class="sml-verify-intro"><?php esc_html_e( 'We sent a verification code to your email. Enter it below, or click the link in the email.', 'smart-login' ); ?></p>
-				<p class="sml-countdown"><?php esc_html_e( 'Code expires in', 'smart-login' ); ?> <span data-sml-countdown>--:--</span></p>
+				<p class="sml-verify-intro"><?php echo esc_html( SML_Settings::get( 'verify_intro_text' ) ); ?></p>
 				<form data-sml-form="verify" novalidate>
 					<input type="hidden" name="user_id" data-sml-user-id value="">
-					<div class="sml-field">
-						<label for="sml-code"><?php esc_html_e( 'Verification code', 'smart-login' ); ?></label>
-						<input type="text" id="sml-code" name="code" inputmode="numeric" autocomplete="one-time-code" required>
+					<input type="hidden" name="code" data-sml-otp-value value="">
+					<div class="sml-otp" data-sml-otp role="group" aria-label="<?php esc_attr_e( 'Verification code', 'smart-login' ); ?>">
+						<?php $code_length = (int) SML_Settings::get( 'code_length', 6 ); ?>
+						<?php for ( $i = 0; $i < $code_length; $i++ ) : ?>
+							<input
+								type="text"
+								class="sml-otp-box"
+								inputmode="numeric"
+								pattern="[0-9]*"
+								maxlength="1"
+								autocomplete="<?php echo 0 === $i ? 'one-time-code' : 'off'; ?>"
+								data-sml-otp-box
+								aria-label="<?php echo esc_attr( sprintf( /* translators: %d: digit position */ __( 'Digit %d', 'smart-login' ), $i + 1 ) ); ?>">
+						<?php endfor; ?>
 					</div>
 					<button type="submit" class="sml-btn sml-btn--primary"><?php esc_html_e( 'Verify', 'smart-login' ); ?></button>
-					<button type="button" class="sml-btn sml-btn--secondary" data-sml-resend><?php esc_html_e( 'Resend code', 'smart-login' ); ?></button>
+					<p class="sml-resend-link">
+						<button type="button" class="sml-link-btn" data-sml-resend><?php esc_html_e( 'Resend code', 'smart-login' ); ?></button>
+					</p>
 				</form>
 			</div>
 		</div>
 		<?php
 		return ob_get_clean();
+	}
+
+	/**
+	 * Common dial codes for the mobile-number country selector. Not
+	 * exhaustive by design — covers the plugin's primary markets plus the
+	 * most frequently needed codes elsewhere.
+	 *
+	 * @return array<string,array{flag:string,name:string}> dial code => flag emoji + country name
+	 */
+	protected static function phone_country_options() {
+		return array(
+			'+1'   => array( 'flag' => '🇺🇸', 'name' => 'United States/Canada' ),
+			'+44'  => array( 'flag' => '🇬🇧', 'name' => 'United Kingdom' ),
+			'+971' => array( 'flag' => '🇦🇪', 'name' => 'UAE' ),
+			'+966' => array( 'flag' => '🇸🇦', 'name' => 'Saudi Arabia' ),
+			'+98'  => array( 'flag' => '🇮🇷', 'name' => 'Iran' ),
+			'+90'  => array( 'flag' => '🇹🇷', 'name' => 'Türkiye' ),
+			'+91'  => array( 'flag' => '🇮🇳', 'name' => 'India' ),
+			'+61'  => array( 'flag' => '🇦🇺', 'name' => 'Australia' ),
+			'+49'  => array( 'flag' => '🇩🇪', 'name' => 'Germany' ),
+			'+33'  => array( 'flag' => '🇫🇷', 'name' => 'France' ),
+			'+34'  => array( 'flag' => '🇪🇸', 'name' => 'Spain' ),
+			'+39'  => array( 'flag' => '🇮🇹', 'name' => 'Italy' ),
+			'+31'  => array( 'flag' => '🇳🇱', 'name' => 'Netherlands' ),
+			'+86'  => array( 'flag' => '🇨🇳', 'name' => 'China' ),
+			'+81'  => array( 'flag' => '🇯🇵', 'name' => 'Japan' ),
+			'+82'  => array( 'flag' => '🇰🇷', 'name' => 'South Korea' ),
+			'+65'  => array( 'flag' => '🇸🇬', 'name' => 'Singapore' ),
+			'+52'  => array( 'flag' => '🇲🇽', 'name' => 'Mexico' ),
+			'+55'  => array( 'flag' => '🇧🇷', 'name' => 'Brazil' ),
+			'+27'  => array( 'flag' => '🇿🇦', 'name' => 'South Africa' ),
+		);
 	}
 }

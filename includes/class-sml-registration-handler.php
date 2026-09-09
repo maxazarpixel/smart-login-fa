@@ -35,11 +35,14 @@ class SML_Registration_Handler {
 			wp_send_json_error( array( 'message' => $bot_check->get_error_message() ) );
 		}
 
-		$username = isset( $_POST['username'] ) ? sanitize_user( wp_unslash( $_POST['username'] ) ) : '';
-		$email    = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
-		$password = isset( $_POST['password'] ) ? (string) wp_unslash( $_POST['password'] ) : '';
+		$first_name   = isset( $_POST['first_name'] ) ? sanitize_text_field( wp_unslash( $_POST['first_name'] ) ) : '';
+		$last_name    = isset( $_POST['last_name'] ) ? sanitize_text_field( wp_unslash( $_POST['last_name'] ) ) : '';
+		$email        = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+		$phone_dial   = isset( $_POST['phone_country'] ) ? sanitize_text_field( wp_unslash( $_POST['phone_country'] ) ) : '';
+		$phone_number = isset( $_POST['phone_number'] ) ? preg_replace( '/[^0-9]/', '', wp_unslash( $_POST['phone_number'] ) ) : '';
+		$password     = isset( $_POST['password'] ) ? (string) wp_unslash( $_POST['password'] ) : '';
 
-		if ( ! $username || ! $email || ! $password ) {
+		if ( ! $first_name || ! $last_name || ! $email || ! $phone_number || ! $password ) {
 			wp_send_json_error( array( 'message' => __( 'Please fill in all fields.', 'smart-login' ) ) );
 		}
 
@@ -47,20 +50,29 @@ class SML_Registration_Handler {
 			wp_send_json_error( array( 'message' => __( 'Please enter a valid email address.', 'smart-login' ) ) );
 		}
 
-		if ( username_exists( $username ) ) {
-			wp_send_json_error( array( 'message' => __( 'That username is already taken.', 'smart-login' ) ) );
+		if ( ! preg_match( '/^\+[1-9][0-9]{0,3}$/', $phone_dial ) ) {
+			wp_send_json_error( array( 'message' => __( 'Please select a valid country code.', 'smart-login' ) ) );
+		}
+
+		if ( strlen( $phone_number ) < 4 || strlen( $phone_number ) > 14 ) {
+			wp_send_json_error( array( 'message' => __( 'Please enter a valid mobile number.', 'smart-login' ) ) );
 		}
 
 		if ( email_exists( $email ) ) {
 			wp_send_json_error( array( 'message' => __( 'An account with that email already exists.', 'smart-login' ) ) );
 		}
 
+		$username = self::generate_username( $first_name, $last_name, $email );
+
 		$user_id = wp_insert_user(
 			array(
-				'user_login' => $username,
-				'user_email' => $email,
-				'user_pass'  => $password,
-				'role'       => SML_Settings::get( 'default_role', 'subscriber' ),
+				'user_login'  => $username,
+				'user_email'  => $email,
+				'user_pass'   => $password,
+				'first_name'  => $first_name,
+				'last_name'   => $last_name,
+				'display_name' => trim( $first_name . ' ' . $last_name ),
+				'role'        => SML_Settings::get( 'default_role', 'subscriber' ),
 			)
 		);
 
@@ -69,6 +81,7 @@ class SML_Registration_Handler {
 		}
 
 		update_user_meta( $user_id, 'sml_email_verified', 0 );
+		update_user_meta( $user_id, 'sml_phone', $phone_dial . ' ' . $phone_number );
 
 		$issued = SML_Verification::issue( $user_id );
 		$user   = get_user_by( 'id', $user_id );
@@ -182,5 +195,37 @@ class SML_Registration_Handler {
 		}
 
 		return true;
+	}
+
+	/**
+	 * The registration form collects name/email/phone, not a username, so
+	 * one is derived here — from the name first, falling back to the email
+	 * local part — and de-duplicated with a numeric suffix if taken.
+	 *
+	 * @param string $first_name
+	 * @param string $last_name
+	 * @param string $email
+	 * @return string
+	 */
+	protected static function generate_username( $first_name, $last_name, $email ) {
+		$base = sanitize_user( strtolower( $first_name . '.' . $last_name ), true );
+
+		if ( '' === $base ) {
+			$base = sanitize_user( strtolower( substr( $email, 0, strpos( $email, '@' ) ) ), true );
+		}
+
+		if ( '' === $base ) {
+			$base = 'user';
+		}
+
+		$username = $base;
+		$suffix   = 1;
+
+		while ( username_exists( $username ) ) {
+			$username = $base . $suffix;
+			$suffix++;
+		}
+
+		return $username;
 	}
 }

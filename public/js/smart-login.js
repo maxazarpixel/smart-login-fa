@@ -1,6 +1,6 @@
 /**
- * Smart Login front-end: tab switching, AJAX form handling, and countdown
- * timers driven by server-supplied absolute expiry timestamps.
+ * Smart Login front-end: tab switching, AJAX form handling, and the resend
+ * cooldown countdown, driven by a server-supplied absolute timestamp.
  */
 ( function () {
 	'use strict';
@@ -9,8 +9,7 @@
 		return;
 	}
 
-	var countdownTimer  = null;
-	var resendTimer     = null;
+	var resendTimer = null;
 
 	/**
 	 * Resolves to a bot-protection response token for the currently
@@ -71,6 +70,60 @@
 		} );
 	}
 
+	/**
+	 * Wires the one-box-per-digit verification code input: typing advances
+	 * to the next box, Backspace on an empty box returns to the previous
+	 * one, and pasting a full code distributes it across all boxes. The
+	 * boxes themselves carry no name — their combined value is kept in a
+	 * single hidden `code` field that actually submits with the form.
+	 */
+	function wireOtp( root ) {
+		var group = qs( '[data-sml-otp]', root );
+		if ( ! group ) { return; }
+
+		var boxes  = qsa( '.sml-otp-box', group );
+		var hidden = qs( '[data-sml-otp-value]', root );
+
+		function sync() {
+			hidden.value = boxes.map( function ( b ) { return b.value; } ).join( '' );
+		}
+
+		boxes.forEach( function ( box, i ) {
+			box.addEventListener( 'input', function () {
+				box.value = box.value.replace( /[^0-9]/g, '' ).slice( -1 );
+				if ( box.value && boxes[ i + 1 ] ) {
+					boxes[ i + 1 ].focus();
+				}
+				sync();
+			} );
+
+			box.addEventListener( 'keydown', function ( e ) {
+				if ( 'Backspace' === e.key && ! box.value && boxes[ i - 1 ] ) {
+					boxes[ i - 1 ].focus();
+				}
+			} );
+
+			box.addEventListener( 'paste', function ( e ) {
+				e.preventDefault();
+				var text = ( e.clipboardData || window.clipboardData ).getData( 'text' ).replace( /[^0-9]/g, '' );
+				text.split( '' ).forEach( function ( digit, idx ) {
+					if ( boxes[ idx ] ) { boxes[ idx ].value = digit; }
+				} );
+				sync();
+				var next = boxes[ Math.min( text.length, boxes.length - 1 ) ];
+				if ( next ) { next.focus(); }
+			} );
+		} );
+	}
+
+	function resetOtp( root ) {
+		var boxes  = qsa( '.sml-otp-box', root );
+		var hidden = qs( '[data-sml-otp-value]', root );
+		boxes.forEach( function ( b ) { b.value = ''; } );
+		if ( hidden ) { hidden.value = ''; }
+		if ( boxes[ 0 ] ) { boxes[ 0 ].focus(); }
+	}
+
 	function post( action, nonce, data ) {
 		var body = new URLSearchParams( data );
 		body.set( 'action', action );
@@ -86,30 +139,10 @@
 
 	function formData( form ) {
 		var data = {};
-		qsa( 'input[name]', form ).forEach( function ( input ) {
-			data[ input.name ] = input.value;
+		qsa( 'input[name], select[name], textarea[name]', form ).forEach( function ( field ) {
+			data[ field.name ] = field.value;
 		} );
 		return data;
-	}
-
-	function startCountdown( root, expiresAtMs ) {
-		var el = qs( '[data-sml-countdown]', root );
-		if ( ! el ) { return; }
-
-		clearInterval( countdownTimer );
-
-		function tick() {
-			var remaining = Math.max( 0, Math.floor( ( expiresAtMs - Date.now() ) / 1000 ) );
-			var mm = String( Math.floor( remaining / 60 ) ).padStart( 2, '0' );
-			var ss = String( remaining % 60 ).padStart( 2, '0' );
-			el.textContent = mm + ':' + ss;
-			if ( remaining <= 0 ) {
-				clearInterval( countdownTimer );
-			}
-		}
-
-		tick();
-		countdownTimer = setInterval( tick, 1000 );
 	}
 
 	function startResendCooldown( root, availableAtMs ) {
@@ -134,10 +167,10 @@
 		resendTimer = setInterval( tick, 1000 );
 	}
 
-	function enterVerifyStep( root, userId, codeExpiresAtMs, resendAvailableMs ) {
+	function enterVerifyStep( root, userId, resendAvailableMs ) {
 		qs( '[data-sml-user-id]', root ).value = userId;
 		showPanel( root, 'verify' );
-		startCountdown( root, codeExpiresAtMs );
+		resetOtp( root );
 		startResendCooldown( root, resendAvailableMs );
 	}
 
@@ -145,9 +178,30 @@
 		qsa( '[data-sml-root]' ).forEach( function ( root ) {
 
 			qsa( '[data-sml-tab]', root ).forEach( function ( tab ) {
-				tab.addEventListener( 'click', function () {
+				tab.addEventListener( 'click', function ( e ) {
+					// These are real links (?action=register / current URL
+					// without it) so a direct visit or reload lands on the
+					// right panel — intercept the click to swap panels
+					// instantly instead of a full page reload.
+					e.preventDefault();
 					showMessage( root, '' );
 					showPanel( root, tab.getAttribute( 'data-sml-tab' ) );
+					if ( window.history && window.history.pushState && tab.href ) {
+						window.history.pushState( {}, '', tab.href );
+					}
+				} );
+			} );
+
+			wireOtp( root );
+
+			qsa( '[data-sml-password-toggle]', root ).forEach( function ( toggle ) {
+				toggle.addEventListener( 'click', function () {
+					var input = toggle.previousElementSibling;
+					if ( ! input ) { return; }
+					var isHidden = 'password' === input.type;
+					input.type = isHidden ? 'text' : 'password';
+					toggle.textContent = isHidden ? SmartLogin.i18n.hide : SmartLogin.i18n.show;
+					toggle.setAttribute( 'aria-label', isHidden ? SmartLogin.i18n.hide : SmartLogin.i18n.show );
 				} );
 			} );
 
@@ -194,7 +248,7 @@
 					post( 'sml_resend', SmartLogin.registrationNonce, { user_id: userId } )
 						.then( function ( res ) {
 							if ( res.success ) {
-								enterVerifyStep( root, userId, res.data.code_expires_at, res.data.resend_available );
+								enterVerifyStep( root, userId, res.data.resend_available );
 							} else {
 								showMessage( root, res.data.message || SmartLogin.i18n.genericError, true );
 							}
@@ -221,7 +275,7 @@
 						} )
 						.then( function ( res ) {
 							if ( res.success ) {
-								enterVerifyStep( root, res.data.user_id, res.data.code_expires_at, res.data.resend_available );
+								enterVerifyStep( root, res.data.user_id, res.data.resend_available );
 							} else {
 								showMessage( root, res.data.message || SmartLogin.i18n.genericError, true );
 							}
@@ -274,7 +328,6 @@
 					post( 'sml_resend', SmartLogin.registrationNonce, { user_id: userId } )
 						.then( function ( res ) {
 							if ( res.success ) {
-								startCountdown( root, res.data.code_expires_at );
 								startResendCooldown( root, res.data.resend_available );
 								showMessage( root, '', false );
 							} else {

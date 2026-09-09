@@ -136,6 +136,7 @@ class SML_Admin_Page extends APX_Admin_Page {
 						array( 'type' => 'number', 'name' => 'code_expiry_minutes', 'label' => __( 'Code expiry (minutes)', 'smart-login' ), 'min' => 1, 'max' => 1440, 'desc' => __( 'Drives both the backend TTL and the front-end countdown.', 'smart-login' ) ),
 						array( 'type' => 'number', 'name' => 'link_expiry_minutes', 'label' => __( 'Link expiry (minutes)', 'smart-login' ), 'min' => 1, 'max' => 10080, 'desc' => __( 'Independent from the code expiry — the link uses its own signed, single-use token.', 'smart-login' ) ),
 						array( 'type' => 'number', 'name' => 'resend_cooldown_seconds', 'label' => __( 'Resend cooldown (seconds)', 'smart-login' ), 'min' => 10, 'max' => 3600, 'desc' => __( 'The Resend button is disabled client-side for this long, and the server rejects early resend requests too.', 'smart-login' ) ),
+						array( 'type' => 'textarea', 'name' => 'verify_intro_text', 'label' => __( 'Verify page intro text', 'smart-login' ), 'desc' => __( 'Shown above the code input on the verify step.', 'smart-login' ) ),
 					),
 				),
 				array(
