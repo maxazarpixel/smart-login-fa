@@ -1,0 +1,1838 @@
+/* ==========================================================================
+   AzarPixel WP Admin UI Kit — v1.0
+   ---------------------------------------------------------------------------
+   A reusable WordPress plugin settings-page design system.
+
+   NAMESPACE:  every class and CSS variable is prefixed `apx-` / `--apx-`.
+               The page shell root class is `.apx-wrap`.
+               Modals rendered outside the shell use `.apx-popup-overlay`,
+               which also carries the token block (see section 1).
+
+   USAGE:      wp_enqueue_style( 'apx-admin-ui', PLUGIN_URL . 'assets/admin-ui.css' );
+               Then render markup exactly as in `reference.html`.
+
+   RE-BRAND:   change only the tokens in section 1 (`--apx-brand`, radii,
+               shadows). Never restyle components ad hoc in a plugin.
+   ========================================================================== */
+
+/* Optional webfont. Commented out by default: remote requests are a
+   WordPress.org guideline violation and the system stack below is close.
+   To use Inter, self-host it and @font-face it, or uncomment this line.
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+*/
+
+/* ── 1. Design tokens ─────────────────────────────────────────────────── */
+.apx-wrap,
+.apx-popup-overlay {
+    --apx-ink:         #0f172a;
+    --apx-text:        #0f172a;
+    --apx-sub:         #475569;
+    --apx-text-muted:  #475569;
+    --apx-mute:        #94a3b8;
+    --apx-text-soft:   #94a3b8;
+    --apx-surf:        #ffffff;
+    --apx-bg:          #ffffff;
+    --apx-page:        #f6f7f9;
+    --apx-bg-alt:      #f6f7f9;
+    --apx-bg-tab:      #f6f7f9;
+    --apx-line:        #e6e8ee;
+    --apx-border:      #e6e8ee;
+    --apx-line-soft:   #f0f2f6;
+    --apx-border-soft: #f0f2f6;
+
+    --apx-ok:          #10b981;
+    --apx-success:     #10b981;
+    --apx-ok-fg:       #047857;
+    --apx-ok-soft:     #d1fae5;
+    --apx-warn:        #f59e0b;
+    --apx-warn-fg:     #92400e;
+    --apx-warn-soft:   #fef3c7;
+    --apx-bad:         #ef4444;
+    --apx-danger:      #ef4444;
+    --apx-bad-soft:    #fee2e2;
+
+    --apx-brand:       #5b4ed9;
+    --apx-brand-2:     #7a6cf0;
+    --apx-brand-soft:  #eeebff;
+    --apx-brand-soft-2:#f4f2ff;
+    --apx-brand-deep:  #4a3fc4;
+    --apx-brand-dark:  #4a3fc4;
+    --apx-brand-fg:    #ffffff;
+
+    --apx-r:           12px;
+    --apx-radius:      12px;
+    --apx-r-sm:        8px;
+    --apx-radius-sm:   8px;
+    --apx-r-xs:        6px;
+    --apx-shadow:      0 1px 2px rgba(15,23,42,.04), 0 4px 12px rgba(15,23,42,.04);
+    --apx-shadow-lg:   0 12px 40px rgba(15,23,42,.18);
+    --apx-shadow-focus:0 0 0 3px rgba(91,78,217,.22);
+    --apx-transition:  .15s cubic-bezier(.4,0,.2,1);
+    --apx-font:        "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+
+/* Suppress WP's default page margin / form-table so we're flush with the
+   admin content gutter. Then add tighter wrap chrome. */
+#wpcontent { padding-left: 20px !important; }
+.apx-wrap {
+    width: auto;
+    margin: 16px 20px 40px 0;
+    background: var(--apx-page);
+    border: 1px solid var(--apx-border);
+    border-radius: var(--apx-radius);
+    color: var(--apx-ink);
+    font-family: var(--apx-font);
+    font-size: 14px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow: hidden;
+    position: relative;
+}
+.apx-wrap *, .apx-wrap *::before, .apx-wrap *::after { box-sizing: border-box; }
+.apx-wrap button { font: inherit; cursor: pointer; }
+
+/* Hide WordPress admin notices that may inject themselves into our wrap */
+.apx-wrap > .notice, .apx-wrap > .updated, .apx-wrap > .error { display: none; }
+
+/* Hidden attribute must always win */
+[hidden] { display: none !important; }
+
+/* ── 2. App shell ─────────────────────────────────────────────────────── */
+.apx-app {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: 720px;
+}
+
+/* Sidebar */
+.apx-sidebar {
+    background: var(--apx-surf);
+    border-right: 1px solid var(--apx-line);
+    display: flex;
+    flex-direction: column;
+    padding: 18px 0;
+}
+.apx-brand {
+    padding: 0 22px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--apx-line);
+    margin-bottom: 14px;
+}
+.apx-brand__mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--apx-brand), var(--apx-brand-2));
+    display: grid;
+    place-items: center;
+    color: #fff;
+    flex-shrink: 0;
+}
+.apx-brand__mark .apx-icon { width: 16px; height: 16px; }
+.apx-brand__name {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    color: var(--apx-ink);
+    line-height: 1.2;
+    font-family: var(--apx-font);
+}
+.apx-brand__meta {
+    font-size: 11px;
+    color: var(--apx-mute);
+    margin-top: 2px;
+}
+
+.apx-nav { flex: 1; padding: 0 12px; }
+.apx-nav__group { margin-bottom: 16px; }
+.apx-nav__group-label {
+    font-size: 10px;
+    letter-spacing: 1.3px;
+    color: var(--apx-mute);
+    font-weight: 700;
+    padding: 0 10px 8px;
+    text-transform: uppercase;
+}
+
+.apx-nav__item,
+.apx-wrap .apx-tab.apx-nav__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: transparent;
+    border: 0;
+    color: var(--apx-sub);
+    font-size: 13px;
+    font-weight: 500;
+    text-align: left;
+    margin-bottom: 2px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background var(--apx-transition), color var(--apx-transition);
+    position: relative;
+    box-shadow: none;
+}
+.apx-nav__item:hover,
+.apx-wrap .apx-tab.apx-nav__item:hover {
+    background: var(--apx-line-soft);
+    color: var(--apx-ink);
+    text-decoration: none;
+}
+.apx-nav__item:focus,
+.apx-wrap .apx-tab.apx-nav__item:focus {
+    outline: none;
+    box-shadow: var(--apx-shadow-focus);
+}
+.apx-nav__item.active,
+.apx-wrap .apx-tab.apx-nav__item.active {
+    background: var(--apx-brand-soft);
+    color: var(--apx-brand);
+    font-weight: 600;
+}
+.apx-nav__item.active::after,
+.apx-wrap .apx-tab.apx-nav__item.active::after {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--apx-brand);
+    margin-left: auto;
+}
+.apx-nav__item .apx-icon { width: 16px; height: 16px; flex-shrink: 0; }
+.apx-nav__item span { flex: 1; }
+
+.apx-sidebar__help {
+    margin: 12px;
+    padding: 14px;
+    border-radius: 10px;
+    background: var(--apx-page);
+}
+.apx-help__title {
+    font-weight: 600;
+    font-size: 12.5px;
+    margin-bottom: 4px;
+    color: var(--apx-ink);
+}
+.apx-help__body {
+    font-size: 12px;
+    color: var(--apx-sub);
+    line-height: 1.5;
+}
+
+/* Main column */
+.apx-main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--apx-page);
+}
+
+/* Topbar */
+/* (2.6.0) min-height, not height. The right-hand cluster has always been
+   allowed to wrap, but the bar itself was locked to 56px, so as soon as the
+   pills + Safe Mode + Debug Issues + Debug Log stopped fitting — a narrow
+   laptop, a zoomed browser, or simply larger system text — the wrapped row
+   spilled out of the bar and collided with the content below. Growing the bar
+   instead keeps every state tidy. */
+.apx-topbar {
+    min-height: 56px;
+    background: var(--apx-surf);
+    border-bottom: 1px solid var(--apx-line);
+    padding: 8px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+}
+.apx-crumbs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--apx-sub);
+    /* Truncate rather than wrap: a two-line breadcrumb ("Object / Cache")
+       doubled the bar's height for no information gain. min-width:0 is what
+       lets a flex item shrink below its content width at all. */
+    min-width: 0;
+    flex: 1 1 auto;
+    white-space: nowrap;
+    overflow: hidden;
+}
+.apx-crumbs__home  { color: var(--apx-sub); }
+.apx-crumbs__sep   { color: var(--apx-mute); }
+.apx-crumbs__active{
+    color: var(--apx-ink);
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.apx-topbar__right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    /* Never squeeze the controls to make room for the breadcrumb. */
+    flex: 0 0 auto;
+}
+/* Below ~1180px the sidebar is already narrowed (see that breakpoint); the
+   two status pills are the first thing to go, because they are decorative and
+   the same information is on the dashboard's own "Serving mode" tile. Dropping
+   them keeps the three functional buttons on a single row. */
+@media (max-width: 1180px) {
+    .apx-topbar__right > .apx-pill { display: none; }
+}
+@media (max-width: 900px) {
+    /* Breadcrumb before the buttons, each on its own full-width row, so
+       neither is squeezed into an unreadable sliver. */
+    .apx-crumbs      { flex: 1 1 100%; }
+    .apx-topbar__right { flex: 1 1 100%; justify-content: flex-start; }
+}
+
+/* Content area — tighter padding to match feedback. */
+.apx-content {
+    padding: 22px 24px 40px;
+    max-width: none;
+}
+.apx-submit-row {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid var(--apx-line);
+}
+
+/* Panels — only the active one is visible; switched by JS via display:block. */
+.apx-panel { display: none; }
+.apx-panel#apx-panel-dashboard { display: block; }
+
+/* ── 3. Page header / KPI strip / cards / modules ────────────────────── */
+.apx-page-header { margin: 0 0 18px; }
+.apx-page-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -.012em;
+    color: var(--apx-ink);
+    line-height: 1.2;
+    font-family: var(--apx-font);
+}
+.apx-page-desc {
+    font-size: 13px;
+    color: var(--apx-sub);
+    margin: 6px 0 0;
+    max-width: 640px;
+    line-height: 1.55;
+}
+
+.apx-kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 14px;
+}
+.apx-metric {
+    background: var(--apx-surf);
+    border: 1px solid var(--apx-line);
+    border-radius: var(--apx-r);
+    padding: 16px 18px;
+}
+.apx-metric__label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--apx-mute);
+    letter-spacing: .35px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+.apx-metric__value {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--apx-ink);
+    letter-spacing: -.02em;
+    margin-bottom: 6px;
+    font-family: var(--apx-font);
+}
+.apx-metric__value.is-ok    { color: var(--apx-ok-fg); }
+.apx-metric__value.is-warn  { color: var(--apx-warn-fg); }
+.apx-metric__value.is-brand { color: var(--apx-brand); }
+.apx-metric__sub { font-size: 12px; color: var(--apx-sub); }
+
+.apx-grid-2 {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 12px;
+}
+
+.apx-card {
+    background: var(--apx-surf);
+    border: 1px solid var(--apx-line);
+    border-radius: var(--apx-r);
+    padding: 20px 22px;
+    margin-bottom: 12px;
+}
+.apx-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.apx-card__kicker {
+    font-size: 11px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--apx-mute);
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+.apx-card__title {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    color: var(--apx-ink);
+    font-family: var(--apx-font);
+}
+
+/* Module list */
+.apx-module-list { display: flex; flex-direction: column; }
+.apx-module {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--apx-line-soft);
+}
+.apx-module:last-child { border-bottom: 0; }
+.apx-module__left { display: flex; align-items: center; gap: 12px; }
+.apx-module__title { font-size: 13.5px; font-weight: 600; color: var(--apx-ink); }
+.apx-module__detail { font-size: 12px; color: var(--apx-sub); margin-top: 2px; }
+.apx-module__link {
+    color: var(--apx-mute);
+    padding: 6px;
+    border-radius: 6px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.apx-module__link:hover { background: var(--apx-line-soft); color: var(--apx-brand); }
+
+/* Empty state */
+.apx-empty-state {
+    padding: 16px 4px 4px;
+    text-align: left;
+}
+.apx-empty-state__icon { color: var(--apx-mute); margin-bottom: 10px; }
+.apx-empty-state__icon .apx-icon { width: 24px; height: 24px; }
+.apx-empty-state__text {
+    font-size: 13px;
+    color: var(--apx-sub);
+    line-height: 1.5;
+    margin-bottom: 14px;
+}
+
+.apx-action-msg {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--apx-sub);
+    min-height: 20px;
+}
+
+/* ── 4. Panels (settings sections) ───────────────────────────────────── */
+.apx-panel {
+    background: var(--apx-surf);
+    border: 1px solid var(--apx-line);
+    border-radius: var(--apx-r);
+    padding: 22px 24px;
+    margin-bottom: 12px;
+}
+.apx-panel > h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    letter-spacing: -.01em;
+    color: var(--apx-ink);
+    line-height: 1.3;
+    font-family: var(--apx-font);
+}
+.apx-panel > h2 + p,
+.apx-panel > h2 + label + .description,
+.apx-panel > p.description {
+    font-size: 13px;
+    color: var(--apx-sub);
+    margin: 4px 0 14px;
+    max-width: 720px;
+    line-height: 1.55;
+}
+.apx-panel .apx-section-h {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -.005em;
+    color: var(--apx-ink);
+    margin: 24px 0 4px;
+    padding-top: 18px;
+    border-top: 1px solid var(--apx-line);
+    font-family: var(--apx-font);
+}
+.apx-panel .apx-section-h:first-child {
+    border-top: 0;
+    padding-top: 0;
+    margin-top: 0;
+}
+
+/* ── 5. TOGGLE SWITCHES ──────────────────────────────────────────────── */
+/* Universal toggle styling — applies to every checkbox inside .apx-panel.
+   Critical: appearance:none must be set early; we also set color:transparent
+   and override the input box on all states so no native check mark bleeds
+   through on Chromium / Firefox / Safari. */
+
+.apx-wrap .apx-panel input[type="checkbox"] {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    width: 36px;
+    height: 20px;
+    border-radius: 999px;
+    background: #cbd5e1;
+    background-image: none !important;
+    position: relative;
+    cursor: pointer;
+    transition: background var(--apx-transition);
+    margin: 0;
+    flex-shrink: 0;
+    box-shadow: none;
+    border: 0 !important;
+    outline: 0;
+    vertical-align: middle;
+    color: transparent;
+    font-size: 0;
+    line-height: 0;
+    /* Native check icon on some platforms uses these */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+.apx-wrap .apx-panel input[type="checkbox"]::before {
+    /* WP admin CSS uses ::before for the check glyph — clobber it. */
+    content: none !important;
+    display: none !important;
+}
+.apx-wrap .apx-panel input[type="checkbox"]::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,.2);
+    transition: left var(--apx-transition);
+    pointer-events: none;
+}
+.apx-wrap .apx-panel input[type="checkbox"]:checked {
+    background: var(--apx-brand);
+    background-image: none !important;
+}
+.apx-wrap .apx-panel input[type="checkbox"]:checked::after {
+    left: 18px;
+}
+.apx-wrap .apx-panel input[type="checkbox"]:focus {
+    box-shadow: var(--apx-shadow-focus);
+    outline: none;
+}
+
+/* Universal label-wrapping for switches OUTSIDE field rows. */
+.apx-wrap .apx-panel label:has(> input[type="checkbox"]) {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--apx-ink);
+    cursor: pointer;
+    margin: 6px 18px 4px 0;
+}
+
+/* ── 6. Setting rows (field rows + select rows) ──────────────────────── */
+.apx-wrap .apx-row {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 16px;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--apx-line-soft);
+}
+.apx-wrap .apx-row:last-child { border-bottom: 0; }
+/* (2.5.1) Helper text inside a setting row spans the full row width instead
+   of being auto-placed into the narrow 220px label column. */
+.apx-wrap .apx-row > p.description {
+    grid-column: 1 / -1;
+    margin: -2px 0 0;
+    line-height: 1.5;
+}
+.apx-wrap .apx-row > label {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--apx-ink);
+}
+
+/* Field row — checkbox + label + optional description */
+.apx-wrap .apx-field-row {
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    column-gap: 14px;
+    row-gap: 0;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--apx-line-soft);
+    align-items: start;
+}
+.apx-wrap .apx-field-row:last-child { border-bottom: 0; padding-bottom: 4px; }
+.apx-wrap .apx-field-row > label {
+    grid-column: 1 / 3;
+    display: contents;
+    margin: 0 !important;
+}
+.apx-wrap .apx-field-row > label > input[type="checkbox"] {
+    width: 32px;
+    height: 18px;
+    margin: 2px 0 0;
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+    align-self: start;
+}
+.apx-wrap .apx-field-row > label > input[type="checkbox"]::after {
+    width: 14px;
+    height: 14px;
+}
+.apx-wrap .apx-field-row > label > input[type="checkbox"]:checked::after {
+    left: 16px;
+}
+.apx-wrap .apx-field-row > label > strong {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--apx-ink);
+    line-height: 1.45;
+    align-self: center;
+}
+.apx-wrap .apx-field-row > .description,
+.apx-wrap .apx-field-row > p.description {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    font-size: 13px;
+    color: var(--apx-sub);
+    line-height: 1.55;
+    margin: 2px 0 0;
+    max-width: 640px;
+}
+.apx-wrap .apx-field-row > .apx-popup-field {
+    grid-column: 1 / -1;
+    margin-top: 10px;
+}
+
+/* Popup-only field row (label/strong + popup button, no checkbox).
+   Collapse the 36px first column so the title sits flush. */
+.apx-wrap .apx-field-row:has(> label > strong):not(:has(> label > input[type="checkbox"])) {
+    grid-template-columns: 1fr;
+    column-gap: 6px;
+    row-gap: 2px;
+}
+.apx-wrap .apx-field-row:has(> label > strong):not(:has(> label > input[type="checkbox"])) > label > strong {
+    grid-column: 1;
+}
+.apx-wrap .apx-field-row:has(> label > strong):not(:has(> label > input[type="checkbox"])) > .description,
+.apx-wrap .apx-field-row:has(> label > strong):not(:has(> label > input[type="checkbox"])) > p.description {
+    grid-column: 1;
+    margin-top: 0;
+}
+.apx-wrap .apx-field-row:has(> label > strong):not(:has(> label > input[type="checkbox"])) > .apx-popup-field {
+    grid-column: 1;
+    margin-top: 6px;
+}
+
+/* Form controls — universal */
+.apx-wrap .description,
+.apx-wrap p.description {
+    font-size: 13px;
+    color: var(--apx-sub);
+    line-height: 1.55;
+    margin: 6px 0 12px;
+    max-width: 720px;
+    font-style: normal;
+}
+.apx-wrap .description code,
+.apx-wrap p.description code {
+    background: var(--apx-page);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: ui-monospace, Menlo, monospace;
+    color: var(--apx-ink);
+}
+
+/* Inputs */
+.apx-wrap input[type="text"]:not(.apx-no-style),
+.apx-wrap input[type="number"]:not(.apx-no-style),
+.apx-wrap input[type="email"]:not(.apx-no-style),
+.apx-wrap input[type="url"]:not(.apx-no-style),
+.apx-wrap input[type="password"]:not(.apx-no-style) {
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 8px;
+    border: 1px solid var(--apx-line);
+    background: var(--apx-surf);
+    font-size: 13px;
+    color: var(--apx-ink);
+    box-shadow: none;
+    font-family: var(--apx-font);
+    min-width: 0;
+}
+.apx-wrap input:not([type="checkbox"]):not([type="radio"]):hover { border-color: var(--apx-brand); }
+.apx-wrap input:not([type="checkbox"]):not([type="radio"]):focus {
+    border-color: var(--apx-brand);
+    box-shadow: var(--apx-shadow-focus);
+    outline: none;
+}
+.apx-wrap textarea {
+    border-radius: 8px;
+    border: 1px solid var(--apx-line);
+    background: var(--apx-surf);
+    color: var(--apx-ink);
+    padding: 10px 12px;
+    font-size: 13px;
+    box-shadow: none;
+    font-family: var(--apx-font);
+    width: 100%;
+    min-height: 80px;
+}
+.apx-wrap textarea:focus {
+    border-color: var(--apx-brand);
+    box-shadow: var(--apx-shadow-focus);
+    outline: none;
+}
+
+/* Select — styled with custom chevron, native dropdown only on click. */
+.apx-wrap select {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 36px;
+    padding: 0 36px 0 12px;
+    border-radius: 8px;
+    border: 1px solid var(--apx-line);
+    background: var(--apx-surf) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat right 12px center;
+    background-size: 12px;
+    font-size: 13px;
+    color: var(--apx-ink);
+    box-shadow: none;
+    font-family: var(--apx-font);
+    cursor: pointer;
+    min-width: 220px;
+}
+.apx-wrap select:hover {
+    border-color: var(--apx-brand);
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235b4ed9' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+}
+.apx-wrap select:focus {
+    border-color: var(--apx-brand);
+    box-shadow: var(--apx-shadow-focus);
+    outline: none;
+}
+
+/* Sub-field containers (slide-down panels under the master switch). */
+.apx-wrap .cachefield,
+.apx-wrap .delayjsfield,
+.apx-wrap .unusedcssfield,
+.apx-wrap .imgoptfield,
+.apx-wrap .lcppreloadfield,
+.apx-wrap .adddimsfield,
+.apx-wrap .cffield,
+.apx-wrap .instantfield,
+.apx-wrap .lazyfield,
+.apx-wrap .apx-snapshot-fields,
+.apx-wrap .apx-cron-fields {
+    margin-top: 10px;
+}
+
+/* ── 7. Popup grid (Optimization "Edit list" sets) ───────────────────── */
+/* CRITICAL: forces 3/4-up layout. Inner cards have title above button, no
+   description in the card (description is shown in the modal). */
+.apx-wrap .apx-popup-grid {
+    display: grid !important;
+    gap: 10px;
+    margin: 12px 0 4px;
+    grid-template-columns: repeat(3, 1fr);
+}
+.apx-wrap .apx-popup-grid--2 { grid-template-columns: repeat(2, 1fr) !important; }
+.apx-wrap .apx-popup-grid--3 { grid-template-columns: repeat(3, 1fr) !important; }
+.apx-wrap .apx-popup-grid--4 { grid-template-columns: repeat(4, 1fr) !important; }
+
+.apx-wrap .apx-popup-grid > .apx-field-row,
+.apx-wrap .apx-popup-grid > .apx-field-row--compact {
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 14px;
+    border: 1px solid var(--apx-line);
+    border-radius: 8px;
+    background: var(--apx-page);
+    margin: 0;
+}
+.apx-wrap .apx-popup-grid > .apx-field-row > label,
+.apx-wrap .apx-popup-grid > .apx-field-row--compact > label {
+    display: block !important;
+    margin: 0;
+}
+.apx-wrap .apx-popup-grid > .apx-field-row > label > strong,
+.apx-wrap .apx-popup-grid > .apx-field-row--compact > label > strong {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--apx-ink);
+    grid-column: auto;
+    grid-row: auto;
+    line-height: 1.3;
+}
+.apx-wrap .apx-popup-grid > .apx-field-row > .apx-popup-field,
+.apx-wrap .apx-popup-grid > .apx-field-row--compact > .apx-popup-field {
+    margin-top: 0;
+    grid-column: auto;
+    width: 100%;
+}
+.apx-wrap .apx-popup-grid .apx-popup-open {
+    width: 100%;
+    justify-content: center;
+}
+@media (max-width: 1180px) {
+    .apx-wrap .apx-popup-grid--3,
+    .apx-wrap .apx-popup-grid--4 { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width: 700px) {
+    .apx-wrap .apx-popup-grid,
+    .apx-wrap .apx-popup-grid--2,
+    .apx-wrap .apx-popup-grid--3,
+    .apx-wrap .apx-popup-grid--4 { grid-template-columns: 1fr !important; }
+}
+
+/* ── 8. Buttons (universal — covers WP-core .button classes too) ─────── */
+.apx-wrap .apx-btn,
+.apx-wrap .button,
+.apx-wrap .button-secondary,
+.apx-wrap .button-primary,
+.apx-wrap input[type="submit"].button,
+.apx-wrap input[type="submit"].button-primary,
+.apx-wrap #submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 8px;
+    border: 1px solid var(--apx-line);
+    background: var(--apx-surf);
+    color: var(--apx-ink);
+    white-space: nowrap;
+    text-decoration: none;
+    transition: background var(--apx-transition), border-color var(--apx-transition), color var(--apx-transition);
+    cursor: pointer;
+    line-height: 1.2;
+    box-shadow: none;
+    text-shadow: none;
+    height: auto;
+    min-height: 36px;
+    font-family: var(--apx-font);
+}
+.apx-wrap .button:hover,
+.apx-wrap .button-secondary:hover {
+    background: var(--apx-line-soft);
+    color: var(--apx-ink);
+    border-color: var(--apx-line);
+}
+.apx-wrap .apx-btn--sm  { padding: 6px 12px; font-size: 12px; min-height: 30px; }
+.apx-wrap .apx-btn--lg  { padding: 11px 22px; font-size: 14px; }
+.apx-wrap .apx-btn--full { width: 100%; margin-bottom: 8px; }
+.apx-wrap .apx-btn--primary,
+.apx-wrap .button-primary,
+.apx-wrap input[type="submit"].button-primary,
+.apx-wrap #submit {
+    background: var(--apx-brand);
+    color: var(--apx-brand-fg);
+    border-color: var(--apx-brand);
+}
+.apx-wrap .apx-btn--primary:hover,
+.apx-wrap .button-primary:hover,
+.apx-wrap input[type="submit"].button-primary:hover,
+.apx-wrap #submit:hover {
+    background: var(--apx-brand-deep);
+    border-color: var(--apx-brand-deep);
+    color: var(--apx-brand-fg);
+}
+.apx-wrap .apx-btn--soft { background: var(--apx-brand-soft); color: var(--apx-brand); border-color: transparent; }
+.apx-wrap .apx-btn--soft:hover { background: var(--apx-brand-soft); filter: brightness(.97); color: var(--apx-brand); }
+.apx-wrap .apx-btn--ghost { background: var(--apx-surf); color: var(--apx-ink); border: 1px solid var(--apx-line); }
+.apx-wrap .apx-btn--ghost:hover { background: var(--apx-line-soft); color: var(--apx-ink); }
+.apx-wrap .apx-btn--safe-on { background: var(--apx-warn-soft); color: var(--apx-warn-fg); border: 1px solid var(--apx-warn); font-weight: 600; }
+.apx-wrap .apx-btn--safe-on:hover { background: #fde9bf; }
+.apx-wrap .apx-btn--danger-ghost { background: var(--apx-surf); color: var(--apx-bad); border: 1px solid var(--apx-line); }
+.apx-wrap .apx-btn--danger-ghost:hover { background: var(--apx-bad-soft); border-color: var(--apx-bad); }
+
+.apx-btn .apx-icon, .apx-wrap .button .apx-icon { width: 14px; height: 14px; }
+.apx-wrap .apx-btn-icon { display: inline-flex; }
+.apx-wrap .apx-btn-icon svg { width: 14px; height: 14px; }
+.apx-wrap .apx-btn-spinner {
+    display: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    animation: apx-spin .7s linear infinite;
+}
+.apx-wrap .apx-btn.is-loading .apx-btn-spinner { display: inline-block; }
+.apx-wrap .apx-btn.is-loading .apx-btn-icon { display: none; }
+@keyframes apx-spin { to { transform: rotate(360deg); } }
+
+/* "Edit list (X entries)" — visual treatment for popup-open buttons.
+   These get the soft-indigo treatment to stand out from regular ghost
+   buttons; matches the demo's accent button look. */
+.apx-wrap .apx-popup-field { display: block; }
+.apx-wrap .apx-popup-open {
+    background: var(--apx-brand-soft) !important;
+    color: var(--apx-brand) !important;
+    border-color: transparent !important;
+}
+.apx-wrap .apx-popup-open:hover {
+    background: var(--apx-brand-soft) !important;
+    color: var(--apx-brand-deep) !important;
+    filter: brightness(.96);
+}
+
+/* Sign-up CTA on the Image CDN tab — primary indigo button. */
+.apx-wrap .apx-cta { background: var(--apx-brand) !important; color: #fff !important; border-color: var(--apx-brand) !important; padding: 10px 18px !important; }
+.apx-wrap .apx-cta:hover { background: var(--apx-brand-deep) !important; border-color: var(--apx-brand-deep) !important; color: #fff !important; }
+
+/* ── 9. Pills, badges, switches (display-only) ──────────────────────── */
+.apx-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: .1px;
+    white-space: nowrap;
+}
+.apx-pill--ok      { background: var(--apx-ok-soft);    color: var(--apx-ok-fg); }
+.apx-pill--warn    { background: var(--apx-warn-soft);  color: var(--apx-warn-fg); }
+.apx-pill--brand   { background: var(--apx-brand-soft); color: var(--apx-brand); }
+.apx-pill--neutral { background: var(--apx-line-soft);  color: var(--apx-sub); }
+.apx-pill__dot { width: 5px; height: 5px; border-radius: 3px; background: currentColor; }
+.apx-pill--ok .apx-pill__dot { background: var(--apx-ok); }
+
+.apx-switch {
+    display: inline-block;
+    width: 32px;
+    height: 18px;
+    position: relative;
+    flex-shrink: 0;
+}
+.apx-switch input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+}
+.apx-switch > span {
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background: #cbd5e1;
+    transition: background var(--apx-transition);
+    display: block;
+}
+.apx-switch > span::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,.2);
+    transition: left var(--apx-transition);
+}
+.apx-switch input:checked + span { background: var(--apx-brand); }
+.apx-switch input:checked + span::after { left: 16px; }
+
+.apx-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 600;
+}
+.apx-badge-success { background: var(--apx-ok-soft);    color: var(--apx-ok-fg); }
+.apx-badge-info    { background: var(--apx-brand-soft); color: var(--apx-brand); }
+.apx-badge-muted   { background: var(--apx-line-soft);  color: var(--apx-sub); }
+
+.apx-icon { width: 16px; height: 16px; vertical-align: middle; }
+.apx-icon--sm { width: 12px; height: 12px; }
+
+.apx-action-status {
+    margin-top: 12px;
+    padding: 12px 14px;
+    background: var(--apx-page);
+    border-radius: 8px;
+    font-size: 12.5px;
+    color: var(--apx-sub);
+    line-height: 1.5;
+}
+
+/* ── 10. Empty / button-only field rows ──────────────────────────────── */
+.apx-wrap .apx-field-row:has(> button) {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 14px 0;
+    border: 0;
+}
+
+/* DB cleanup task list — the parent .apx-field-row wraps stacked rows */
+.apx-wrap .apx-field-row:has(> .apx-db-row) {
+    display: block;
+    padding: 8px 0;
+    border: 0;
+}
+.apx-wrap .apx-db-row {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0 !important;
+    border-bottom: 1px solid var(--apx-line-soft) !important;
+}
+.apx-wrap .apx-db-row:last-child { border-bottom: 0 !important; }
+.apx-wrap .apx-db-row label {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500 !important;
+    margin: 0 !important;
+}
+.apx-wrap .apx-db-row label > input[type="checkbox"] {
+    width: 32px;
+    height: 18px;
+}
+.apx-wrap .apx-db-row label > input[type="checkbox"]::after {
+    width: 14px;
+    height: 14px;
+}
+.apx-wrap .apx-db-row label > input[type="checkbox"]:checked::after {
+    left: 16px;
+}
+.apx-wrap .apx-db-row .description {
+    margin-left: 42px !important;
+    font-size: 12.5px;
+}
+.apx-wrap .apx-db-count {
+    margin-left: 14px;
+    font-size: 12px;
+    background: var(--apx-page);
+    padding: 3px 10px;
+    border-radius: 999px;
+    color: var(--apx-sub);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── 11. Cache-disabled empty prompt ─────────────────────────────────── */
+.apx-wrap .apx-cache-disabled-prompt {
+    margin: 16px 0 8px;
+    padding: 26px 22px;
+    background: var(--apx-page);
+    border: 1px dashed var(--apx-line);
+    border-radius: var(--apx-r);
+    text-align: center;
+}
+.apx-wrap .apx-prompt-icon {
+    font-size: 28px;
+    line-height: 1;
+    margin-bottom: 8px;
+}
+.apx-wrap .apx-cache-disabled-prompt h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--apx-ink);
+    margin: 0 0 6px;
+}
+.apx-wrap .apx-cache-disabled-prompt p {
+    font-size: 13px;
+    color: var(--apx-sub);
+    margin: 0;
+    max-width: 540px;
+    margin-inline: auto;
+    line-height: 1.55;
+}
+
+/* ── 12. Image CDN "How it works" callout ───────────────────────────── */
+/* Soft indigo info card with a primary CTA at the bottom. */
+.apx-wrap .apx-callout {
+    background: var(--apx-brand-soft-2);
+    border: 1px solid var(--apx-brand-soft);
+    border-radius: var(--apx-r);
+    padding: 18px 20px;
+    margin: 6px 0 18px;
+}
+.apx-wrap .apx-callout h3 {
+    margin: 0 0 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--apx-brand);
+    letter-spacing: .2px;
+    font-family: var(--apx-font);
+}
+.apx-wrap .apx-callout p {
+    margin: 0 0 10px;
+    font-size: 13px;
+    color: var(--apx-sub);
+    line-height: 1.55;
+}
+.apx-wrap .apx-callout ol {
+    margin: 0 0 14px 20px;
+    padding: 0;
+    font-size: 13px;
+    color: var(--apx-sub);
+    line-height: 1.6;
+}
+.apx-wrap .apx-callout ol li { margin: 2px 0; }
+.apx-wrap .apx-callout > p:last-child { margin-bottom: 0; }
+
+/* ── 13. DB snapshot table ───────────────────────────────────────────── */
+.apx-wrap #apx_db_snapshots_list { margin-top: 10px; }
+.apx-wrap #apx_db_snapshots_list table.widefat {
+    border: 1px solid var(--apx-line);
+    border-radius: var(--apx-r-sm);
+    overflow: hidden;
+    background: var(--apx-surf);
+    box-shadow: none;
+    margin-top: 8px;
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+}
+.apx-wrap #apx_db_snapshots_list table thead th {
+    background: var(--apx-page);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--apx-sub);
+    letter-spacing: .2px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--apx-line);
+    text-align: left;
+}
+.apx-wrap #apx_db_snapshots_list table tbody td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--apx-line-soft);
+    font-size: 13px;
+    color: var(--apx-ink);
+    background: var(--apx-surf);
+}
+.apx-wrap #apx_db_snapshots_list table tbody tr:last-child td { border-bottom: 0; }
+.apx-wrap #apx_db_snapshots_list table tbody td code {
+    background: var(--apx-brand-soft);
+    color: var(--apx-brand);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: ui-monospace, Menlo, monospace;
+}
+.apx-wrap .apx-snap-restore,
+.apx-wrap .apx-snap-delete {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    min-height: 30px !important;
+    margin-right: 4px;
+}
+.apx-wrap .apx-snap-restore {
+    background: var(--apx-brand-soft) !important;
+    color: var(--apx-brand) !important;
+    border-color: transparent !important;
+}
+.apx-wrap .apx-snap-restore:hover {
+    background: var(--apx-brand) !important;
+    color: #fff !important;
+}
+.apx-wrap .apx-snap-delete {
+    background: var(--apx-surf) !important;
+    color: var(--apx-bad) !important;
+    border-color: var(--apx-line) !important;
+}
+.apx-wrap .apx-snap-delete:hover {
+    background: var(--apx-bad-soft) !important;
+    color: var(--apx-bad) !important;
+    border-color: var(--apx-bad) !important;
+}
+
+/* WP form-table — kill its default vertical padding / heading style inside snapshot section */
+.apx-wrap table.form-table { margin-top: 6px; }
+.apx-wrap table.form-table th {
+    padding: 12px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--apx-ink);
+    width: 220px;
+}
+.apx-wrap table.form-table td { padding: 12px 0; }
+.apx-wrap table.form-table td input[type="number"] { width: 110px !important; }
+
+/* ── 14. Popup modal (renders OUTSIDE .apx-wrap) ─────────────────────── */
+.apx-popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,.55);
+    z-index: 100050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    font-family: var(--apx-font);
+}
+.apx-popup-overlay[hidden] { display: none !important; }
+.apx-popup {
+    background: var(--apx-surf);
+    border-radius: var(--apx-r);
+    box-shadow: var(--apx-shadow-lg);
+    width: min(640px, 100%);
+    max-height: calc(100vh - 80px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    color: var(--apx-ink);
+}
+.apx-popup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--apx-line);
+}
+.apx-popup-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--apx-ink);
+    margin: 0;
+    letter-spacing: -.005em;
+    font-family: var(--apx-font);
+}
+.apx-popup-close {
+    background: transparent;
+    border: 0;
+    font-size: 22px;
+    line-height: 1;
+    color: var(--apx-mute);
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.apx-popup-close:hover { background: var(--apx-line-soft); color: var(--apx-ink); }
+.apx-popup-body {
+    padding: 18px 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+.apx-popup-help {
+    font-size: 13px;
+    color: var(--apx-sub);
+    margin: 0 0 10px;
+    line-height: 1.55;
+}
+.apx-popup-body textarea {
+    width: 100%;
+    min-height: 280px;
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 12.5px;
+    line-height: 1.5;
+    border-radius: 8px;
+    border: 1px solid var(--apx-line);
+    padding: 10px 12px;
+    background: var(--apx-surf);
+    color: var(--apx-ink);
+    box-shadow: none;
+    resize: vertical;
+}
+.apx-popup-body textarea:focus {
+    border-color: var(--apx-brand);
+    box-shadow: var(--apx-shadow-focus);
+    outline: none;
+}
+.apx-popup-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--apx-line);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+/* Modal buttons — match the indigo system */
+.apx-popup-footer .button,
+.apx-popup-footer .button-primary,
+.apx-popup-footer .button-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 8px;
+    border: 1px solid var(--apx-line);
+    background: var(--apx-surf);
+    color: var(--apx-ink);
+    cursor: pointer;
+    box-shadow: none;
+    text-shadow: none;
+    height: auto;
+    min-height: 36px;
+    line-height: 1.2;
+    font-family: var(--apx-font);
+}
+.apx-popup-footer .button-primary,
+.apx-popup-footer .apx-popup-save {
+    background: var(--apx-brand);
+    border-color: var(--apx-brand);
+    color: #fff;
+}
+.apx-popup-footer .button-primary:hover,
+.apx-popup-footer .apx-popup-save:hover {
+    background: var(--apx-brand-deep);
+    border-color: var(--apx-brand-deep);
+    color: #fff;
+}
+.apx-popup-footer .button-secondary:hover,
+.apx-popup-footer .apx-popup-cancel:hover {
+    background: var(--apx-line-soft);
+}
+
+/* ── 15. WP-admin overrides + responsive ─────────────────────────────── */
+.apx-wrap h1, .apx-wrap h2, .apx-wrap h3, .apx-wrap h4 {
+    font-weight: 700;
+    font-family: var(--apx-font);
+}
+.apx-wrap fieldset { border: 0; padding: 0; margin: 0; }
+.apx-wrap legend { padding: 0; }
+.folded .apx-wrap { margin-left: 0; }
+
+/* Responsive */
+@media (max-width: 900px) {
+    .apx-app { grid-template-columns: 1fr; }
+    .apx-sidebar {
+        border-right: 0;
+        border-bottom: 1px solid var(--apx-line);
+        padding: 14px 0;
+    }
+    .apx-brand { padding: 0 18px 12px; margin-bottom: 10px; }
+    .apx-nav { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px; }
+    .apx-nav__group { margin-bottom: 0; display: contents; }
+    .apx-nav__group-label { display: none; }
+    /* (2.5.1) Sidebar items are width:100% with a stretching label span —
+       fine in a column, ugly when flex-wrapped. On small screens render
+       them as compact pills that wrap evenly. */
+    .apx-nav__item,
+    .apx-wrap .apx-tab.apx-nav__item {
+        width: auto;
+        flex: 0 0 auto;
+        margin-bottom: 0;
+        padding: 7px 12px;
+        border: 1px solid var(--apx-line-soft);
+        border-radius: 20px;
+        gap: 7px;
+    }
+    .apx-nav__item span { flex: 0 0 auto; }
+    .apx-nav__item.active::after,
+    .apx-wrap .apx-tab.apx-nav__item.active::after {
+        display: none; /* the trailing dot relies on margin-left:auto and
+                          would stretch the pill */
+    }
+    .apx-nav__item.active,
+    .apx-wrap .apx-tab.apx-nav__item.active {
+        border-color: var(--apx-brand);
+    }
+    .apx-sidebar__help { display: none; }
+    .apx-grid-2 { grid-template-columns: 1fr; }
+    .apx-kpi-strip { grid-template-columns: 1fr; }
+    .apx-topbar { padding: 0 16px; height: auto; flex-wrap: wrap; gap: 8px; padding-block: 10px; }
+    .apx-content { padding: 18px 16px 40px; }
+    .apx-wrap .apx-row { grid-template-columns: 1fr; }
+}
+
+@media print {
+    .apx-sidebar, .apx-topbar { display: none; }
+}
+
+/* ── 1.7.0 — Dashboard module-status double-toggle fix ─────────────────────
+   Pre-1.7.0 the read-only toggle in the dashboard rendered both the native
+   checkbox (with WP-core's blue checkmark from common.css) AND our pill,
+   producing a visible double element. We already suppress the native
+   checkmark globally, but on the dashboard's `.apx-switch--readonly`
+   variant the `<input disabled>` was still painting its own background
+   on some themes / WP versions. Lock the readonly variant down hard:
+   absolutely zero visual contribution from the input element. */
+.apx-switch--readonly input,
+.apx-switch--readonly input[disabled] {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    outline: 0 !important;
+    /* Disabled inputs ignore pointer events anyway, but be explicit. */
+    pointer-events: none;
+}
+.apx-switch--readonly input::before,
+.apx-switch--readonly input::after,
+.apx-switch--readonly input:checked::before,
+.apx-switch--readonly input:checked::after {
+    content: none !important;
+    display: none !important;
+}
+
+/* ── 1.7.0 — Sticky save bar ───────────────────────────────────────────────
+   Bottom-center floating bar. Slides in when there are unsaved changes,
+   slides out when there aren't. Position fixed so it survives tab
+   switches and scroll. Z-index above modals but below WP admin menus
+   so an open menu still wins. */
+.apx-savebar {
+    position: fixed;
+    left: 50%;
+    bottom: -80px; /* hidden by default */
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 12px 16px 12px 20px;
+    background: #0f172a;
+    color: #f8fafc;
+    border-radius: 12px;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, .25), 0 4px 12px rgba(15, 23, 42, .15);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 13.5px;
+    z-index: 99998; /* below #wpadminbar (99999) */
+    transition: bottom .25s cubic-bezier(.16, 1, .3, 1), opacity .2s ease;
+    opacity: 0;
+    pointer-events: none;
+    max-width: calc(100vw - 32px);
+}
+.apx-savebar--visible {
+    bottom: 24px;
+    opacity: 1;
+    pointer-events: auto;
+}
+.apx-savebar__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #f59e0b; /* amber — drawing attention */
+    box-shadow: 0 0 0 4px rgba(245, 158, 11, .18);
+    flex-shrink: 0;
+}
+.apx-savebar__label { color: #cbd5e1; }
+.apx-savebar__label strong { color: #fff; font-weight: 600; padding: 0 2px; }
+.apx-savebar__discard,
+.apx-savebar__save {
+    appearance: none;
+    border: 0;
+    font: inherit;
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: background .15s ease, transform .05s ease;
+}
+.apx-savebar__discard {
+    background: transparent;
+    color: #cbd5e1;
+}
+.apx-savebar__discard:hover {
+    color: #fff;
+}
+.apx-savebar__save {
+    background: #6366f1;
+    color: #fff;
+}
+.apx-savebar__save:hover:not(:disabled) {
+    background: #4f46e5;
+}
+.apx-savebar__save:active:not(:disabled) {
+    transform: translateY(1px);
+}
+.apx-savebar__save:disabled {
+    opacity: .65;
+    cursor: progress;
+}
+.apx-savebar__save--busy {
+    /* The button shows a soft pulse instead of a spinner to keep the
+       layout exactly the same width during save. */
+    animation: apx-savebar-pulse 1.1s ease-in-out infinite;
+}
+@keyframes apx-savebar-pulse {
+    0%, 100% { background: #6366f1; }
+    50%      { background: #4f46e5; }
+}
+
+/* ── 1.7.0 — Save / discard toast ───────────────────────────────────────── */
+.apx-toast {
+    position: fixed;
+    left: 50%;
+    bottom: -60px;
+    transform: translateX(-50%);
+    padding: 10px 18px;
+    background: #0f172a;
+    color: #f8fafc;
+    border-radius: 999px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, .25);
+    z-index: 99997;
+    opacity: 0;
+    pointer-events: none;
+    transition: bottom .25s cubic-bezier(.16, 1, .3, 1), opacity .2s ease;
+    white-space: nowrap;
+    max-width: calc(100vw - 32px);
+}
+.apx-toast--visible {
+    bottom: 24px;
+    opacity: 1;
+}
+/* Lift the toast above where the save bar would sit if the save bar
+   is also visible (it shouldn't be — toast appears after save bar is
+   already hiding — but defensive). */
+.apx-savebar--visible ~ .apx-toast--visible {
+    bottom: 88px;
+}
+.apx-toast--ok    { background: #047857; }
+.apx-toast--error { background: #b91c1c; }
+.apx-toast--muted { background: #334155; }
+
+@media (max-width: 600px) {
+    .apx-savebar { gap: 10px; padding: 10px 12px; font-size: 12.5px; }
+    .apx-savebar__discard,
+    .apx-savebar__save { padding: 6px 12px; }
+}
+
+/* ═══════════════════════════════════════════════════
+   AzarPixel Admin UI 2.1.0 — New component styles
+   ═══════════════════════════════════════════════════ */
+
+/* ── Sub-tabs ── */
+.apx-subtabs{display:flex;gap:4px;border-bottom:2px solid var(--apx-border-soft,#e5e7eb);padding-bottom:0;margin-bottom:0;flex-wrap:wrap}
+.apx-subtab{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;font-size:13px;font-weight:500;color:var(--apx-text-muted,#6b7280);background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;cursor:pointer;border-radius:6px 6px 0 0;transition:all .15s ease}
+.apx-subtab:hover{color:var(--apx-text,#1f2937);background:var(--apx-bg-tab,#f3f4f6)}
+.apx-subtab--active{color:var(--apx-brand,#6d28d9);border-bottom-color:var(--apx-brand,#6d28d9);font-weight:600}
+.apx-subtab--active:hover{color:var(--apx-brand,#6d28d9)}
+.apx-subtab .apx-icon--sm{width:15px;height:15px;opacity:.7}
+.apx-subtab--active .apx-icon--sm{opacity:1}
+
+/* ── Collapsible help ── */
+.apx-collapsible{margin:10px 0;border-radius:8px;border:1px solid var(--apx-border-soft,#e5e7eb);overflow:hidden}
+.apx-collapsible__toggle{display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;font-size:13px;font-weight:500;color:var(--apx-brand,#6d28d9);background:var(--apx-bg-tab,#f9fafb);border:none;cursor:pointer;text-align:left;transition:background .15s}
+.apx-collapsible__toggle:hover{background:var(--apx-bg-hover,#f3f4f6)}
+.apx-collapsible__body{padding:12px 16px 14px;font-size:13px;line-height:1.65;color:var(--apx-text-muted,#4b5563);border-top:1px solid var(--apx-border-soft,#e5e7eb);background:#fff}
+.apx-collapsible__body p{margin:0 0 8px}
+.apx-collapsible__body p:last-child{margin-bottom:0}
+.apx-collapsible__body ul{margin:6px 0;padding-left:20px}
+.apx-collapsible__body li{margin-bottom:4px}
+.apx-icon--xs{width:12px;height:12px}
+
+/* ── Dependency warning ── */
+.apx-dep-warning{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;margin:10px 0;background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;font-size:13px;color:#92400e;line-height:1.5}
+.apx-dep-warning .apx-icon--sm{flex-shrink:0;margin-top:1px;color:#d97706}
+.apx-dep-warning__link{background:none;border:none;color:var(--apx-brand,#6d28d9);text-decoration:underline;cursor:pointer;font-size:13px;padding:0;margin-left:4px;white-space:nowrap}
+
+/* ==========================================================================
+   First-run Setup Wizard (2.3.0)
+   ========================================================================== */
+.apx-wiz {
+    --apx-brand:      #5b4ed9;
+    --apx-brand-2:    #7a6cf0;
+    --apx-brand-deep: #4a3fc4;
+    --apx-ink:        #0f172a;
+    --apx-sub:        #475569;
+    --apx-mute:       #94a3b8;
+    --apx-line:       #e6e8ee;
+    --apx-ok:         #10b981;
+    --apx-font:       "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    font-family: var(--apx-font);
+    color: var(--apx-ink);
+    margin: 16px 20px 40px 0;
+    -webkit-font-smoothing: antialiased;
+}
+.apx-wiz *, .apx-wiz *::before, .apx-wiz *::after { box-sizing: border-box; }
+
+.apx-wiz__shell {
+    position: relative;
+    max-width: 1040px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid var(--apx-line);
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(15,23,42,.06);
+    padding: 36px 36px 30px;
+}
+.apx-wiz__skip {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    background: none;
+    border: 0;
+    color: var(--apx-mute);
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 4px 6px;
+}
+.apx-wiz__skip:hover { color: var(--apx-sub); }
+.apx-wiz__skip:disabled { opacity: .5; cursor: default; }
+
+.apx-wiz__head { text-align: center; margin-bottom: 26px; }
+.apx-wiz__mark {
+    width: 48px; height: 48px;
+    margin: 0 auto 14px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    background: linear-gradient(135deg, var(--apx-brand), var(--apx-brand-2));
+    box-shadow: 0 8px 20px rgba(91,78,217,.35);
+}
+.apx-wiz__title { font-size: 24px; font-weight: 700; margin: 0 0 8px; color: var(--apx-ink); }
+.apx-wiz__sub { font-size: 14px; color: var(--apx-sub); margin: 0 auto; max-width: 620px; line-height: 1.6; }
+
+.apx-wiz__cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 22px;
+}
+@media (max-width: 860px) { .apx-wiz__cards { grid-template-columns: 1fr; } }
+
+.apx-wiz-card {
+    position: relative;
+    text-align: left;
+    background: #fff;
+    border: 2px solid var(--apx-line);
+    border-radius: 14px;
+    padding: 18px 18px 16px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+    font: inherit;
+    color: inherit;
+}
+.apx-wiz-card:hover { border-color: var(--apx-brand-2); transform: translateY(-2px); }
+.apx-wiz-card.is-selected {
+    border-color: var(--apx-brand);
+    box-shadow: 0 0 0 3px rgba(91,78,217,.16);
+}
+.apx-wiz-card__radio {
+    position: absolute;
+    top: 16px; right: 16px;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--apx-line);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+}
+.apx-wiz-card.is-selected .apx-wiz-card__radio { background: var(--apx-brand); border-color: var(--apx-brand); }
+.apx-wiz-badge {
+    position: absolute;
+    top: -11px; left: 18px;
+    background: var(--apx-brand);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .3px;
+    padding: 3px 10px;
+    border-radius: 999px;
+}
+.apx-wiz-card__name { font-size: 17px; font-weight: 700; margin-bottom: 2px; }
+.apx-wiz-card__tag { font-size: 12px; font-weight: 600; color: var(--apx-brand); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 10px; }
+.apx-wiz-card__desc { font-size: 13px; color: var(--apx-sub); line-height: 1.55; margin-bottom: 12px; }
+.apx-wiz-card__list { list-style: none; margin: auto 0 0; padding: 0; }
+.apx-wiz-card__list li {
+    display: flex; align-items: flex-start; gap: 8px;
+    font-size: 12.5px; color: var(--apx-ink);
+    padding: 4px 0;
+    line-height: 1.45;
+}
+.apx-wiz-tick { color: var(--apx-ok); flex-shrink: 0; margin-top: 1px; }
+
+.apx-wiz__consent {
+    border: 1px solid var(--apx-line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 22px;
+    background: #f9fafc;
+}
+.apx-wiz__consent-row { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.apx-wiz__consent-row input { width: 16px; height: 16px; }
+.apx-wiz__whats {
+    background: none; border: 0; color: var(--apx-brand);
+    font-size: 13px; cursor: pointer; text-decoration: underline; padding: 0; margin-left: 2px; font-weight: 500;
+}
+.apx-wiz__info { margin-top: 10px; font-size: 12.5px; color: var(--apx-sub); line-height: 1.6; }
+.apx-wiz__info p { margin: 0 0 8px; }
+.apx-wiz__info p:last-child { margin-bottom: 0; }
+.apx-wiz__hl { background: rgba(91,78,217,.14); color: var(--apx-brand-deep); font-weight: 600; padding: 0 4px; border-radius: 4px; }
+
+.apx-wiz__foot { display: flex; align-items: center; gap: 16px; justify-content: center; }
+.apx-wiz__cta {
+    background: linear-gradient(135deg, var(--apx-brand), var(--apx-brand-2));
+    color: #fff;
+    border: 0;
+    border-radius: 10px;
+    padding: 12px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(91,78,217,.3);
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+.apx-wiz__cta:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(91,78,217,.36); }
+.apx-wiz__cta:disabled { opacity: .65; cursor: default; transform: none; }
+.apx-wiz__foot-note { font-size: 13px; color: var(--apx-mute); }
+
+/* ── PageSpeed: loading spinner ── */
+.apx-spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(91,78,217,.25);
+    border-top-color: var(--apx-accent, #5b4ee8);
+    border-radius: 50%;
+    animation: apx-spin .7s linear infinite;
+    flex: none;
+}
+@keyframes apx-spin { to { transform: rotate(360deg); } }
+
+/* ── Settings: card sections (visually separate Speed Test / Uninstall) ── */
+.apx-settings-card {
+    padding: 18px 20px;
+    margin-bottom: 18px;
+    background: var(--apx-bg-alt, #fafafb);
+    border: 1px solid var(--apx-border, #e3e5e8);
+    border-radius: 12px;
+}
+.apx-settings-card h3 { font-size: 15px; }
+
+/* ── Results tables: contain wide tables, scroll instead of overflowing ── */
+.apx-table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ── Cloudways CTA row: compact, button on the right, text on the left ── */
+.apx-host-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 16px;
+    padding: 12px 14px;
+    border: 1px solid var(--apx-border, #e3e5e8);
+    border-radius: 10px;
+    background: var(--apx-bg-alt, #fafafb);
+}
+.apx-host-row__text {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--apx-text-soft, #4b5563);
+}
+.apx-host-row__text strong { color: var(--apx-accent, #5b4ee8); font-weight: 700; }
+.apx-host-cta {
+    position: relative;
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    color: #fff;
+    overflow: hidden;
+    background: linear-gradient(120deg, #4f3ff0 0%, #7c5cf6 100%);
+    box-shadow: 0 4px 12px rgba(79,63,240,.30);
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+.apx-host-cta:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(79,63,240,.42); }
+.apx-host-cta:focus { outline: 2px solid var(--apx-accent, #5b4ee8); outline-offset: 2px; }
+.apx-host-cta__shine {
+    position: absolute; top: 0; left: -60%;
+    width: 45%; height: 100%;
+    background: linear-gradient(100deg, transparent, rgba(255,255,255,.5), transparent);
+    transform: skewX(-18deg);
+    animation: apx-cta-shine 3.6s ease-in-out infinite;
+    pointer-events: none;
+}
+@media (max-width: 600px) {
+    .apx-host-row { flex-direction: column; align-items: stretch; }
+    .apx-host-cta { justify-content: center; }
+}
+
+/* ── Setup wizard: pre-flight findings (2.6.0) ───────────────────────────
+   Rendered inline above the preset cards rather than as its own step — an
+   extra wizard screen costs completion rate, and this needs to cost nothing. */
+.apx-wiz__preflight {
+    margin: 0 0 18px;
+    padding: 14px 16px;
+    border: 1px solid var(--apx-border-soft, #e0e0e6);
+    border-left: 3px solid var(--apx-accent, #5b4ee8);
+    border-radius: 6px;
+    background: var(--apx-surface-soft, #fafaff);
+    text-align: left;
+}
+.apx-wiz__preflight-head {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0 0 8px;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--apx-text, #1d2327);
+}
+.apx-wiz__preflight-head svg { color: var(--apx-accent, #5b4ee8); flex: 0 0 auto; }
+.apx-wiz__preflight-list {
+    margin: 0;
+    padding: 0 0 0 20px;
+    list-style: disc;
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--apx-text-muted, #50575e);
+}
+.apx-wiz__preflight-list strong { color: var(--apx-text, #1d2327); }
+.apx-wiz__preflight-warn { color: var(--apx-warning, #996800); }
+.apx-wiz__preflight-foot {
+    margin: 9px 0 0;
+    font-size: 12px;
+    color: var(--apx-text-muted, #50575e);
+}
+@media (max-width: 600px) {
+    .apx-wiz__preflight { padding: 12px; }
+}
