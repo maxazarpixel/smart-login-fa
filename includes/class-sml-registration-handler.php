@@ -64,6 +64,15 @@ class SML_Registration_Handler {
 
 		$username = self::generate_username( $first_name, $last_name, $email );
 
+		// wp_insert_user() itself never emails anyone, but WooCommerce (and
+		// some themes) hook `user_register` to fire their own "welcome to
+		// the site" email synchronously inside it. That races our own
+		// verification-gated flow — the account isn't verified yet, so no
+		// welcome email should go out until SML_Email::send_welcome() does
+		// after the code/link is confirmed. Short-circuiting wp_mail() for
+		// the duration of this one call blocks it regardless of which
+		// plugin or hook is actually sending it.
+		add_filter( 'pre_wp_mail', '__return_true' );
 		$user_id = wp_insert_user(
 			array(
 				'user_login'  => $username,
@@ -75,6 +84,7 @@ class SML_Registration_Handler {
 				'role'        => SML_Settings::get( 'default_role', 'subscriber' ),
 			)
 		);
+		remove_filter( 'pre_wp_mail', '__return_true' );
 
 		if ( is_wp_error( $user_id ) ) {
 			wp_send_json_error( array( 'message' => $user_id->get_error_message() ) );

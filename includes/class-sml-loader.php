@@ -18,9 +18,14 @@ class SML_Loader {
 		add_action( 'init', array( __CLASS__, 'load_textdomain' ) );
 		add_action( 'sml_cleanup_expired_verifications', array( 'SML_Verification', 'cleanup_expired' ) );
 
-		if ( is_admin() ) {
-			new SML_Admin_Page();
-		}
+		// Not gated by is_admin(): the settings page's Save button calls the
+		// REST route this class registers (via rest_api_init), and REST API
+		// requests are not admin requests — gating construction to admin
+		// context meant that route never got registered, so saving from the
+		// browser always failed. The menu/enqueue pieces inside the class
+		// are still only reachable through admin-only hooks, so constructing
+		// it here has no front-end effect beyond registering the route.
+		new SML_Admin_Page();
 
 		SML_Registration_Handler::init();
 		SML_Login_Handler::init();
@@ -48,9 +53,7 @@ class SML_Loader {
 		require_once SML_PLUGIN_DIR . 'includes/providers/class-sml-recaptcha-provider.php';
 		require_once SML_PLUGIN_DIR . 'includes/providers/class-sml-turnstile-provider.php';
 
-		if ( is_admin() ) {
-			require_once SML_PLUGIN_DIR . 'admin/class-sml-admin-page.php';
-		}
+		require_once SML_PLUGIN_DIR . 'admin/class-sml-admin-page.php';
 
 		if ( class_exists( 'WooCommerce' ) ) {
 			require_once SML_PLUGIN_DIR . 'includes/class-sml-woocommerce.php';

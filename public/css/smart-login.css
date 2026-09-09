@@ -20,7 +20,7 @@
 
 	max-width: 420px;
 	margin: 0 auto;
-	padding: 0;
+	padding: 22px 20px;
 	background: var(--sml-bg);
 	color: var(--sml-fg);
 	border: none;
@@ -49,19 +49,19 @@
 }
 
 .sml-heading {
-	margin-bottom: 32px;
+	margin-bottom: 18px;
 	text-align: center;
 }
 
 .sml-heading-line1 {
-	font-size: 26px;
+	font-size: 21px;
 	font-weight: 700;
 	letter-spacing: -0.01em;
 	line-height: 1.25;
 }
 
 .sml-heading-line2 {
-	font-size: 22px;
+	font-size: 16px;
 	font-weight: 400;
 	color: var(--sml-fg);
 	line-height: 1.3;
@@ -106,55 +106,112 @@
 }
 
 /*
- * Boxed field: label sits as a small caption inside the top of a bordered
- * box, input sits borderless beneath it within the same box — the border
- * belongs to the box, not the input.
+ * Boxed field, Material-style floating label. Structure is always
+ * <box><input-or-wrapper><label>. The label overlays the input as a
+ * placeholder-sized prompt at rest; :focus-within or a non-empty input
+ * (`:not(:placeholder-shown)`, which requires `placeholder=" "` on the
+ * input) floats it to a small caption pinned to the top of the box. A
+ * field whose box contains a <select> (the phone field) is always treated
+ * as "filled" since a select always has a value.
+ *
+ * Selectors are qualified with `.sml-card` and declarations carry
+ * `!important` throughout this block: this is the one part of the sheet
+ * themes reliably fight (generic `input`/`select`/`label` rules, form
+ * plugins, "outlined field" utility classes), and losing here breaks the
+ * whole floating-label mechanism rather than just a color.
  */
-.sml-field-boxed {
-	margin-bottom: 16px;
-	padding: 9px 13px 8px;
-	border: 1.5px solid var(--sml-border);
-	transition: border-color 0.15s ease;
+.sml-card .sml-field-boxed {
+	position: relative !important;
+	display: block !important;
+	height: 44px !important;
+	margin: 0 0 10px !important;
+	padding: 0 !important;
+	border: 1.5px solid var(--sml-border) !important;
+	background: var(--sml-bg) !important;
+	box-sizing: border-box !important;
+	transition: border-color 0.15s ease !important;
 }
 
-.sml-field-boxed:focus-within {
-	border-color: var(--sml-fg);
+.sml-card .sml-field-boxed:focus-within {
+	border-color: var(--sml-fg) !important;
 }
 
-.sml-field-boxed label {
-	display: block;
-	margin-bottom: 2px;
-	font-size: 11px;
-	font-weight: 600;
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
-	color: var(--sml-muted);
+.sml-card .sml-field-boxed > input,
+.sml-card .sml-field-boxed > select,
+.sml-card .sml-field-boxed > .sml-password-group,
+.sml-card .sml-field-boxed > .sml-phone-group {
+	display: block !important;
+	position: absolute !important;
+	left: 12px !important;
+	right: 12px !important;
+	top: auto !important;
+	bottom: 6px !important;
+	width: auto !important;
+	height: 19px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	font-size: 14px !important;
+	line-height: 19px !important;
+	font-family: inherit !important;
+	color: var(--sml-fg) !important;
+	background: transparent !important;
+	border: none !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+}
+
+.sml-card .sml-field-boxed > input:focus,
+.sml-card .sml-field-boxed > select:focus {
+	outline: none !important;
+	box-shadow: none !important;
+}
+
+.sml-card .sml-field-boxed label {
+	display: block !important;
+	position: absolute !important;
+	left: 12px !important;
+	right: 12px !important;
+	top: 50% !important;
+	transform: translateY(-50%) !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	box-shadow: none !important;
+	outline: none !important;
+	font-size: 14px !important;
+	font-weight: 400 !important;
+	text-transform: none !important;
+	letter-spacing: normal !important;
+	color: var(--sml-muted) !important;
+	background: none !important;
+	white-space: nowrap !important;
+	overflow: hidden !important;
+	text-overflow: ellipsis !important;
+	pointer-events: none !important;
+	z-index: 1 !important;
+	transition: top 0.15s ease, font-size 0.15s ease, font-weight 0.15s ease,
+		letter-spacing 0.15s ease, text-transform 0.15s ease !important;
+}
+
+.sml-card .sml-field-boxed:focus-within label,
+.sml-card .sml-field-boxed:has(input:not(:placeholder-shown)) label,
+.sml-card .sml-field-boxed:has(select) label {
+	top: 7px !important;
+	transform: translateY(0) !important;
+	font-size: 10px !important;
+	font-weight: 600 !important;
+	text-transform: uppercase !important;
+	letter-spacing: 0.06em !important;
+	color: var(--sml-muted) !important;
 }
 
 .sml-required {
 	color: var(--sml-muted);
 }
 
-.sml-field-boxed input,
-.sml-field-boxed select {
-	display: block;
-	width: 100%;
-	padding: 2px 0 0;
-	font-size: 15px;
-	font-family: inherit;
-	color: var(--sml-fg);
-	background: transparent;
-	border: none;
-}
-
-.sml-field-boxed input:focus,
-.sml-field-boxed select:focus {
-	outline: none;
-}
-
 .sml-forgot-link {
 	display: block;
-	margin: -6px 0 18px;
+	margin: 0 0 14px;
 	font-size: 12.5px;
 	color: var(--sml-fg);
 	text-decoration: none;
@@ -167,12 +224,11 @@
 .sml-field-row {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
-	gap: 12px;
+	gap: 10px;
 }
 
-.sml-field-row .sml-field,
 .sml-field-row .sml-field-boxed {
-	margin-bottom: 16px;
+	margin-bottom: 10px;
 }
 
 @media (max-width: 360px) {
@@ -182,51 +238,81 @@
 	}
 }
 
-.sml-phone-group {
-	display: flex;
-	gap: 8px;
+.sml-card .sml-phone-group {
+	display: flex !important;
+	align-items: center !important;
+	gap: 8px !important;
+	height: 100% !important;
 }
 
-.sml-phone-group select {
-	flex: 0 0 auto;
-	width: auto;
-	max-width: 90px;
-	font-size: 17px;
-	padding-right: 4px;
+.sml-card .sml-phone-group select {
+	flex: 0 0 auto !important;
+	width: auto !important;
+	max-width: 74px !important;
+	height: 100% !important;
+	padding: 0 !important;
+	font-size: 15px !important;
+	color: var(--sml-fg) !important;
+	background: transparent !important;
+	border: none !important;
 }
 
-.sml-phone-group input {
-	flex: 1;
-	min-width: 0;
+.sml-card .sml-phone-group input {
+	flex: 1 !important;
+	min-width: 0 !important;
+	height: 100% !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	font-size: 14px !important;
+	font-family: inherit !important;
+	color: var(--sml-fg) !important;
+	background: transparent !important;
+	border: none !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	outline: none !important;
 }
 
-.sml-password-group {
-	position: relative;
+.sml-card .sml-password-group {
+	display: flex !important;
+	align-items: center !important;
+	height: 100% !important;
 }
 
-.sml-password-group input {
-	padding-right: 56px;
+.sml-card .sml-password-group input {
+	flex: 1 !important;
+	min-width: 0 !important;
+	height: 100% !important;
+	margin: 0 !important;
+	padding: 0 40px 0 0 !important;
+	font-size: 14px !important;
+	font-family: inherit !important;
+	color: var(--sml-fg) !important;
+	background: transparent !important;
+	border: none !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	outline: none !important;
 }
 
-.sml-password-toggle {
-	position: absolute;
-	top: 50%;
-	right: 6px;
-	transform: translateY(-50%);
-	padding: 6px 10px;
-	background: none;
-	border: none;
-	color: var(--sml-muted);
-	font-family: inherit;
-	font-size: 12px;
-	font-weight: 600;
-	cursor: pointer;
-	border-radius: 6px;
+.sml-card .sml-password-toggle {
+	position: absolute !important;
+	top: 50% !important;
+	right: 0 !important;
+	transform: translateY(-50%) !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	background: none !important;
+	border: none !important;
+	color: var(--sml-muted) !important;
+	font-family: inherit !important;
+	font-size: 11px !important;
+	font-weight: 600 !important;
+	cursor: pointer !important;
 }
 
-.sml-password-toggle:hover {
-	color: var(--sml-fg);
-	background: var(--sml-surface);
+.sml-card .sml-password-toggle:hover {
+	color: var(--sml-fg) !important;
 }
 
 .sml-otp {
@@ -268,8 +354,8 @@
 .sml-btn {
 	display: block;
 	width: 100%;
-	padding: 11px 14px;
-	font-size: 14.5px;
+	padding: 10px 14px;
+	font-size: 14px;
 	font-family: inherit;
 	font-weight: 600;
 	letter-spacing: -0.01em;

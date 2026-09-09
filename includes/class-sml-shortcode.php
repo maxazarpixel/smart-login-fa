@@ -120,17 +120,17 @@ class SML_Shortcode {
 				</div>
 				<form data-sml-form="login" novalidate>
 					<div class="sml-field-boxed">
+						<input type="email" id="sml-login-user" name="username" autocomplete="username" placeholder=" " required>
 						<label for="sml-login-user"><?php esc_html_e( 'Email', 'smart-login' ); ?></label>
-						<input type="email" id="sml-login-user" name="username" autocomplete="username" required>
 					</div>
 					<div class="sml-field-boxed">
-						<label for="sml-login-pass"><?php esc_html_e( 'Password', 'smart-login' ); ?></label>
 						<div class="sml-password-group">
-							<input type="password" id="sml-login-pass" name="password" autocomplete="current-password" required>
+							<input type="password" id="sml-login-pass" name="password" autocomplete="current-password" placeholder=" " required>
 							<button type="button" class="sml-password-toggle" data-sml-password-toggle aria-label="<?php esc_attr_e( 'Show password', 'smart-login' ); ?>">
 								<?php esc_html_e( 'Show', 'smart-login' ); ?>
 							</button>
 						</div>
+						<label for="sml-login-pass"><?php esc_html_e( 'Password', 'smart-login' ); ?></label>
 					</div>
 					<a class="sml-forgot-link" href="<?php echo esc_url( wp_lostpassword_url() ); ?>"><?php esc_html_e( 'Forgot password?', 'smart-login' ); ?></a>
 					<button type="submit" class="sml-btn sml-btn--primary"><?php esc_html_e( 'Log In', 'smart-login' ); ?></button>
@@ -161,20 +161,19 @@ class SML_Shortcode {
 						<?php endif; ?>
 						<div class="sml-field-row">
 							<div class="sml-field-boxed">
+								<input type="text" id="sml-reg-first" name="first_name" autocomplete="given-name" placeholder=" " required>
 								<label for="sml-reg-first"><?php esc_html_e( 'First name', 'smart-login' ); ?> <span class="sml-required">*</span></label>
-								<input type="text" id="sml-reg-first" name="first_name" autocomplete="given-name" required>
 							</div>
 							<div class="sml-field-boxed">
+								<input type="text" id="sml-reg-last" name="last_name" autocomplete="family-name" placeholder=" " required>
 								<label for="sml-reg-last"><?php esc_html_e( 'Last name', 'smart-login' ); ?> <span class="sml-required">*</span></label>
-								<input type="text" id="sml-reg-last" name="last_name" autocomplete="family-name" required>
 							</div>
 						</div>
 						<div class="sml-field-boxed">
+							<input type="email" id="sml-reg-email" name="email" autocomplete="email" placeholder=" " required>
 							<label for="sml-reg-email"><?php esc_html_e( 'Email', 'smart-login' ); ?> <span class="sml-required">*</span></label>
-							<input type="email" id="sml-reg-email" name="email" autocomplete="email" required>
 						</div>
 						<div class="sml-field-boxed">
-							<label for="sml-reg-phone"><?php esc_html_e( 'Mobile number', 'smart-login' ); ?> <span class="sml-required">*</span></label>
 							<div class="sml-phone-group">
 								<select name="phone_country" id="sml-reg-phone-country" aria-label="<?php esc_attr_e( 'Country code', 'smart-login' ); ?>">
 									<?php foreach ( self::phone_country_options() as $dial => $country ) : ?>
@@ -183,15 +182,16 @@ class SML_Shortcode {
 								</select>
 								<input type="tel" id="sml-reg-phone" name="phone_number" autocomplete="tel-national" inputmode="numeric" placeholder="<?php esc_attr_e( '555 123 4567', 'smart-login' ); ?>" required>
 							</div>
+							<label for="sml-reg-phone"><?php esc_html_e( 'Mobile number', 'smart-login' ); ?> <span class="sml-required">*</span></label>
 						</div>
 						<div class="sml-field-boxed">
-							<label for="sml-reg-pass"><?php esc_html_e( 'Password', 'smart-login' ); ?> <span class="sml-required">*</span></label>
 							<div class="sml-password-group">
-								<input type="password" id="sml-reg-pass" name="password" autocomplete="new-password" required>
+								<input type="password" id="sml-reg-pass" name="password" autocomplete="new-password" placeholder=" " required>
 								<button type="button" class="sml-password-toggle" data-sml-password-toggle aria-label="<?php esc_attr_e( 'Show password', 'smart-login' ); ?>">
 									<?php esc_html_e( 'Show', 'smart-login' ); ?>
 								</button>
 							</div>
+							<label for="sml-reg-pass"><?php esc_html_e( 'Password', 'smart-login' ); ?> <span class="sml-required">*</span></label>
 						</div>
 						<button type="submit" class="sml-btn sml-btn--primary"><?php esc_html_e( 'Create Account', 'smart-login' ); ?></button>
 						<a class="sml-btn sml-btn--secondary" data-sml-tab="login" href="<?php echo $login_url; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"><?php esc_html_e( 'Log In', 'smart-login' ); ?></a>
