@@ -88,6 +88,7 @@ class SML_Admin_Page extends APX_Admin_Page {
 		);
 
 		add_action( 'wp_ajax_sml_users_table', array( $this, 'ajax_users_table' ) );
+		add_action( 'wp_ajax_sml_email_preview', array( $this, 'ajax_email_preview' ) );
 	}
 
 	/* ── panel definitions ───────────────────────────────────────────── */
@@ -314,6 +315,7 @@ class SML_Admin_Page extends APX_Admin_Page {
 						array( 'type' => 'text', 'name' => 'from_name', 'label' => __( 'From name', 'smart-login' ) ),
 						array( 'type' => 'text', 'name' => 'from_email', 'label' => __( 'From email', 'smart-login' ) ),
 						array( 'type' => 'html', 'html' => $this->test_email_html() ),
+						array( 'type' => 'html', 'html' => $this->email_preview_ui() ),
 					),
 				),
 				array(
@@ -329,6 +331,7 @@ class SML_Admin_Page extends APX_Admin_Page {
 					'fields'  => array(
 						array( 'type' => 'text', 'name' => 'verify_subject', 'label' => __( 'Subject', 'smart-login' ) ),
 						array( 'type' => 'textarea', 'name' => 'verify_body', 'label' => __( 'Body', 'smart-login' ) ),
+						array( 'type' => 'html', 'html' => $this->email_preview_button( 'verify' ) ),
 					),
 				),
 				array(
@@ -336,6 +339,7 @@ class SML_Admin_Page extends APX_Admin_Page {
 					'fields'  => array(
 						array( 'type' => 'text', 'name' => 'resend_subject', 'label' => __( 'Subject', 'smart-login' ) ),
 						array( 'type' => 'textarea', 'name' => 'resend_body', 'label' => __( 'Body', 'smart-login' ) ),
+						array( 'type' => 'html', 'html' => $this->email_preview_button( 'resend' ) ),
 					),
 				),
 				array(
@@ -343,6 +347,7 @@ class SML_Admin_Page extends APX_Admin_Page {
 					'fields'  => array(
 						array( 'type' => 'text', 'name' => 'welcome_subject', 'label' => __( 'Subject', 'smart-login' ) ),
 						array( 'type' => 'textarea', 'name' => 'welcome_body', 'label' => __( 'Body', 'smart-login' ) ),
+						array( 'type' => 'html', 'html' => $this->email_preview_button( 'welcome' ) ),
 					),
 				),
 				array(
@@ -350,6 +355,7 @@ class SML_Admin_Page extends APX_Admin_Page {
 					'fields'  => array(
 						array( 'type' => 'text', 'name' => 'reset_subject', 'label' => __( 'Subject', 'smart-login' ) ),
 						array( 'type' => 'textarea', 'name' => 'reset_body', 'label' => __( 'Body', 'smart-login' ) ),
+						array( 'type' => 'html', 'html' => $this->email_preview_button( 'reset' ) ),
 					),
 				),
 			),
@@ -1411,6 +1417,89 @@ class SML_Admin_Page extends APX_Admin_Page {
 		$svg .= '</svg>';
 
 		return $svg;
+	}
+
+	/**
+	 * A self-contained "does mail even work on this site" button. It calls
+	 * wp_mail() the same way every other email in the plugin does (same
+	 * from-address/content-type filters), independent of the
+	 * registration/verification flow — so if this also fails, the cause is
+	 * the site's mailer (e.g. WP Mail SMTP) or server, not this plugin.
+	 */
+	/**
+	 * A "Preview" button for one email type. Rendered once per email
+	 * section; all of them are wired by the shared script in
+	 * email_preview_ui().
+	 *
+	 * @param string $type verify|resend|welcome|reset
+	 * @return string
+	 */
+	protected function email_preview_button( $type ) {
+		return '<div class="apx-row">'
+			. '<label>' . esc_html__( 'Preview', 'smart-login' ) . '</label>'
+			. '<button type="button" class="button button-secondary" data-sml-email-preview="' . esc_attr( $type ) . '">'
+			. esc_html__( 'Preview email', 'smart-login' ) . '</button>'
+			. '<p class="description">' . esc_html__( 'Shows this email exactly as a customer receives it — header, card, button and footer — using sample data. Unsaved edits above are included.', 'smart-login' ) . '</p>'
+			. '</div>';
+	}
+
+	/**
+	 * The shared modal + script that every "Preview email" button drives.
+	 * Output once, in the Sender section.
+	 */
+	protected function email_preview_ui() {
+		$nonce = wp_json_encode( wp_create_nonce( 'sml_email_preview' ) );
+
+		return '<div id="sml-email-preview" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100050;display:flex;align-items:center;justify-content:center;padding:24px;">'
+			. '<div style="background:#fff;border-radius:10px;width:min(700px,100%);max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px -12px rgba(0,0,0,.4);">'
+			. '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #ececf0;">'
+			. '<strong>' . esc_html__( 'Email preview', 'smart-login' ) . '</strong>'
+			. '<button type="button" data-close class="button-link" style="font-size:20px;line-height:1;color:#7a7a85;">&times;</button>'
+			. '</div>'
+			. '<iframe title="' . esc_attr__( 'Email preview', 'smart-login' ) . '" style="border:0;flex:1;width:100%;min-height:440px;background:#f5f5f5;"></iframe>'
+			. '</div></div>'
+			. '<script>( function () {'
+			. 'var box = document.getElementById( "sml-email-preview" );'
+			. 'if ( ! box || ! window.ajaxurl ) { return; }'
+			. 'var frame = box.querySelector( "iframe" );'
+			. 'var nonce = ' . $nonce . ';'
+			. 'function close() { box.hidden = true; frame.srcdoc = ""; }'
+			. 'box.addEventListener( "click", function ( e ) { if ( e.target === box || e.target.closest( "[data-close]" ) ) { close(); } } );'
+			. 'document.addEventListener( "keydown", function ( e ) { if ( "Escape" === e.key && ! box.hidden ) { close(); } } );'
+			. 'document.addEventListener( "click", function ( e ) {'
+			. 'var btn = e.target.closest( "[data-sml-email-preview]" );'
+			. 'if ( ! btn ) { return; }'
+			. 'e.preventDefault();'
+			. 'var type = btn.getAttribute( "data-sml-email-preview" );'
+			. 'var subj = document.querySelector( "[name=\\"" + type + "_subject\\"]" );'
+			. 'var body = document.querySelector( "[name=\\"" + type + "_body\\"]" );'
+			. 'var b = new URLSearchParams();'
+			. 'b.set( "action", "sml_email_preview" ); b.set( "nonce", nonce ); b.set( "type", type );'
+			. 'b.set( "subject", subj ? subj.value : "" ); b.set( "body", body ? body.value : "" );'
+			. 'btn.disabled = true;'
+			. 'fetch( window.ajaxurl, { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: b.toString() } )'
+			. '.then( function ( r ) { return r.json(); } )'
+			. '.then( function ( res ) { if ( res && res.success ) { frame.srcdoc = res.data.html; box.hidden = false; } } )'
+			. '.catch( function () {} )'
+			. '.then( function () { btn.disabled = false; } );'
+			. '} );'
+			. '} )();</script>';
+	}
+
+	/** admin-ajax: render one email as the customer sees it. */
+	public function ajax_email_preview() {
+		check_ajax_referer( 'sml_email_preview', 'nonce' );
+		if ( ! current_user_can( $this->cfg['capability'] ) ) {
+			wp_send_json_error();
+		}
+
+		$type    = isset( $_POST['type'] ) ? sanitize_key( wp_unslash( $_POST['type'] ) ) : 'verify'; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$subject = isset( $_POST['subject'] ) ? sanitize_text_field( wp_unslash( $_POST['subject'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$body    = isset( $_POST['body'] ) ? wp_kses_post( wp_unslash( $_POST['body'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+
+		wp_send_json_success(
+			array( 'html' => SML_Email::render_preview( $type, array( 'subject' => $subject, 'body' => $body ) ) )
+		);
 	}
 
 	/**

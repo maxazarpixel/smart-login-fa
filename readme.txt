@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.21.0
+Stable tag: 1.22.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,9 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.22.0 =
+* Each email under Settings → Emails now has a "Preview email" button that renders that message exactly as a customer receives it — the full branded HTML with header, card, styled code/button and footer — using sample data, and including whatever you have typed in the body field before saving.
 
 = 1.21.0 =
 * The Users table is now interactive: an AJAX (admin-ajax) search box with no page reload, filter dropdowns for verification status, WooCommerce customer (has / no orders) and registration window (24h / 7d / 30d / 12mo), click-to-sort columns (name, email, registered, last login, resets, orders, spend), a numbered pager, and a live results count. The server returns the rendered rows/pager, so all escaping and formatting stay in PHP.

@@ -144,21 +144,9 @@ class SML_Email {
 		add_filter( 'wp_mail_from', array( __CLASS__, 'from_email' ) );
 		add_filter( 'wp_mail_from_name', array( __CLASS__, 'from_name' ) );
 
-		// Subject is always plain text; body may contain admin-authored basic
-		// HTML, which is why the plugin sends as text/html — but it still
-		// goes through wp_kses_post() so no script/unsafe markup survives.
+		// Subject is always plain text.
 		$subject = wp_strip_all_tags( $subject );
-		$body    = nl2br( wp_kses_post( $body_text ) );
-
-		if ( isset( $rich['code'] ) ) {
-			$body = str_replace( '{code}', self::code_badge( $rich['code'] ), $body );
-		}
-		if ( isset( $rich['link'] ) ) {
-			$link_label = isset( $rich['link_label'] ) ? (string) $rich['link_label'] : '';
-			$body       = str_replace( '{link}', self::cta_button( $rich['link'], $link_label ), $body );
-		}
-
-		$html = self::links_new_tab( self::wrap_shell( $body ) );
+		$html    = self::build_html( $body_text, $rich );
 
 		$sent = wp_mail( $to, $subject, $html );
 
@@ -193,6 +181,77 @@ class SML_Email {
 			. '<span style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:30px;font-weight:700;letter-spacing:8px;color:#111114;">'
 			. esc_html( $code )
 			. '</span></div></div>';
+	}
+
+	/**
+	 * Assembles the final email HTML from a plain-text body: sanitise,
+	 * nl2br, swap {code}/{link} for the styled badge/button, wrap in the
+	 * branded shell, force links to a new tab. Shared by send() and the
+	 * admin "Preview" (render_preview()).
+	 *
+	 * @param string $body_text  Body with {placeholder}s already substituted.
+	 * @param array  $rich        Optional 'code', 'link', 'link_label'.
+	 * @return string
+	 */
+	protected static function build_html( $body_text, array $rich = array() ) {
+		// Body may contain admin-authored basic HTML — wp_kses_post() keeps
+		// the safe subset and drops script/unsafe markup.
+		$body = nl2br( wp_kses_post( (string) $body_text ) );
+
+		if ( isset( $rich['code'] ) ) {
+			$body = str_replace( '{code}', self::code_badge( $rich['code'] ), $body );
+		}
+		if ( isset( $rich['link'] ) ) {
+			$label = isset( $rich['link_label'] ) ? (string) $rich['link_label'] : '';
+			$body  = str_replace( '{link}', self::cta_button( $rich['link'], $label ), $body );
+		}
+
+		return self::links_new_tab( self::wrap_shell( $body ) );
+	}
+
+	/**
+	 * Renders one email type exactly as it is sent, with sample data, for
+	 * the admin "Preview" button. Optional 'subject' / 'body' overrides let
+	 * the preview reflect unsaved edits in the settings form.
+	 *
+	 * @param string $type       verify|resend|welcome|reset
+	 * @param array  $overrides  Optional 'subject', 'body'.
+	 * @return string Full HTML document.
+	 */
+	public static function render_preview( $type, array $overrides = array() ) {
+		$map = array(
+			'verify'  => array( 'verify_subject', 'verify_body', true, true ),
+			'resend'  => array( 'resend_subject', 'resend_body', true, true ),
+			'welcome' => array( 'welcome_subject', 'welcome_body', false, false ),
+			'reset'   => array( 'reset_subject', 'reset_body', false, true ),
+		);
+		if ( ! isset( $map[ $type ] ) ) {
+			$type = 'verify';
+		}
+		list( $subject_key, $body_key, $has_code, $has_link ) = $map[ $type ];
+
+		$user   = wp_get_current_user();
+		$expiry = (int) SML_Settings::get( 'code_expiry_minutes', 10 );
+
+		$body_tpl = ( isset( $overrides['body'] ) && '' !== trim( (string) $overrides['body'] ) )
+			? (string) $overrides['body']
+			: (string) SML_Settings::get( $body_key );
+
+		$body_text = self::substitute( $body_tpl, $user, array( 'expiry_minutes' => $expiry ) );
+
+		$rich = array();
+		if ( $has_code ) {
+			$len          = max( 4, min( 8, (int) SML_Settings::get( 'code_length', 6 ) ) );
+			$rich['code'] = substr( '12345678', 0, $len );
+		}
+		if ( $has_link ) {
+			$rich['link'] = add_query_arg( 'sml_preview', '1', home_url( '/' ) );
+			if ( 'reset' === $type ) {
+				$rich['link_label'] = __( 'Reset Password', 'smart-login' );
+			}
+		}
+
+		return self::build_html( $body_text, $rich );
 	}
 
 	/**
