@@ -1,0 +1,9 @@
+# Files kept in the repo for development but not shipped in the plugin zip
+# (built with: git archive --format=zip --prefix=smart-login/ -o smart-login.zip HEAD)
+/.gitattributes  export-ignore
+/.gitignore      export-ignore
+/CLAUDE.md       export-ignore
+/.claude         export-ignore
+
+# Normalise line endings so archives are consistent across machines
+* text=auto eol=lf
