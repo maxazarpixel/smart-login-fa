@@ -175,6 +175,24 @@ class SML_Admin_Page extends APX_Admin_Page {
 						array( 'type' => 'countries', 'name' => 'allowed_countries', 'label' => __( 'Allowed countries', 'smart-login' ) ),
 					),
 				),
+				array(
+					'heading' => __( 'Disposable email protection', 'smart-login' ),
+					'desc'    => __( 'Rejects registration when the email address\'s domain matches the list below — reduces fake/fraudulent sign-ups from throwaway inboxes.', 'smart-login' ),
+					'fields'  => array(
+						array(
+							'type'  => 'toggle',
+							'name'  => 'block_disposable_emails',
+							'label' => __( 'Block disposable/temporary email addresses', 'smart-login' ),
+						),
+						array(
+							'type'        => 'list',
+							'name'        => 'disposable_email_domains',
+							'label'       => __( 'Blocked domains', 'smart-login' ),
+							'help'        => __( 'One domain per line, e.g. mailinator.com — no @ sign.', 'smart-login' ),
+							'placeholder' => "mailinator.com\nguerrillamail.com\n10minutemail.com",
+						),
+					),
+				),
 			),
 		);
 	}
@@ -225,6 +243,13 @@ class SML_Admin_Page extends APX_Admin_Page {
 						array( 'type' => 'number', 'name' => 'max_code_attempts', 'label' => __( 'Max code attempts before lockout', 'smart-login' ), 'min' => 1, 'max' => 20 ),
 						array( 'type' => 'number', 'name' => 'login_lockout_threshold', 'label' => __( 'Login attempt lockout threshold', 'smart-login' ), 'min' => 1, 'max' => 20 ),
 						array( 'type' => 'number', 'name' => 'lockout_duration_minutes', 'label' => __( 'Lockout duration (minutes)', 'smart-login' ), 'min' => 1, 'max' => 1440 ),
+					),
+				),
+				array(
+					'heading' => __( 'Login access', 'smart-login' ),
+					'desc'    => __( 'Restrict which user roles are permitted to log in through this form. Leave empty to allow every role (default). A user whose role isn\'t selected is signed back out immediately with a clear message — this only affects the [smart_login_form] form, not wp-login.php.', 'smart-login' ),
+					'fields'  => array(
+						array( 'type' => 'roles', 'name' => 'allowed_login_roles', 'label' => __( 'Roles allowed to log in', 'smart-login' ) ),
 					),
 				),
 				array(
@@ -284,6 +309,13 @@ class SML_Admin_Page extends APX_Admin_Page {
 						array( 'type' => 'textarea', 'name' => 'welcome_body', 'label' => __( 'Body', 'smart-login' ) ),
 					),
 				),
+				array(
+					'heading' => __( 'Password reset email', 'smart-login' ),
+					'fields'  => array(
+						array( 'type' => 'text', 'name' => 'reset_subject', 'label' => __( 'Subject', 'smart-login' ) ),
+						array( 'type' => 'textarea', 'name' => 'reset_body', 'label' => __( 'Body', 'smart-login' ) ),
+					),
+				),
 			),
 		);
 	}
@@ -298,6 +330,15 @@ class SML_Admin_Page extends APX_Admin_Page {
 					'fields'  => array(
 						array( 'type' => 'toggle', 'name' => 'wc_replace_login', 'label' => __( 'Replace My Account login form', 'smart-login' ), 'desc' => __( 'Swaps WooCommerce\'s default login form for the Smart Login form.', 'smart-login' ) ),
 						array( 'type' => 'toggle', 'name' => 'wc_replace_register', 'label' => __( 'Replace My Account register form', 'smart-login' ), 'desc' => __( 'Swaps WooCommerce\'s default register form and applies the same verification flow.', 'smart-login' ) ),
+					),
+				),
+				array(
+					'heading' => __( 'Require login for these pages', 'smart-login' ),
+					'desc'    => __( 'A visitor who isn\'t logged in is redirected to the login page below, then sent back to the page they wanted once they log in or verify their email. If "Login page" isn\'t set, this protection does nothing rather than risk locking visitors out.', 'smart-login' ),
+					'fields'  => array(
+						array( 'type' => 'page_select', 'name' => 'login_page_id', 'label' => __( 'Login page', 'smart-login' ), 'desc' => __( 'The page containing the [smart_login_form] shortcode.', 'smart-login' ) ),
+						array( 'type' => 'toggle', 'name' => 'require_login_cart', 'label' => __( 'Require login: Cart', 'smart-login' ) ),
+						array( 'type' => 'toggle', 'name' => 'require_login_checkout', 'label' => __( 'Require login: Checkout', 'smart-login' ) ),
 					),
 				),
 			),
@@ -674,6 +715,30 @@ class SML_Admin_Page extends APX_Admin_Page {
 			return;
 		}
 
+		if ( 'page_select' === $f['type'] ) {
+			$name  = $f['name'];
+			$val   = isset( $s[ $name ] ) ? (int) $s[ $name ] : 0;
+			$pages = get_pages( array( 'sort_column' => 'post_title' ) );
+			echo '<div class="apx-row">';
+			printf( '<label for="%1$s">%2$s</label>', esc_attr( $name ), esc_html( $f['label'] ) );
+			printf( '<select id="%1$s" name="%1$s" data-apx-field>', esc_attr( $name ) );
+			printf( '<option value="0">%s</option>', esc_html__( '— Select a page —', 'smart-login' ) );
+			foreach ( (array) $pages as $page ) {
+				printf(
+					'<option value="%1$d"%2$s>%3$s</option>',
+					(int) $page->ID,
+					selected( $val, $page->ID, false ),
+					esc_html( $page->post_title )
+				);
+			}
+			echo '</select>';
+			if ( $f['desc'] ) {
+				echo '<p class="description">' . wp_kses_post( $f['desc'] ) . '</p>'; // phpcs:ignore
+			}
+			echo '</div>';
+			return;
+		}
+
 		if ( 'decimal' === $f['type'] ) {
 			$name = $f['name'];
 			$val  = isset( $s[ $name ] ) ? $s[ $name ] : '';
@@ -712,39 +777,43 @@ class SML_Admin_Page extends APX_Admin_Page {
 		}
 
 		if ( 'countries' === $f['type'] ) {
-			$name    = $f['name'];
-			$current = isset( $s[ $name ] ) ? (string) $s[ $name ] : '';
-			$allowed = array_filter( array_map( 'trim', explode( ',', $current ) ) );
-			$all     = SML_Countries::all();
+			$all = SML_Countries::all();
 
-			echo '<div class="apx-field-row">';
-			printf( '<label><strong>%s</strong></label>', esc_html( $f['label'] ) );
-			printf( '<input type="hidden" id="%1$s" name="%1$s" value="%2$s" data-apx-field>', esc_attr( $name ), esc_attr( $current ) );
-			echo '<style>.sml-country-flag{width:18px;height:13px;flex:0 0 auto;vertical-align:middle;}</style>';
-			echo '<div class="sml-country-grid" data-sml-country-grid="' . esc_attr( $name ) . '" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px 14px;max-width:760px;margin-top:4px;">';
+			// Alphabetical by name so a ~195-country list is actually
+			// scannable — the underlying array is grouped default-first for
+			// readability of the source, not for display order here.
+			uasort( $all, function ( $a, $b ) {
+				return strcasecmp( $a['name'], $b['name'] );
+			} );
+
+			$options = array();
 			foreach ( $all as $id => $country ) {
-				printf(
-					'<label style="display:flex;align-items:center;gap:6px;font-weight:400;"><input type="checkbox" value="%1$s" %2$s>%3$s <span>%4$s (%5$s)</span></label>',
-					esc_attr( $id ),
-					checked( in_array( $id, $allowed, true ), true, false ),
-					SML_Flags::icon( $id, 'sml-country-flag' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-					esc_html( $country['name'] ),
-					esc_html( $country['dial'] )
-				);
+				$options[ $id ] = $country['name'] . ' (' . $country['dial'] . ')';
 			}
-			echo '</div>';
-			SML_Flags::sprite();
-			echo '<script>(function(){
-				var grid = document.querySelector(\'[data-sml-country-grid="' . esc_js( $name ) . '"]\');
-				var hidden = document.getElementById(\'' . esc_js( $name ) . '\');
-				if (!grid || !hidden) { return; }
-				grid.addEventListener("change", function(){
-					var ids = Array.prototype.slice.call(grid.querySelectorAll(\'input[type="checkbox"]:checked\')).map(function(cb){ return cb.value; });
-					hidden.value = ids.join(",");
-					hidden.dispatchEvent(new Event("change", { bubbles: true }));
-				});
-			})();</script>';
-			echo '</div>';
+
+			$this->render_searchable_multiselect(
+				$f,
+				$s,
+				$options,
+				__( 'Search countries…', 'smart-login' ),
+				__( 'Only checked countries appear in the mobile-number country selector.', 'smart-login' )
+			);
+			return;
+		}
+
+		if ( 'roles' === $f['type'] ) {
+			$options = array();
+			foreach ( wp_roles()->roles as $role_key => $role ) {
+				$options[ $role_key ] = translate_user_role( $role['name'] );
+			}
+
+			$this->render_searchable_multiselect(
+				$f,
+				$s,
+				$options,
+				__( 'Search roles…', 'smart-login' ),
+				__( 'None selected = every role allowed.', 'smart-login' )
+			);
 			return;
 		}
 
@@ -770,7 +839,192 @@ class SML_Admin_Page extends APX_Admin_Page {
 		parent::render_field( $f, $s );
 	}
 
+	/**
+	 * A searchable, checkbox-driven multi-select dropdown (search box + a
+	 * filterable list of checkboxes + removable chips for what's already
+	 * selected), backed by the same hidden CSV input the plain multi-select
+	 * used — so save/sanitize logic for 'countries'/'roles' fields is
+	 * unchanged. Built from scratch rather than a native <select multiple>
+	 * because a ctrl/cmd-click listbox doesn't scale to ~195 countries.
+	 *
+	 * The CSS/JS for it is only printed once per page load (guarded, since
+	 * this page can render this widget more than once) and only reaches the
+	 * browser on this admin settings screen — never site-wide.
+	 *
+	 * @param array<string,mixed>  $f       Field config (name, label, desc).
+	 * @param array<string,mixed>  $s       Current saved settings.
+	 * @param array<string,string> $options id => display label.
+	 * @param string               $search_placeholder
+	 * @param string               $extra_desc Appended after $f['desc'], if any.
+	 */
+	protected function render_searchable_multiselect( array $f, array $s, array $options, $search_placeholder, $extra_desc = '' ) {
+		$name    = $f['name'];
+		$current = isset( $s[ $name ] ) ? (string) $s[ $name ] : '';
+		$allowed = array_filter( array_map( 'trim', explode( ',', $current ) ) );
+
+		if ( ! self::$ms_assets_printed ) {
+			self::$ms_assets_printed = true;
+			echo self::multiselect_assets(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		}
+
+		echo '<div class="apx-field-row">';
+		printf( '<label for="%1$s-search"><strong>%2$s</strong></label>', esc_attr( $name ), esc_html( $f['label'] ) );
+		printf( '<input type="hidden" id="%1$s" name="%1$s" value="%2$s" data-apx-field>', esc_attr( $name ), esc_attr( $current ) );
+
+		echo '<div class="sml-ms" data-sml-ms="' . esc_attr( $name ) . '">';
+		echo '<div class="sml-ms-control" data-sml-ms-control tabindex="-1">';
+		echo '<div class="sml-ms-chips" data-sml-ms-chips></div>';
+		printf(
+			'<input type="text" class="sml-ms-search" id="%1$s-search" placeholder="%2$s" autocomplete="off" data-sml-ms-search>',
+			esc_attr( $name ),
+			esc_attr( $search_placeholder )
+		);
+		echo '</div>';
+		echo '<div class="sml-ms-dropdown" data-sml-ms-dropdown hidden>';
+		foreach ( $options as $id => $label ) {
+			printf(
+				'<label class="sml-ms-option" data-sml-ms-label="%1$s"><input type="checkbox" value="%1$s"%2$s>%3$s</label>',
+				esc_attr( $id ),
+				checked( in_array( $id, $allowed, true ), true, false ),
+				esc_html( $label )
+			);
+		}
+		echo '<div class="sml-ms-empty" data-sml-ms-empty hidden>' . esc_html__( 'No matches.', 'smart-login' ) . '</div>';
+		echo '</div>';
+		echo '</div>';
+
+		$desc = trim( ( $f['desc'] ? $f['desc'] . ' ' : '' ) . $extra_desc );
+		if ( $desc ) {
+			echo '<p class="description">' . wp_kses_post( $desc ) . '</p>'; // phpcs:ignore
+		}
+
+		echo '<script>window.smlInitMultiselect && window.smlInitMultiselect(' . wp_json_encode( $name ) . ', ' . wp_json_encode( $options ) . ');</script>';
+		echo '</div>';
+	}
+
+	/** @var bool Printed once per page load regardless of how many multiselect fields render. */
+	protected static $ms_assets_printed = false;
+
+	/**
+	 * @return string <style> + <script> for the searchable multi-select, and
+	 *                the smlInitMultiselect() factory it calls per field.
+	 */
+	protected static function multiselect_assets() {
+		ob_start();
+		?>
+		<style>
+		.sml-ms { position: relative; max-width: 420px; }
+		.sml-ms-control { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; border: 1px solid #8c8f94; border-radius: 4px; padding: 4px 6px; background: #fff; min-height: 32px; }
+		.sml-ms-control:focus-within { border-color: #2271b1; box-shadow: 0 0 0 1px #2271b1; }
+		.sml-ms-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+		.sml-ms-chip { display: inline-flex; align-items: center; gap: 4px; background: #f0f0f1; border-radius: 3px; padding: 2px 4px 2px 8px; font-size: 12px; line-height: 1.6; }
+		.sml-ms-chip button { border: 0; background: none; cursor: pointer; padding: 0 4px; font-size: 13px; line-height: 1; color: #646970; }
+		.sml-ms-chip button:hover { color: #d63638; }
+		.sml-ms-search { flex: 1 1 80px; min-width: 80px; border: 0 !important; box-shadow: none !important; padding: 2px 4px !important; margin: 0 !important; }
+		.sml-ms-dropdown { position: absolute; z-index: 20; top: 100%; left: 0; right: 0; margin-top: 2px; max-height: 260px; overflow-y: auto; background: #fff; border: 1px solid #8c8f94; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+		.sml-ms-option { display: flex; align-items: center; gap: 8px; padding: 6px 10px; font-weight: 400; cursor: pointer; }
+		.sml-ms-option:hover { background: #f0f6fc; }
+		.sml-ms-empty { padding: 8px 10px; color: #646970; font-size: 12.5px; }
+		</style>
+		<script>
+		(function () {
+			if ( window.smlInitMultiselect ) { return; }
+
+			window.smlInitMultiselect = function ( name, labels ) {
+				var root = document.querySelector( '[data-sml-ms="' + name + '"]' );
+				var hidden = document.getElementById( name );
+				if ( ! root || ! hidden ) { return; }
+
+				var control  = root.querySelector( '[data-sml-ms-control]' );
+				var chips    = root.querySelector( '[data-sml-ms-chips]' );
+				var search   = root.querySelector( '[data-sml-ms-search]' );
+				var dropdown = root.querySelector( '[data-sml-ms-dropdown]' );
+				var empty    = root.querySelector( '[data-sml-ms-empty]' );
+				var options  = Array.prototype.slice.call( root.querySelectorAll( '.sml-ms-option' ) );
+
+				function selectedIds() {
+					return options.filter( function ( o ) { return o.querySelector( 'input' ).checked; } )
+						.map( function ( o ) { return o.getAttribute( 'data-sml-ms-label' ); } );
+				}
+
+				function renderChips() {
+					var ids = selectedIds();
+					chips.innerHTML = '';
+					ids.forEach( function ( id ) {
+						var chip = document.createElement( 'span' );
+						chip.className = 'sml-ms-chip';
+						var text = document.createElement( 'span' );
+						text.textContent = labels[ id ] || id;
+						chip.appendChild( text );
+						var remove = document.createElement( 'button' );
+						remove.type = 'button';
+						remove.setAttribute( 'aria-label', 'Remove' );
+						remove.textContent = '×';
+						remove.addEventListener( 'click', function ( e ) {
+							e.stopPropagation();
+							var opt = options.filter( function ( o ) { return o.getAttribute( 'data-sml-ms-label' ) === id; } )[0];
+							if ( opt ) { opt.querySelector( 'input' ).checked = false; }
+							sync();
+						} );
+						chip.appendChild( remove );
+						chips.appendChild( chip );
+					} );
+				}
+
+				function sync() {
+					hidden.value = selectedIds().join( ',' );
+					hidden.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+					renderChips();
+				}
+
+				function filter() {
+					var q = search.value.trim().toLowerCase();
+					var visible = 0;
+					options.forEach( function ( o ) {
+						var match = ! q || o.textContent.toLowerCase().indexOf( q ) !== -1;
+						o.hidden = ! match;
+						if ( match ) { visible++; }
+					} );
+					empty.hidden = visible !== 0;
+				}
+
+				function open() {
+					dropdown.hidden = false;
+					filter();
+				}
+				function close() {
+					dropdown.hidden = true;
+				}
+
+				control.addEventListener( 'click', function () { open(); search.focus(); } );
+				search.addEventListener( 'focus', open );
+				search.addEventListener( 'input', filter );
+				search.addEventListener( 'keydown', function ( e ) {
+					if ( 'Escape' === e.key ) { close(); search.blur(); }
+				} );
+
+				options.forEach( function ( o ) {
+					o.querySelector( 'input' ).addEventListener( 'change', sync );
+				} );
+
+				document.addEventListener( 'click', function ( e ) {
+					if ( ! root.contains( e.target ) ) { close(); }
+				} );
+
+				renderChips();
+			};
+		})();
+		</script>
+		<?php
+		return ob_get_clean();
+	}
+
 	protected function sanitize( $value, array $field ) {
+		if ( 'page_select' === $field['type'] ) {
+			$page_id = absint( $value );
+			return ( $page_id && 'page' === get_post_type( $page_id ) ) ? $page_id : 0;
+		}
+
 		if ( 'color' === $field['type'] ) {
 			$hex = sanitize_hex_color( (string) $value );
 			return $hex ? $hex : SML_Settings::defaults()[ $field['name'] ];
@@ -782,6 +1036,12 @@ class SML_Admin_Page extends APX_Admin_Page {
 			$valid = array_values( array_intersect( $ids, $known ) );
 
 			return $valid ? implode( ',', $valid ) : SML_Countries::default_allowed_csv();
+		}
+
+		if ( 'roles' === $field['type'] ) {
+			$ids   = array_filter( array_map( 'trim', explode( ',', (string) $value ) ) );
+			$known = array_keys( wp_roles()->roles );
+			return implode( ',', array_values( array_intersect( $ids, $known ) ) );
 		}
 
 		if ( 'textarea' === $field['type'] ) {

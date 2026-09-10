@@ -49,7 +49,13 @@ class SML_Login_Handler {
 
 		SML_Lockout::clear( $username );
 
-		$notice = '';
+		if ( ! self::role_allowed( $user ) ) {
+			wp_logout();
+			wp_send_json_error( array( 'message' => __( 'Your account type is not permitted to log in through this form.', 'smart-login' ) ) );
+		}
+
+		$redirect_to = SML_Page_Guard::validate_redirect( isset( $_POST['redirect_to'] ) ? wp_unslash( $_POST['redirect_to'] ) : '' );
+		$notice      = '';
 
 		if ( ! SML_Verification::is_verified( $user->ID ) ) {
 			if ( SML_Verification::has_verification_record( $user->ID ) ) {
@@ -58,11 +64,30 @@ class SML_Login_Handler {
 
 				if ( 'block' === $branch ) {
 					wp_logout();
+
+					// Rather than leaving the user on the login form with an
+					// error, drop them straight onto the verify-code screen —
+					// issuing a fresh code (respecting the resend cooldown,
+					// so repeated login attempts can't spam their inbox) so
+					// there's always something valid waiting for them there.
+					$cooldown_check = SML_Verification::check_resend_cooldown( $user->ID );
+					if ( ! is_wp_error( $cooldown_check ) ) {
+						$issued = SML_Verification::issue( $user->ID );
+						SML_Email::send_verification( $user, $issued['code'], $issued['token'], true, $redirect_to );
+					}
+
+					$row              = SML_Verification::get_row( $user->ID );
+					$cooldown_seconds = (int) SML_Settings::get( 'resend_cooldown_seconds', 120 );
+					$resend_available = ( $row && $row->last_sent_at )
+						? ( strtotime( $row->last_sent_at . ' UTC' ) + $cooldown_seconds ) * 1000
+						: ( time() + $cooldown_seconds ) * 1000;
+
 					wp_send_json_error(
 						array(
-							'message'    => __( 'Please verify your email address before logging in.', 'smart-login' ),
-							'unverified' => true,
-							'user_id'    => $user->ID,
+							'message'          => __( 'Please verify your email address to continue. We just sent you a verification code.', 'smart-login' ),
+							'unverified'       => true,
+							'user_id'          => $user->ID,
+							'resend_available' => $resend_available,
 						)
 					);
 				}
@@ -78,7 +103,7 @@ class SML_Login_Handler {
 
 		wp_send_json_success(
 			array(
-				'redirect' => home_url( '/' ),
+				'redirect' => $redirect_to ?: home_url( '/' ),
 				'message'  => __( 'Login successful.', 'smart-login' ),
 				'notice'   => $notice,
 			)
@@ -106,6 +131,23 @@ class SML_Login_Handler {
 		set_transient( $throttle_key, 1, DAY_IN_SECONDS );
 
 		return true;
+	}
+
+	/**
+	 * Whether this user's role is permitted to log in through the Smart
+	 * Login form. An empty setting means no restriction — every role is
+	 * allowed — so an unconfigured site never locks anyone out by accident.
+	 *
+	 * @param WP_User $user
+	 * @return bool
+	 */
+	protected static function role_allowed( WP_User $user ) {
+		$allowed = array_filter( array_map( 'trim', explode( ',', (string) SML_Settings::get( 'allowed_login_roles', '' ) ) ) );
+		if ( ! $allowed ) {
+			return true;
+		}
+
+		return (bool) array_intersect( $allowed, (array) $user->roles );
 	}
 
 	/**

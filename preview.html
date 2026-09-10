@@ -512,11 +512,8 @@
 					</div>
 					<label for="sml-login-pass">Password</label>
 				</div>
-				<a class="sml-forgot-link" href="#">Forgot password?</a>
+				<a class="sml-forgot-link" data-sml-tab="forgot" href="?action=forgot">Forgot password?</a>
 				<button type="submit" class="sml-btn sml-btn--primary">Log In</button>
-				<p class="sml-resend-link" data-sml-resend-prompt hidden>
-					<button type="button" class="sml-link-btn" data-sml-resend-from-login>Resend verification email</button>
-				</p>
 				<a class="sml-btn sml-btn--secondary" data-sml-tab="register" href="?action=register">Create Account</a>
 			</form>
 		</div>
@@ -573,6 +570,46 @@
 				</div>
 				<button type="submit" class="sml-btn sml-btn--primary">Create Account</button>
 				<a class="sml-btn sml-btn--secondary" data-sml-tab="login" href="?">Log In</a>
+			</form>
+		</div>
+
+		<div class="sml-panel" data-sml-panel="forgot" hidden>
+			<div class="sml-heading">
+				<div class="sml-heading-line1">Reset Your</div>
+				<div class="sml-heading-line2">Password</div>
+			</div>
+			<p class="sml-verify-intro">Enter your email address and we'll send you a link to reset your password.</p>
+			<form data-sml-form="forgot" novalidate>
+				<div class="sml-field-boxed">
+					<input type="email" id="sml-forgot-email" name="login" autocomplete="email" placeholder=" " required>
+					<label for="sml-forgot-email">Email</label>
+				</div>
+				<button type="submit" class="sml-btn sml-btn--primary">Send Reset Link</button>
+				<a class="sml-btn sml-btn--secondary" data-sml-tab="login" href="?">Back to Log In</a>
+			</form>
+		</div>
+
+		<div class="sml-panel" data-sml-panel="reset" hidden>
+			<div class="sml-heading">
+				<div class="sml-heading-line1">Set a New</div>
+				<div class="sml-heading-line2">Password</div>
+			</div>
+			<form data-sml-form="reset" novalidate>
+				<div class="sml-field-boxed">
+					<div class="sml-password-group">
+						<input type="password" id="sml-reset-pass" name="password" autocomplete="new-password" placeholder=" " required>
+						<button type="button" class="sml-password-toggle" data-sml-password-toggle>Show</button>
+					</div>
+					<label for="sml-reset-pass">New password</label>
+				</div>
+				<div class="sml-field-boxed">
+					<div class="sml-password-group">
+						<input type="password" id="sml-reset-pass-confirm" name="password_confirm" autocomplete="new-password" placeholder=" " required>
+						<button type="button" class="sml-password-toggle" data-sml-password-toggle>Show</button>
+					</div>
+					<label for="sml-reset-pass-confirm">Confirm password</label>
+				</div>
+				<button type="submit" class="sml-btn sml-btn--primary">Reset Password</button>
 			</form>
 		</div>
 	</div>

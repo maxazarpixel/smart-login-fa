@@ -50,6 +50,10 @@ class SML_Registration_Handler {
 			wp_send_json_error( array( 'message' => __( 'Please enter a valid email address.', 'smart-login' ) ) );
 		}
 
+		if ( SML_Disposable_Email::is_disposable( $email ) ) {
+			wp_send_json_error( array( 'message' => __( 'Temporary or disposable email addresses are not allowed. Please register with a permanent email address.', 'smart-login' ) ) );
+		}
+
 		$countries = SML_Countries::all();
 
 		if ( ! isset( $countries[ $country_id ] ) || ! SML_Countries::is_allowed( $country_id ) ) {
@@ -58,8 +62,9 @@ class SML_Registration_Handler {
 
 		$phone_dial = $countries[ $country_id ]['dial'];
 
-		if ( strlen( $phone_number ) < 4 || strlen( $phone_number ) > 14 ) {
-			wp_send_json_error( array( 'message' => __( 'Please enter a valid mobile number.', 'smart-login' ) ) );
+		$phone_check = SML_Phone::validate( $country_id, $phone_number );
+		if ( is_wp_error( $phone_check ) ) {
+			wp_send_json_error( array( 'message' => $phone_check->get_error_message() ) );
 		}
 
 		if ( email_exists( $email ) ) {
@@ -95,11 +100,13 @@ class SML_Registration_Handler {
 		}
 
 		update_user_meta( $user_id, 'sml_email_verified', 0 );
-		update_user_meta( $user_id, 'sml_phone', $phone_dial . ' ' . $phone_number );
+		update_user_meta( $user_id, 'sml_phone', $phone_dial . ' ' . SML_Phone::format( $phone_number ) );
+
+		$redirect_to = SML_Page_Guard::validate_redirect( isset( $_POST['redirect_to'] ) ? wp_unslash( $_POST['redirect_to'] ) : '' );
 
 		$issued = SML_Verification::issue( $user_id );
 		$user   = get_user_by( 'id', $user_id );
-		SML_Email::send_verification( $user, $issued['code'], $issued['token'], false );
+		SML_Email::send_verification( $user, $issued['code'], $issued['token'], false, $redirect_to );
 
 		wp_send_json_success(
 			array(
@@ -133,7 +140,14 @@ class SML_Registration_Handler {
 		wp_set_current_user( $user_id );
 		wp_set_auth_cookie( $user_id );
 
-		wp_send_json_success( array( 'message' => __( 'Your email has been verified.', 'smart-login' ) ) );
+		$redirect_to = SML_Page_Guard::validate_redirect( isset( $_POST['redirect_to'] ) ? wp_unslash( $_POST['redirect_to'] ) : '' );
+
+		wp_send_json_success(
+			array(
+				'message'  => __( 'Your email has been verified.', 'smart-login' ),
+				'redirect' => $redirect_to ?: home_url( '/' ),
+			)
+		);
 	}
 
 	public static function ajax_resend() {
@@ -163,8 +177,10 @@ class SML_Registration_Handler {
 			);
 		}
 
+		$redirect_to = SML_Page_Guard::validate_redirect( isset( $_POST['redirect_to'] ) ? wp_unslash( $_POST['redirect_to'] ) : '' );
+
 		$issued = SML_Verification::issue( $user_id );
-		SML_Email::send_verification( $user, $issued['code'], $issued['token'], true );
+		SML_Email::send_verification( $user, $issued['code'], $issued['token'], true, $redirect_to );
 
 		wp_send_json_success(
 			array(

@@ -41,6 +41,8 @@ class SML_Loader {
 
 		SML_Registration_Handler::init();
 		SML_Login_Handler::init();
+		SML_Password_Reset_Handler::init();
+		SML_Page_Guard::init();
 		SML_Shortcode::init();
 
 		if ( class_exists( 'WooCommerce' ) ) {
@@ -53,14 +55,18 @@ class SML_Loader {
 	}
 
 	protected static function load_files() {
+		require_once SML_PLUGIN_DIR . 'includes/class-sml-disposable-email.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-settings.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-countries.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-flags.php';
+		require_once SML_PLUGIN_DIR . 'includes/class-sml-phone.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-verification.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-email.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-lockout.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-login-handler.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-registration-handler.php';
+		require_once SML_PLUGIN_DIR . 'includes/class-sml-password-reset-handler.php';
+		require_once SML_PLUGIN_DIR . 'includes/class-sml-page-guard.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-shortcode.php';
 
 		require_once SML_PLUGIN_DIR . 'includes/providers/interface-sml-bot-protection-provider.php';

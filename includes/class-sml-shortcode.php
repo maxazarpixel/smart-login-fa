@@ -29,10 +29,15 @@ class SML_Shortcode {
 		$token  = sanitize_text_field( wp_unslash( $_GET['sml_verify'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$result = SML_Verification::verify_link( $token );
 
-		$redirect_url = remove_query_arg( 'sml_verify' );
+		// Carried on the verify link itself (embedded when the email was
+		// sent — see SML_Email::verify_link()), not the current request's
+		// own query string, since this URL is only ever "?sml_verify=...".
+		$redirect_to = SML_Page_Guard::validate_redirect(
+			isset( $_GET['redirect_to'] ) ? wp_unslash( $_GET['redirect_to'] ) : '' // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		);
 
 		if ( is_wp_error( $result ) ) {
-			$redirect_url = add_query_arg( 'sml_verified', 'error', $redirect_url );
+			$redirect_url = add_query_arg( 'sml_verified', 'error', remove_query_arg( array( 'sml_verify', 'redirect_to' ) ) );
 		} else {
 			$user = get_user_by( 'id', $result );
 			if ( $user ) {
@@ -40,7 +45,12 @@ class SML_Shortcode {
 				wp_set_current_user( $result );
 				wp_set_auth_cookie( $result );
 			}
-			$redirect_url = add_query_arg( 'sml_verified', 'success', $redirect_url );
+
+			// A verified visitor who came from Cart/Checkout goes straight
+			// back there instead of wherever the login form happens to live.
+			$redirect_url = $redirect_to
+				? $redirect_to
+				: add_query_arg( 'sml_verified', 'success', remove_query_arg( array( 'sml_verify', 'redirect_to' ) ) );
 		}
 
 		wp_safe_redirect( $redirect_url );
@@ -57,12 +67,13 @@ class SML_Shortcode {
 			'smart-login',
 			'SmartLogin',
 			array(
-				'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
-				'registrationNonce' => wp_create_nonce( SML_Registration_Handler::NONCE_ACTION ),
-				'loginNonce'        => wp_create_nonce( SML_Login_Handler::NONCE_ACTION ),
-				'botProvider'       => $provider_key,
-				'botSiteKey'        => 'none' === $provider_key ? '' : SML_Settings::get( 'bot_site_key' ),
-				'i18n'              => array(
+				'ajaxUrl'            => admin_url( 'admin-ajax.php' ),
+				'registrationNonce'  => wp_create_nonce( SML_Registration_Handler::NONCE_ACTION ),
+				'loginNonce'         => wp_create_nonce( SML_Login_Handler::NONCE_ACTION ),
+				'passwordResetNonce' => wp_create_nonce( SML_Password_Reset_Handler::NONCE_ACTION ),
+				'botProvider'        => $provider_key,
+				'botSiteKey'         => 'none' === $provider_key ? '' : SML_Settings::get( 'bot_site_key' ),
+				'i18n'               => array(
 					'verifying'      => __( 'Verifying…', 'smart-login' ),
 					'sending'        => __( 'Sending…', 'smart-login' ),
 					'loggingIn'      => __( 'Logging in…', 'smart-login' ),
@@ -71,6 +82,7 @@ class SML_Shortcode {
 					'genericError'   => __( 'Something went wrong. Please try again.', 'smart-login' ),
 					'show'           => __( 'Show', 'smart-login' ),
 					'hide'           => __( 'Hide', 'smart-login' ),
+					'resetting'      => __( 'Resetting…', 'smart-login' ),
 				),
 			)
 		);
@@ -95,10 +107,38 @@ class SML_Shortcode {
 
 		$verified_status = isset( $_GET['sml_verified'] ) ? sanitize_text_field( wp_unslash( $_GET['sml_verified'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
-		$action         = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$initial_panel  = ( 'register' === $action && $show_register ) ? 'register' : 'login';
-		$register_url   = esc_url( add_query_arg( 'action', 'register' ) );
-		$login_url      = esc_url( remove_query_arg( 'action' ) );
+		// Where to send the visitor once they're logged in/verified — set
+		// by SML_Page_Guard when a protected page (e.g. Cart, Checkout)
+		// redirected them here. Carried through every form on this page as
+		// a hidden field so it survives the AJAX round-trip.
+		$redirect_to = SML_Page_Guard::validate_redirect(
+			isset( $_GET['redirect_to'] ) ? wp_unslash( $_GET['redirect_to'] ) : '' // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		);
+
+		$action        = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$register_url  = esc_url( add_query_arg( 'action', 'register' ) );
+		$forgot_url    = esc_url( add_query_arg( 'action', 'forgot' ) );
+		$login_url     = esc_url( remove_query_arg( 'action' ) );
+
+		// A visit carrying ?sml_reset=1&key=...&login=... is the link from
+		// the password-reset email — checked (not consumed) here purely to
+		// decide which panel to land on and whether to show an error;
+		// SML_Password_Reset_Handler::ajax_reset_password() re-validates
+		// (and actually consumes) the key when the form is submitted.
+		$reset_key       = isset( $_GET['key'] ) ? sanitize_text_field( wp_unslash( $_GET['key'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$reset_login     = isset( $_GET['login'] ) ? sanitize_text_field( wp_unslash( $_GET['login'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$is_reset_link   = isset( $_GET['sml_reset'] ) && $reset_key && $reset_login; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$reset_key_valid = $is_reset_link && ! is_wp_error( check_password_reset_key( $reset_key, $reset_login ) );
+
+		if ( $is_reset_link ) {
+			$initial_panel = 'reset';
+		} elseif ( 'register' === $action && $show_register ) {
+			$initial_panel = 'register';
+		} elseif ( 'forgot' === $action ) {
+			$initial_panel = 'forgot';
+		} else {
+			$initial_panel = 'login';
+		}
 
 		$button_bg   = sanitize_hex_color( SML_Settings::get( 'button_bg_color' ) );
 		$button_text = sanitize_hex_color( SML_Settings::get( 'button_text_color' ) );
@@ -129,6 +169,7 @@ class SML_Shortcode {
 					<div class="sml-heading-line2"><?php esc_html_e( 'to your account', 'smart-login' ); ?></div>
 				</div>
 				<form data-sml-form="login" novalidate>
+					<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>">
 					<div class="sml-field-boxed">
 						<input type="email" id="sml-login-user" name="username" autocomplete="username" placeholder=" " required>
 						<label for="sml-login-user"><?php esc_html_e( 'Email', 'smart-login' ); ?></label>
@@ -142,11 +183,8 @@ class SML_Shortcode {
 						</div>
 						<label for="sml-login-pass"><?php esc_html_e( 'Password', 'smart-login' ); ?></label>
 					</div>
-					<a class="sml-forgot-link" href="<?php echo esc_url( wp_lostpassword_url() ); ?>"><?php esc_html_e( 'Forgot password?', 'smart-login' ); ?></a>
+					<a class="sml-forgot-link" data-sml-tab="forgot" href="<?php echo $forgot_url; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"><?php esc_html_e( 'Forgot password?', 'smart-login' ); ?></a>
 					<button type="submit" class="sml-btn sml-btn--primary"><?php esc_html_e( 'Log In', 'smart-login' ); ?></button>
-					<p class="sml-resend-link" data-sml-resend-prompt hidden>
-						<button type="button" class="sml-link-btn" data-sml-resend-from-login><?php esc_html_e( 'Resend verification email', 'smart-login' ); ?></button>
-					</p>
 					<?php if ( $show_register ) : ?>
 						<a class="sml-btn sml-btn--secondary" data-sml-tab="register" href="<?php echo $register_url; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"><?php esc_html_e( 'Create Account', 'smart-login' ); ?></a>
 					<?php endif; ?>
@@ -160,6 +198,7 @@ class SML_Shortcode {
 						<div class="sml-heading-line2"><?php esc_html_e( 'Account', 'smart-login' ); ?></div>
 					</div>
 					<form data-sml-form="register" novalidate>
+						<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>">
 						<div class="sml-field sml-hp-field" aria-hidden="true">
 							<label for="sml-hp"><?php esc_html_e( 'Leave this field empty', 'smart-login' ); ?></label>
 							<input type="text" id="sml-hp" name="sml_hp" tabindex="-1" autocomplete="off">
@@ -191,14 +230,14 @@ class SML_Shortcode {
 						<div class="sml-field-boxed">
 							<div class="sml-phone-group">
 								<div class="sml-phone-code">
-									<svg class="sml-phone-flag" viewBox="0 0 20 14" aria-hidden="true"><use href="#sml-flag-<?php echo esc_attr( $sml_default_country ); ?>" data-sml-flag-use></use></svg>
+									<span class="sml-phone-flag" data-sml-flag-wrap><?php echo SML_Flags::icon( $sml_default_country ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
 									<select name="phone_country" id="sml-reg-phone-country" aria-label="<?php esc_attr_e( 'Country code', 'smart-login' ); ?>" data-sml-flag-select>
 										<?php foreach ( $sml_allowed_countries as $id => $country ) : ?>
-											<option value="<?php echo esc_attr( $id ); ?>"<?php selected( $sml_default_country, $id ); ?>><?php echo esc_html( $country['dial'] . ' ' . $country['name'] ); ?></option>
+											<option value="<?php echo esc_attr( $id ); ?>" data-max="<?php echo esc_attr( SML_Phone::max_length( $id ) ); ?>" data-flag="<?php echo esc_attr( base64_encode( SML_Flags::icon( $id ) ) ); ?>"<?php selected( $sml_default_country, $id ); ?>><?php echo esc_html( $country['dial'] . ' ' . $country['name'] ); ?></option>
 										<?php endforeach; ?>
 									</select>
 								</div>
-								<input type="tel" id="sml-reg-phone" name="phone_number" autocomplete="tel-national" inputmode="numeric" placeholder="<?php esc_attr_e( 'Phone number', 'smart-login' ); ?>" required>
+								<input type="tel" id="sml-reg-phone" name="phone_number" data-sml-phone-input autocomplete="tel-national" inputmode="numeric" placeholder="<?php esc_attr_e( 'Phone number', 'smart-login' ); ?>" maxlength="<?php echo esc_attr( SML_Phone::max_length( $sml_default_country ) + 4 ); ?>" required>
 							</div>
 							<label for="sml-reg-phone"><?php esc_html_e( 'Mobile number', 'smart-login' ); ?> <span class="sml-required">*</span></label>
 						</div>
@@ -217,11 +256,65 @@ class SML_Shortcode {
 				</div>
 			<?php endif; ?>
 
+			<div class="sml-panel" data-sml-panel="forgot"<?php echo 'forgot' === $initial_panel ? '' : ' hidden'; ?>>
+				<div class="sml-heading">
+					<div class="sml-heading-line1"><?php esc_html_e( 'Reset Your', 'smart-login' ); ?></div>
+					<div class="sml-heading-line2"><?php esc_html_e( 'Password', 'smart-login' ); ?></div>
+				</div>
+				<p class="sml-verify-intro"><?php esc_html_e( 'Enter your email address and we\'ll send you a link to reset your password.', 'smart-login' ); ?></p>
+				<form data-sml-form="forgot" novalidate>
+					<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>">
+					<div class="sml-field-boxed">
+						<input type="email" id="sml-forgot-email" name="login" autocomplete="email" placeholder=" " required>
+						<label for="sml-forgot-email"><?php esc_html_e( 'Email', 'smart-login' ); ?></label>
+					</div>
+					<button type="submit" class="sml-btn sml-btn--primary"><?php esc_html_e( 'Send Reset Link', 'smart-login' ); ?></button>
+					<a class="sml-btn sml-btn--secondary" data-sml-tab="login" href="<?php echo $login_url; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"><?php esc_html_e( 'Back to Log In', 'smart-login' ); ?></a>
+				</form>
+			</div>
+
+			<div class="sml-panel" data-sml-panel="reset"<?php echo 'reset' === $initial_panel ? '' : ' hidden'; ?>>
+				<div class="sml-heading">
+					<div class="sml-heading-line1"><?php esc_html_e( 'Set a New', 'smart-login' ); ?></div>
+					<div class="sml-heading-line2"><?php esc_html_e( 'Password', 'smart-login' ); ?></div>
+				</div>
+				<?php if ( $is_reset_link && ! $reset_key_valid ) : ?>
+					<div class="sml-notice sml-notice--error"><?php esc_html_e( 'This password reset link is invalid or has expired.', 'smart-login' ); ?></div>
+					<a class="sml-btn sml-btn--secondary" data-sml-tab="forgot" href="<?php echo $forgot_url; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"><?php esc_html_e( 'Request a new link', 'smart-login' ); ?></a>
+				<?php else : ?>
+					<form data-sml-form="reset" novalidate>
+						<input type="hidden" name="login" value="<?php echo esc_attr( $reset_login ); ?>">
+						<input type="hidden" name="key" value="<?php echo esc_attr( $reset_key ); ?>">
+						<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>">
+						<div class="sml-field-boxed">
+							<div class="sml-password-group">
+								<input type="password" id="sml-reset-pass" name="password" autocomplete="new-password" placeholder=" " required>
+								<button type="button" class="sml-password-toggle" data-sml-password-toggle aria-label="<?php esc_attr_e( 'Show password', 'smart-login' ); ?>">
+									<?php esc_html_e( 'Show', 'smart-login' ); ?>
+								</button>
+							</div>
+							<label for="sml-reset-pass"><?php esc_html_e( 'New password', 'smart-login' ); ?></label>
+						</div>
+						<div class="sml-field-boxed">
+							<div class="sml-password-group">
+								<input type="password" id="sml-reset-pass-confirm" name="password_confirm" autocomplete="new-password" placeholder=" " required>
+								<button type="button" class="sml-password-toggle" data-sml-password-toggle aria-label="<?php esc_attr_e( 'Show password', 'smart-login' ); ?>">
+									<?php esc_html_e( 'Show', 'smart-login' ); ?>
+								</button>
+							</div>
+							<label for="sml-reset-pass-confirm"><?php esc_html_e( 'Confirm password', 'smart-login' ); ?></label>
+						</div>
+						<button type="submit" class="sml-btn sml-btn--primary"><?php esc_html_e( 'Reset Password', 'smart-login' ); ?></button>
+					</form>
+				<?php endif; ?>
+			</div>
+
 			<div class="sml-panel" data-sml-panel="verify" hidden>
 				<p class="sml-verify-intro"><?php echo esc_html( SML_Settings::get( 'verify_intro_text' ) ); ?></p>
 				<form data-sml-form="verify" novalidate>
 					<input type="hidden" name="user_id" data-sml-user-id value="">
 					<input type="hidden" name="code" data-sml-otp-value value="">
+					<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>">
 					<div class="sml-otp" data-sml-otp role="group" aria-label="<?php esc_attr_e( 'Verification code', 'smart-login' ); ?>">
 						<?php $code_length = (int) SML_Settings::get( 'code_length', 6 ); ?>
 						<?php for ( $i = 0; $i < $code_length; $i++ ) : ?>

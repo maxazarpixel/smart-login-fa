@@ -50,6 +50,22 @@
 		return Array.prototype.slice.call( ( ctx || document ).querySelectorAll( sel ) );
 	}
 
+	// Generic "group digits in 3s" display formatting (e.g. "555 123 4567") —
+	// not a claim of any country's official number format, just a readable
+	// grouping while the visitor types. Digits beyond the selected country's
+	// max are dropped rather than accepted and rejected later server-side.
+	function formatPhoneDigits( value, maxDigits ) {
+		var digits = ( value || '' ).replace( /\D/g, '' ).slice( 0, maxDigits );
+		var groups = [];
+		var remaining = digits;
+		while ( remaining.length > 4 ) {
+			groups.push( remaining.slice( 0, 3 ) );
+			remaining = remaining.slice( 3 );
+		}
+		groups.push( remaining );
+		return groups.join( ' ' ).trim();
+	}
+
 	function showMessage( root, text, isError ) {
 		var el = qs( '[data-sml-message]', root );
 		if ( ! el ) { return; }
@@ -198,10 +214,43 @@
 			// so a real flag icon sits next to it and is swapped by hand
 			// whenever the selection changes.
 			qsa( '[data-sml-flag-select]', root ).forEach( function ( select ) {
+				var phoneInput = qs( '[data-sml-phone-input]', root );
+
+				var applyMaxForSelected = function () {
+					if ( ! phoneInput ) { return; }
+					var opt = select.options[ select.selectedIndex ];
+					var max = opt ? parseInt( opt.getAttribute( 'data-max' ), 10 ) || 14 : 14;
+					// +4 allows for the display spaces inserted by formatPhoneDigits().
+					phoneInput.setAttribute( 'maxlength', max + 4 );
+					phoneInput.value = formatPhoneDigits( phoneInput.value, max );
+				};
+
 				select.addEventListener( 'change', function () {
-					var use = select.parentElement && select.parentElement.querySelector( '[data-sml-flag-use]' );
-					if ( use ) { use.setAttribute( 'href', '#sml-flag-' + select.value ); }
+					// Swapped as markup (not a sprite <use> href) so the
+					// neutral fallback badge for countries without a hand
+					// drawn flag also displays correctly.
+					var wrap = select.parentElement && select.parentElement.querySelector( '[data-sml-flag-wrap]' );
+					var opt = select.options[ select.selectedIndex ];
+					if ( wrap && opt && opt.getAttribute( 'data-flag' ) ) {
+						try {
+							wrap.innerHTML = atob( opt.getAttribute( 'data-flag' ) );
+						} catch ( err ) { /* leave existing flag in place */ }
+					}
+					applyMaxForSelected();
 				} );
+
+				if ( phoneInput ) {
+					applyMaxForSelected();
+					phoneInput.addEventListener( 'input', function () {
+						var opt = select.options[ select.selectedIndex ];
+						var max = opt ? parseInt( opt.getAttribute( 'data-max' ), 10 ) || 14 : 14;
+						var caretAtEnd = phoneInput.selectionStart === phoneInput.value.length;
+						phoneInput.value = formatPhoneDigits( phoneInput.value, max );
+						if ( caretAtEnd ) {
+							phoneInput.setSelectionRange( phoneInput.value.length, phoneInput.value.length );
+						}
+					} );
+				}
 			} );
 
 			qsa( '[data-sml-password-toggle]', root ).forEach( function ( toggle ) {
@@ -220,7 +269,6 @@
 				loginForm.addEventListener( 'submit', function ( e ) {
 					e.preventDefault();
 					showMessage( root, '' );
-					qs( '[data-sml-resend-prompt]', root ).hidden = true;
 
 					var submitBtn = qs( 'button[type="submit"]', loginForm );
 					submitBtn.disabled = true;
@@ -245,12 +293,18 @@
 								}
 								return;
 							}
-							showMessage( root, res.data.message || SmartLogin.i18n.genericError, true );
 							if ( res.data.unverified ) {
-								var prompt = qs( '[data-sml-resend-prompt]', root );
-								prompt.hidden = false;
-								qs( '[data-sml-resend-from-login]', prompt ).dataset.userId = res.data.user_id;
+								// Rather than leaving them on the login form
+								// with an error, drop straight into the
+								// verify-code screen — the server already
+								// issued (or is honoring the cooldown on) a
+								// fresh code, so there's something valid
+								// waiting there.
+								enterVerifyStep( root, res.data.user_id, res.data.resend_available );
+								showMessage( root, res.data.message || SmartLogin.i18n.genericError, false );
+								return;
 							}
+							showMessage( root, res.data.message || SmartLogin.i18n.genericError, true );
 						} )
 						.catch( function () {
 							showMessage( root, SmartLogin.i18n.genericError, true );
@@ -258,22 +312,6 @@
 						.finally( function () {
 							submitBtn.disabled = false;
 							submitBtn.textContent = submitBtn.dataset.originalText;
-						} );
-				} );
-			}
-
-			var resendFromLogin = qs( '[data-sml-resend-from-login]', root );
-			if ( resendFromLogin ) {
-				resendFromLogin.addEventListener( 'click', function () {
-					var userId = resendFromLogin.dataset.userId;
-					if ( ! userId ) { return; }
-					post( 'sml_resend', SmartLogin.registrationNonce, { user_id: userId } )
-						.then( function ( res ) {
-							if ( res.success ) {
-								enterVerifyStep( root, userId, res.data.resend_available );
-							} else {
-								showMessage( root, res.data.message || SmartLogin.i18n.genericError, true );
-							}
 						} );
 				} );
 			}
@@ -327,7 +365,72 @@
 						.then( function ( res ) {
 							if ( res.success ) {
 								showMessage( root, res.data.message, false );
-								window.location.reload();
+								// Goes back to Cart/Checkout (or wherever sent
+								// the visitor here) when that's set, otherwise
+								// just reloads this page as a logged-in user.
+								if ( res.data.redirect ) {
+									window.location.href = res.data.redirect;
+								} else {
+									window.location.reload();
+								}
+							} else {
+								showMessage( root, res.data.message || SmartLogin.i18n.genericError, true );
+							}
+						} )
+						.catch( function () {
+							showMessage( root, SmartLogin.i18n.genericError, true );
+						} )
+						.finally( function () {
+							submitBtn.disabled = false;
+							submitBtn.textContent = submitBtn.dataset.originalText;
+						} );
+				} );
+			}
+
+			var forgotForm = qs( '[data-sml-form="forgot"]', root );
+			if ( forgotForm ) {
+				forgotForm.addEventListener( 'submit', function ( e ) {
+					e.preventDefault();
+					showMessage( root, '' );
+
+					var submitBtn = qs( 'button[type="submit"]', forgotForm );
+					submitBtn.disabled = true;
+					submitBtn.dataset.originalText = submitBtn.textContent;
+					submitBtn.textContent = SmartLogin.i18n.sending;
+
+					post( 'sml_forgot_password', SmartLogin.passwordResetNonce, formData( forgotForm ) )
+						.then( function ( res ) {
+							showMessage( root, ( res.data && res.data.message ) || SmartLogin.i18n.genericError, ! res.success );
+							if ( res.success ) { forgotForm.reset(); }
+						} )
+						.catch( function () {
+							showMessage( root, SmartLogin.i18n.genericError, true );
+						} )
+						.finally( function () {
+							submitBtn.disabled = false;
+							submitBtn.textContent = submitBtn.dataset.originalText;
+						} );
+				} );
+			}
+
+			var resetForm = qs( '[data-sml-form="reset"]', root );
+			if ( resetForm ) {
+				resetForm.addEventListener( 'submit', function ( e ) {
+					e.preventDefault();
+					showMessage( root, '' );
+
+					var submitBtn = qs( 'button[type="submit"]', resetForm );
+					submitBtn.disabled = true;
+					submitBtn.dataset.originalText = submitBtn.textContent;
+					submitBtn.textContent = SmartLogin.i18n.resetting;
+
+					post( 'sml_reset_password', SmartLogin.passwordResetNonce, formData( resetForm ) )
+						.then( function ( res ) {
+							if ( res.success ) {
+								showMessage( root, res.data.message, false );
+								setTimeout( function () {
+									window.location.href = res.data.redirect || window.location.href;
+								}, 1500 );
 							} else {
 								showMessage( root, res.data.message || SmartLogin.i18n.genericError, true );
 							}
@@ -347,7 +450,8 @@
 				resendBtn.addEventListener( 'click', function () {
 					var userId = qs( '[data-sml-user-id]', root ).value;
 					if ( ! userId ) { return; }
-					post( 'sml_resend', SmartLogin.registrationNonce, { user_id: userId } )
+					var redirectField = qs( '[name="redirect_to"]', root );
+					post( 'sml_resend', SmartLogin.registrationNonce, { user_id: userId, redirect_to: redirectField ? redirectField.value : '' } )
 						.then( function ( res ) {
 							if ( res.success ) {
 								startResendCooldown( root, res.data.resend_available );

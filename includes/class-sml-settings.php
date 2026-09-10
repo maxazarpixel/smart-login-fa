@@ -27,6 +27,9 @@ class SML_Settings {
 			'allowed_countries'        => SML_Countries::default_allowed_csv(),
 			'button_bg_color'          => '#111114',
 			'button_text_color'        => '#ffffff',
+			'block_disposable_emails'  => 1,
+			'disposable_email_domains' => implode( "\n", SML_Disposable_Email::default_domains() ),
+			'allowed_login_roles'      => '',
 
 			// Verification.
 			'code_length'              => 6,
@@ -56,10 +59,15 @@ class SML_Settings {
 			'resend_body'              => __( "Hi {user},\n\nHere is your new verification code. It expires in {expiry_minutes} minutes.\n\n{code}\n\nOr verify instantly with the button below.\n\n{link}", 'smart-login' ),
 			'welcome_subject'          => __( 'Welcome to {site_name}', 'smart-login' ),
 			'welcome_body'             => __( 'Hi {user},\n\nYour email has been verified and your account is now active.', 'smart-login' ),
+			'reset_subject'            => __( 'Reset your password for {site_name}', 'smart-login' ),
+			'reset_body'               => __( "Hi {user},\n\nWe received a request to reset your password. This link can only be used once and expires soon.\n\n{link}\n\nIf you didn't request this, you can safely ignore this email — your password won't be changed.", 'smart-login' ),
 
 			// WooCommerce (only relevant if WooCommerce is active).
 			'wc_replace_login'         => 0,
 			'wc_replace_register'      => 0,
+			'login_page_id'            => 0,
+			'require_login_cart'       => 1,
+			'require_login_checkout'   => 1,
 
 			// Advanced.
 			'delete_data_on_uninstall' => 0,

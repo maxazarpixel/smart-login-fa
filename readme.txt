@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.6.1
+Stable tag: 1.9.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -39,8 +39,30 @@ Highlights:
 
 == Changelog ==
 
+= 1.7.1 =
+* A login attempt with correct credentials but an unverified email now drops the user straight onto the verify-code screen (with a fresh code just sent) instead of showing an error and leaving them on the login form. Removed the now-unused inline "Resend verification email" prompt this replaces.
+
+= 1.7.0 =
+* Added a fully branded Forgot Password / Reset Password flow, replacing the previous redirect to wp-login.php: "Forgot password?" now opens an in-form panel to request a reset link, and the emailed link opens a matching "Set a New Password" panel — same card, same styling as the rest of the form. Built on WordPress's own reset-key primitives (`get_password_reset_key()`, `check_password_reset_key()`, `reset_password()`), not custom crypto.
+* The reset email is admin-editable under Settings → Emails → "Password reset email", using the same {user}/{site_name}/{link} placeholders and branded button rendering as the other emails.
+* Successfully resetting a password via the emailed link now also marks the account's email as verified, if it wasn't already — using a single-use link mailed to the account's own address is the same proof of ownership the code/link verification flow exists to establish.
+
 = 1.6.1 =
 * Increased spacing between the floated label and the field value once a field is focused or filled — they were rendering only ~2px apart.
+
+= 1.9.1 =
+* The "Allowed countries" and "Roles allowed to log in" admin fields are now a searchable multi-select dropdown (type to filter, click to check/uncheck, selected items shown as removable chips) instead of a plain ctrl/cmd-click list box — much easier to use with ~195 countries.
+
+= 1.9.0 =
+* Added a "Roles allowed to log in" setting (Settings → Security → Login access): a multi-select of WordPress/WooCommerce user roles permitted to log in through the [smart_login_form] form. Leave empty (default) to allow every role. A user whose role isn't selected — e.g. blocking Administrators while only allowing Customer — is signed back out immediately with a clear on-screen message. This only affects the Smart Login form, not wp-login.php.
+
+= 1.8.0 =
+* Added optional login requirement for Cart and Checkout (Settings → WooCommerce): a visitor who isn't logged in is redirected to a configured login page and sent back to the exact page they wanted (Cart or Checkout) once they log in or verify their email — including through the verify-link-in-email path, not just the in-page code entry. Enable/disable independently per page; if no login page is configured, this protection does nothing rather than risk locking visitors out.
+* Added disposable/temporary email blocking (Settings → General): registration is rejected with a clear message when the email's domain matches an admin-editable list of disposable domains, seeded with a starter list of common throwaway-email providers. Toggle on/off independently.
+* The "Allowed countries for registration" setting is now a true multi-select list box (previously a checkbox grid) and now covers essentially every country, not just ~27. Default-enabled countries (United States, Canada, Western Europe) are unchanged.
+* The mobile-number country selector's flag now displays for every country: hand-drawn SVG flags for the original ~27 countries, and a neutral ISO-code badge (rather than a guessed/inaccurate flag design) for the rest.
+* Added mobile number validation and live formatting based on the selected country: the maximum digit length is derived from the country's dial code (per ITU-T E.164), and the number is grouped into readable digit clusters as it's typed.
+* Confirmed front-end and admin CSS/JS continue to load only on the pages that actually use them — the shortcode's assets only enqueue when `[smart_login_form]` renders, and the admin UI kit's assets only enqueue on the Smart Login settings screen — no site-wide asset loading.
 
 = 1.6.0 =
 * Added a Dashboard tab (Settings → Dashboard, now the default landing tab): All Users and Verified Email KPI cards, a sign-ups-per-month chart for the last 6 months, and a recent-logins table (name, email, verified status, last login).

@@ -27,11 +27,14 @@ class SML_Email {
 	 * @param string  $code
 	 * @param string  $token
 	 * @param bool    $is_resend
+	 * @param string  $redirect_to Optional. Where to send the user after
+	 *                verifying — e.g. back to Cart/Checkout if that's what
+	 *                sent them here. Already validated by the caller.
 	 * @return bool
 	 */
-	public static function send_verification( WP_User $user, $code, $token, $is_resend = false ) {
+	public static function send_verification( WP_User $user, $code, $token, $is_resend = false, $redirect_to = '' ) {
 		$expiry_minutes = (int) SML_Settings::get( 'code_expiry_minutes', 10 );
-		$link           = self::verify_link( $token );
+		$link           = self::verify_link( $token, $redirect_to );
 
 		$subject_key = $is_resend ? 'resend_subject' : 'verify_subject';
 		$body_key    = $is_resend ? 'resend_body' : 'verify_body';
@@ -66,8 +69,24 @@ class SML_Email {
 		return self::send( $user->user_email, $subject, $body );
 	}
 
-	protected static function verify_link( $token ) {
-		return add_query_arg( 'sml_verify', rawurlencode( $token ), home_url( '/' ) );
+	/**
+	 * @param WP_User $user
+	 * @param string  $reset_url
+	 * @return bool
+	 */
+	public static function send_password_reset( WP_User $user, $reset_url ) {
+		$subject   = self::substitute( SML_Settings::get( 'reset_subject' ), $user );
+		$body_text = self::substitute( SML_Settings::get( 'reset_body' ), $user );
+
+		return self::send( $user->user_email, $subject, $body_text, array( 'link' => $reset_url ) );
+	}
+
+	protected static function verify_link( $token, $redirect_to = '' ) {
+		$args = array( 'sml_verify' => rawurlencode( $token ) );
+		if ( $redirect_to ) {
+			$args['redirect_to'] = rawurlencode( $redirect_to );
+		}
+		return add_query_arg( $args, home_url( '/' ) );
 	}
 
 	/**

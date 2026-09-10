@@ -267,6 +267,12 @@
 	display: block !important;
 }
 
+.sml-phone-flag svg {
+	width: 100% !important;
+	height: 100% !important;
+	display: block !important;
+}
+
 .sml-card .sml-phone-group select {
 	flex: 0 0 auto !important;
 	width: auto !important;

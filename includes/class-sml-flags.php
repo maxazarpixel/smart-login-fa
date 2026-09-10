@@ -67,24 +67,46 @@ class SML_Flags {
 	}
 
 	/**
-	 * @param string $id    Country id (must exist in self::shapes()).
-	 * @param string $class Extra CSS class(es) for the wrapping <svg>.
-	 * @return string
+	 * @param string $id    Country id.
+	 * @param string $class Extra CSS class(es) for the wrapping element.
+	 * @return string SVG markup — a real flag when one is hand-authored in
+	 *                 shapes(), otherwise a neutral ISO-code badge rather than
+	 *                 a guessed/inaccurate flag design.
 	 */
 	public static function icon( $id, $class = '' ) {
 		$shapes = self::shapes();
-		if ( ! isset( $shapes[ $id ] ) ) {
-			return '';
+		if ( isset( $shapes[ $id ] ) ) {
+			return sprintf(
+				'<svg class="%s" viewBox="0 0 20 14" aria-hidden="true"><use href="#sml-flag-%s"></use></svg>',
+				esc_attr( trim( 'sml-flag-icon ' . $class ) ),
+				esc_attr( $id )
+			);
 		}
+
+		return self::fallback_badge( $id, $class );
+	}
+
+	/**
+	 * A plain ISO-code badge for any country without a hand-authored flag in
+	 * shapes() — used instead of fabricating a flag design we can't verify.
+	 *
+	 * @param string $id
+	 * @param string $class
+	 * @return string
+	 */
+	protected static function fallback_badge( $id, $class = '' ) {
 		return sprintf(
-			'<svg class="%s" viewBox="0 0 20 14" aria-hidden="true"><use href="#sml-flag-%s"></use></svg>',
-			esc_attr( trim( 'sml-flag-icon ' . $class ) ),
-			esc_attr( $id )
+			'<svg class="%s" viewBox="0 0 20 14" aria-hidden="true"><rect width="20" height="14" rx="2" fill="#e2e2e6"/><text x="10" y="9.8" text-anchor="middle" font-size="6.2" font-weight="700" font-family="-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif" fill="#5a5a63">%s</text></svg>',
+			esc_attr( trim( 'sml-flag-icon sml-flag-icon--fallback ' . $class ) ),
+			esc_html( strtoupper( $id ) )
 		);
 	}
 
 	/**
-	 * @return string[] Valid country ids, for validation elsewhere.
+	 * @return string[] Country ids with a hand-authored flag shape (i.e. that
+	 *                   can be rendered via the <symbol> sprite). Countries
+	 *                   outside this list still get an icon via icon() — the
+	 *                   neutral fallback badge — just not from the sprite.
 	 */
 	public static function ids() {
 		return array_keys( self::shapes() );
