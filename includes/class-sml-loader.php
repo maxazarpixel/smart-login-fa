@@ -18,6 +18,9 @@ class SML_Loader {
 		add_action( 'init', array( __CLASS__, 'load_textdomain' ) );
 		add_action( 'sml_cleanup_expired_verifications', array( 'SML_Verification', 'cleanup_expired' ) );
 
+		// "Settings" link on the Plugins screen row.
+		add_filter( 'plugin_action_links_' . SML_PLUGIN_BASENAME, array( __CLASS__, 'plugin_action_links' ) );
+
 		// The auto-detected form-page URL (used for reset / verification
 		// links when no Login page is configured) is cached for a day —
 		// drop it whenever settings are saved or a page is edited so a
@@ -63,6 +66,24 @@ class SML_Loader {
 
 	public static function flush_form_page_cache() {
 		delete_transient( 'sml_form_page_url' );
+	}
+
+	/**
+	 * Prepends a "Settings" link to the plugin's row on Plugins → Installed
+	 * Plugins.
+	 *
+	 * @param string[] $links
+	 * @return string[]
+	 */
+	public static function plugin_action_links( $links ) {
+		$settings = sprintf(
+			'<a href="%s">%s</a>',
+			esc_url( admin_url( 'admin.php?page=smart-login' ) ),
+			esc_html__( 'Settings', 'smart-login' )
+		);
+		array_unshift( $links, $settings );
+
+		return $links;
 	}
 
 	protected static function load_files() {

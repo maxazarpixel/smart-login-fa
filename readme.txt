@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.17.1
+Stable tag: 1.17.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,9 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.17.2 =
+* Added a "Settings" link to the plugin's row on Plugins → Installed Plugins.
 
 = 1.17.1 =
 * "Pre-existing unverified accounts" (Settings → Verification) gained a third choice, "No verification needed — log them straight in", which is now the default: accounts that predate the plugin are left completely alone and only new registrations are ever asked to verify. The "reminder email" and "skippable verification screen" options are still available.
