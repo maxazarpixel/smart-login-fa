@@ -157,6 +157,22 @@ class SML_Settings {
 			}
 		}
 
+		// When Smart Login has taken over the WooCommerce My Account
+		// login/register form, that page renders the form for logged-out
+		// visitors even though its content is only [woocommerce_my_account],
+		// so a shortcode scan would never find it. Treat it as a valid
+		// landing page for reset / verification links.
+		if ( function_exists( 'wc_get_page_id' )
+			&& ( self::get( 'wc_replace_login' ) || self::get( 'wc_replace_register' ) ) ) {
+			$wc_page_id = (int) wc_get_page_id( 'myaccount' );
+			if ( $wc_page_id > 0 ) {
+				$url = get_permalink( $wc_page_id );
+				if ( $url ) {
+					return $url;
+				}
+			}
+		}
+
 		$found = get_transient( 'sml_form_page_url' );
 		if ( false === $found ) {
 			$found = '';

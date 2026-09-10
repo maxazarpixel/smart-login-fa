@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.13.0
+Stable tag: 1.13.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,9 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.13.1 =
+* Fixed: reset / verification links still landed on the home page on sites that use the WooCommerce "Replace My Account login form" option without a separate shortcode page. When that option is on, links now point at the My Account page, which renders the Smart Login form for logged-out visitors.
 
 = 1.13.0 =
 * Fixed: the password-reset link opened the site home page instead of the reset form when the shortcode wasn't on the home page. Reset and email-verification links now point at the page that actually holds `[smart_login_form]`.
