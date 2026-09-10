@@ -15,10 +15,30 @@
 	// 'reset'). Each form gets its own widget, rendered only once it's on
 	// screen; recaptcha v3 is invisible and needs none of this.
 	var turnstileWidgets = {};
+	// Whether a valid, unspent Turnstile token is currently held per panel.
+	var turnstileReady = {};
+
+	/**
+	 * True when this panel's form must not be submittable yet because its
+	 * Turnstile challenge hasn't produced a token (or the token expired).
+	 */
+	function botGatePending( name ) {
+		return 'turnstile' === SmartLogin.botProvider
+			&& !! SmartLogin.botSiteKey
+			&& 'undefined' !== typeof turnstileWidgets[ name ]
+			&& ! turnstileReady[ name ];
+	}
+
+	function setSubmitDisabled( form, disabled ) {
+		var btn = form && qs( 'button[type="submit"]', form );
+		if ( btn ) { btn.disabled = !! disabled; }
+	}
 
 	/**
 	 * Renders a Turnstile widget into the given panel's form, once. Safe to
-	 * call repeatedly and before the Turnstile API has loaded.
+	 * call repeatedly and before the Turnstile API has loaded. While the
+	 * widget has no token the form's submit button stays disabled, so an
+	 * account/login/reset request can't be made until Cloudflare passes.
 	 */
 	function renderTurnstileFor( name, root ) {
 		if ( 'turnstile' !== SmartLogin.botProvider || ! window.turnstile || ! SmartLogin.botSiteKey ) {
@@ -30,20 +50,24 @@
 		if ( ! holder || holder.getAttribute( 'data-rendered' ) ) { return; }
 
 		var tokenInput = qs( '[data-sml-bot-token]', form );
-		var writeToken = function ( value ) {
+		var onToken = function ( value ) {
 			if ( tokenInput ) { tokenInput.value = value || ''; }
+			turnstileReady[ name ] = !! value;
+			setSubmitDisabled( form, ! value );
 		};
 
 		try {
 			var id = window.turnstile.render( holder, {
 				sitekey: SmartLogin.botSiteKey,
-				callback: writeToken,
-				'error-callback': function () { writeToken( '' ); },
-				'expired-callback': function () { writeToken( '' ); },
-				'timeout-callback': function () { writeToken( '' ); }
+				callback: onToken,
+				'error-callback': function () { onToken( '' ); },
+				'expired-callback': function () { onToken( '' ); },
+				'timeout-callback': function () { onToken( '' ); }
 			} );
 			holder.setAttribute( 'data-rendered', '1' );
 			turnstileWidgets[ name ] = id;
+			turnstileReady[ name ] = false;
+			setSubmitDisabled( form, true );
 		} catch ( e ) {}
 	}
 
@@ -66,6 +90,7 @@
 		if ( 'turnstile' !== SmartLogin.botProvider || ! window.turnstile ) { return; }
 		var id = turnstileWidgets[ name ];
 		if ( 'undefined' === typeof id ) { return; }
+		turnstileReady[ name ] = false;
 		try { window.turnstile.reset( id ); } catch ( e ) {}
 	}
 
@@ -331,6 +356,7 @@
 			if ( loginForm ) {
 				loginForm.addEventListener( 'submit', function ( e ) {
 					e.preventDefault();
+					if ( botGatePending( 'login' ) ) { return; }
 					showMessage( root, '' );
 
 					var submitBtn = qs( 'button[type="submit"]', loginForm );
@@ -380,7 +406,7 @@
 							showMessage( root, SmartLogin.i18n.genericError, true );
 						} )
 						.finally( function () {
-							submitBtn.disabled = false;
+							submitBtn.disabled = botGatePending( 'login' );
 							submitBtn.textContent = submitBtn.dataset.originalText;
 						} );
 				} );
@@ -390,6 +416,7 @@
 			if ( registerForm ) {
 				registerForm.addEventListener( 'submit', function ( e ) {
 					e.preventDefault();
+					if ( botGatePending( 'register' ) ) { return; }
 					showMessage( root, '' );
 
 					var submitBtn = qs( 'button[type="submit"]', registerForm );
@@ -416,7 +443,7 @@
 							showMessage( root, SmartLogin.i18n.genericError, true );
 						} )
 						.finally( function () {
-							submitBtn.disabled = false;
+							submitBtn.disabled = botGatePending( 'register' );
 							submitBtn.textContent = submitBtn.dataset.originalText;
 						} );
 				} );
@@ -463,6 +490,7 @@
 			if ( forgotForm ) {
 				forgotForm.addEventListener( 'submit', function ( e ) {
 					e.preventDefault();
+					if ( botGatePending( 'forgot' ) ) { return; }
 					showMessage( root, '' );
 
 					var submitBtn = qs( 'button[type="submit"]', forgotForm );
@@ -485,7 +513,7 @@
 							showMessage( root, SmartLogin.i18n.genericError, true );
 						} )
 						.finally( function () {
-							submitBtn.disabled = false;
+							submitBtn.disabled = botGatePending( 'forgot' );
 							submitBtn.textContent = submitBtn.dataset.originalText;
 						} );
 				} );
@@ -495,6 +523,7 @@
 			if ( resetForm ) {
 				resetForm.addEventListener( 'submit', function ( e ) {
 					e.preventDefault();
+					if ( botGatePending( 'reset' ) ) { return; }
 					showMessage( root, '' );
 
 					var submitBtn = qs( 'button[type="submit"]', resetForm );
@@ -524,7 +553,7 @@
 							showMessage( root, SmartLogin.i18n.genericError, true );
 						} )
 						.finally( function () {
-							submitBtn.disabled = false;
+							submitBtn.disabled = botGatePending( 'reset' );
 							submitBtn.textContent = submitBtn.dataset.originalText;
 						} );
 				} );

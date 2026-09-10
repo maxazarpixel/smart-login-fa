@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.12.0
+Stable tag: 1.12.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,9 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.12.1 =
+* When Cloudflare Turnstile is the selected provider, each form's submit button is now disabled until the Turnstile challenge has passed — an account, login, or password request can't be sent before verification. The button re-locks if the token expires or a submit fails, and unlocks again once a fresh token is issued.
 
 = 1.12.0 =
 * Bot protection now covers every form. The selected provider (Google reCAPTCHA v3 / Cloudflare Turnstile) is verified on the login, registration, forgot-password and reset-password submissions — previously only registration was checked.
