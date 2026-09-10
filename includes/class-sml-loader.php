@@ -18,6 +18,13 @@ class SML_Loader {
 		add_action( 'init', array( __CLASS__, 'load_textdomain' ) );
 		add_action( 'sml_cleanup_expired_verifications', array( 'SML_Verification', 'cleanup_expired' ) );
 
+		// The auto-detected form-page URL (used for reset / verification
+		// links when no Login page is configured) is cached for a day —
+		// drop it whenever settings are saved or a page is edited so a
+		// freshly-placed shortcode is picked up without waiting.
+		add_action( 'apx_settings_saved', array( __CLASS__, 'flush_form_page_cache' ) );
+		add_action( 'save_post_page', array( __CLASS__, 'flush_form_page_cache' ) );
+
 		// Always on (not gated by the debug-log setting): a failed send is
 		// exactly the kind of thing an admin needs to see when "the email
 		// never arrived" gets reported, and wp_mail() itself gives no other
@@ -52,6 +59,10 @@ class SML_Loader {
 
 	public static function load_textdomain() {
 		load_plugin_textdomain( 'smart-login', false, dirname( SML_PLUGIN_BASENAME ) . '/languages' );
+	}
+
+	public static function flush_form_page_cache() {
+		delete_transient( 'sml_form_page_url' );
 	}
 
 	protected static function load_files() {

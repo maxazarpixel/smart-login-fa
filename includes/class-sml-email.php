@@ -94,7 +94,10 @@ class SML_Email {
 		if ( $redirect_to ) {
 			$args['redirect_to'] = rawurlencode( $redirect_to );
 		}
-		return add_query_arg( $args, home_url( '/' ) );
+		// The link is handled on `init` from any URL, but base it on the
+		// form page so the post-verification bounce (?sml_verified=...) shows
+		// the shortcode's success/error notice.
+		return add_query_arg( $args, SML_Settings::form_page_url() );
 	}
 
 	/**

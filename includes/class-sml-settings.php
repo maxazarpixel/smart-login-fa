@@ -136,4 +136,50 @@ class SML_Settings {
 
 		return $url ? $url : '';
 	}
+
+	/**
+	 * URL of the page that actually holds the `[smart_login_form]` shortcode
+	 * — the landing page for password-reset and email-verification links, so
+	 * they open the form instead of a bare home page.
+	 *
+	 * Prefers the configured "Login page" (Settings → General). If that's
+	 * unset, scans published pages for the shortcode once and caches the
+	 * result for a day. Falls back to the site home.
+	 *
+	 * @return string
+	 */
+	public static function form_page_url() {
+		$page_id = (int) self::get( 'login_page_id' );
+		if ( $page_id && 'page' === get_post_type( $page_id ) ) {
+			$url = get_permalink( $page_id );
+			if ( $url ) {
+				return $url;
+			}
+		}
+
+		$found = get_transient( 'sml_form_page_url' );
+		if ( false === $found ) {
+			$found = '';
+			$ids   = get_posts(
+				array(
+					'post_type'        => 'page',
+					'post_status'      => 'publish',
+					'posts_per_page'   => 50,
+					's'                => 'smart_login_form',
+					'fields'           => 'ids',
+					'suppress_filters' => true,
+					'no_found_rows'    => true,
+				)
+			);
+			foreach ( $ids as $pid ) {
+				if ( has_shortcode( (string) get_post_field( 'post_content', $pid ), 'smart_login_form' ) ) {
+					$found = (string) get_permalink( $pid );
+					break;
+				}
+			}
+			set_transient( 'sml_form_page_url', $found, DAY_IN_SECONDS );
+		}
+
+		return $found ? $found : home_url( '/' );
+	}
 }

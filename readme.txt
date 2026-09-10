@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.12.1
+Stable tag: 1.13.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,11 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.13.0 =
+* Fixed: the password-reset link opened the site home page instead of the reset form when the shortcode wasn't on the home page. Reset and email-verification links now point at the page that actually holds `[smart_login_form]`.
+* The "Login page" setting moved from Settings → WooCommerce to Settings → General → "Shortcode & form page", since it now also drives where reset / verification links land — not just the Cart/Checkout gate. The saved value carries over.
+* If no Login page is set, the plugin now auto-detects the page containing the shortcode (cached for a day; refreshed when settings or a page are saved) and falls back to the home page only if it can't find one.
 
 = 1.12.1 =
 * When Cloudflare Turnstile is the selected provider, each form's submit button is now disabled until the Turnstile challenge has passed — an account, login, or password request can't be sent before verification. The button re-locks if the token expires or a submit fails, and unlocks again once a fresh token is issued.

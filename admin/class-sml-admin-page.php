@@ -164,13 +164,19 @@ class SML_Admin_Page extends APX_Admin_Page {
 					),
 				),
 				array(
-					'heading' => __( 'Shortcode', 'smart-login' ),
+					'heading' => __( 'Shortcode & form page', 'smart-login' ),
 					'fields'  => array(
 						array(
 							'type' => 'html',
 							'html' => '<div class="apx-row"><label>' . esc_html__( 'Shortcode', 'smart-login' ) . '</label>'
 								. '<code id="sml-shortcode-ref" style="padding:6px 10px;border:1px solid var(--apx-border,#ddd);border-radius:6px;">[smart_login_form]</code> '
 								. '<button type="button" class="button button-secondary" onclick="navigator.clipboard.writeText(\'[smart_login_form]\');this.textContent=\'' . esc_js( __( 'Copied!', 'smart-login' ) ) . '\';">' . esc_html__( 'Copy', 'smart-login' ) . '</button></div>',
+						),
+						array(
+							'type'  => 'page_select',
+							'name'  => 'login_page_id',
+							'label' => __( 'Login page', 'smart-login' ),
+							'desc'  => __( 'The page that contains the [smart_login_form] shortcode. Password-reset and email-verification links point here so they open the form. Also used as the redirect target for login-gated Cart/Checkout. If left unset, the plugin tries to find the page automatically.', 'smart-login' ),
 						),
 					),
 				),
@@ -348,9 +354,8 @@ class SML_Admin_Page extends APX_Admin_Page {
 				),
 				array(
 					'heading' => __( 'Require login for these pages', 'smart-login' ),
-					'desc'    => __( 'A visitor who isn\'t logged in is redirected to the login page below, then sent back to the page they wanted once they log in or verify their email. If "Login page" isn\'t set, this protection does nothing rather than risk locking visitors out.', 'smart-login' ),
+					'desc'    => __( 'A visitor who isn\'t logged in is redirected to the Login page (set under General → "Shortcode & form page"), then sent back to the page they wanted once they log in or verify their email. If the Login page isn\'t set, this protection does nothing rather than risk locking visitors out.', 'smart-login' ),
 					'fields'  => array(
-						array( 'type' => 'page_select', 'name' => 'login_page_id', 'label' => __( 'Login page', 'smart-login' ), 'desc' => __( 'The page containing the [smart_login_form] shortcode.', 'smart-login' ) ),
 						array( 'type' => 'toggle', 'name' => 'require_login_cart', 'label' => __( 'Require login: Cart', 'smart-login' ) ),
 						array( 'type' => 'toggle', 'name' => 'require_login_checkout', 'label' => __( 'Require login: Checkout', 'smart-login' ) ),
 					),

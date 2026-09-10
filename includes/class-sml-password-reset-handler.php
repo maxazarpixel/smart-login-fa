@@ -70,7 +70,9 @@ class SML_Password_Reset_Handler {
 				if ( $redirect_to ) {
 					$args['redirect_to'] = rawurlencode( $redirect_to );
 				}
-				$reset_url = add_query_arg( $args, home_url( '/' ) );
+				// Land on the page that actually renders [smart_login_form],
+				// not a bare home page that may not contain it.
+				$reset_url = add_query_arg( $args, SML_Settings::form_page_url() );
 				SML_Email::send_password_reset( $user, $reset_url );
 			}
 		}
