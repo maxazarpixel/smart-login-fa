@@ -128,11 +128,12 @@ class SML_Password_Reset_Handler {
 		reset_password( $user, $pass );
 
 		// Successfully using a single-use link mailed to the account's own
-		// address is itself proof of owning that inbox — the same
-		// guarantee the code/link verification flow exists to establish —
-		// so this also satisfies email verification if it hadn't already.
+		// address is itself proof of owning that inbox — the same guarantee
+		// the code/link verification flow exists to establish — so this also
+		// completes email verification if it hadn't already: mark verified,
+		// clear any pending code/link row, and fire `sml_user_verified`.
 		if ( ! SML_Verification::is_verified( $user->ID ) ) {
-			update_user_meta( $user->ID, 'sml_email_verified', 1 );
+			SML_Verification::complete( $user->ID );
 		}
 
 		$redirect_to = SML_Page_Guard::validate_redirect( isset( $_POST['redirect_to'] ) ? wp_unslash( $_POST['redirect_to'] ) : '' );

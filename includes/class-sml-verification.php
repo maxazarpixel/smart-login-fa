@@ -201,11 +201,13 @@ class SML_Verification {
 	/**
 	 * Marks the account verified and removes the (now consumed) pending
 	 * verification row — this invalidates the code and the link together,
-	 * whichever path completed first.
+	 * whichever path completed first. Also called by the password-reset
+	 * flow: using a single-use link mailed to the account's own address is
+	 * the same proof of inbox ownership.
 	 *
 	 * @param int $user_id
 	 */
-	protected static function complete( $user_id ) {
+	public static function complete( $user_id ) {
 		global $wpdb;
 		$table = self::table();
 
