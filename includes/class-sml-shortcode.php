@@ -173,14 +173,22 @@ class SML_Shortcode {
 							<input type="email" id="sml-reg-email" name="email" autocomplete="email" placeholder=" " required>
 							<label for="sml-reg-email"><?php esc_html_e( 'Email', 'smart-login' ); ?> <span class="sml-required">*</span></label>
 						</div>
+						<?php
+						$sml_allowed_countries = SML_Countries::allowed();
+						$sml_default_country   = isset( $sml_allowed_countries['us'] ) ? 'us' : (string) array_key_first( $sml_allowed_countries );
+						?>
+						<?php SML_Flags::sprite(); ?>
 						<div class="sml-field-boxed">
 							<div class="sml-phone-group">
-								<select name="phone_country" id="sml-reg-phone-country" aria-label="<?php esc_attr_e( 'Country code', 'smart-login' ); ?>">
-									<?php foreach ( self::phone_country_options() as $dial => $country ) : ?>
-										<option value="<?php echo esc_attr( $dial ); ?>" title="<?php echo esc_attr( $country['name'] ); ?>"<?php selected( '+1', $dial ); ?>><?php echo esc_html( $country['flag'] . ' ' . $dial ); ?></option>
-									<?php endforeach; ?>
-								</select>
-								<input type="tel" id="sml-reg-phone" name="phone_number" autocomplete="tel-national" inputmode="numeric" placeholder="<?php esc_attr_e( '555 123 4567', 'smart-login' ); ?>" required>
+								<div class="sml-phone-code">
+									<svg class="sml-phone-flag" viewBox="0 0 20 14" aria-hidden="true"><use href="#sml-flag-<?php echo esc_attr( $sml_default_country ); ?>" data-sml-flag-use></use></svg>
+									<select name="phone_country" id="sml-reg-phone-country" aria-label="<?php esc_attr_e( 'Country code', 'smart-login' ); ?>" data-sml-flag-select>
+										<?php foreach ( $sml_allowed_countries as $id => $country ) : ?>
+											<option value="<?php echo esc_attr( $id ); ?>"<?php selected( $sml_default_country, $id ); ?>><?php echo esc_html( $country['dial'] . ' ' . $country['name'] ); ?></option>
+										<?php endforeach; ?>
+									</select>
+								</div>
+								<input type="tel" id="sml-reg-phone" name="phone_number" autocomplete="tel-national" inputmode="numeric" placeholder="<?php esc_attr_e( 'Phone number', 'smart-login' ); ?>" required>
 							</div>
 							<label for="sml-reg-phone"><?php esc_html_e( 'Mobile number', 'smart-login' ); ?> <span class="sml-required">*</span></label>
 						</div>
@@ -227,37 +235,5 @@ class SML_Shortcode {
 		</div>
 		<?php
 		return ob_get_clean();
-	}
-
-	/**
-	 * Common dial codes for the mobile-number country selector. Not
-	 * exhaustive by design — covers the plugin's primary markets plus the
-	 * most frequently needed codes elsewhere.
-	 *
-	 * @return array<string,array{flag:string,name:string}> dial code => flag emoji + country name
-	 */
-	protected static function phone_country_options() {
-		return array(
-			'+1'   => array( 'flag' => '🇺🇸', 'name' => 'United States/Canada' ),
-			'+44'  => array( 'flag' => '🇬🇧', 'name' => 'United Kingdom' ),
-			'+971' => array( 'flag' => '🇦🇪', 'name' => 'UAE' ),
-			'+966' => array( 'flag' => '🇸🇦', 'name' => 'Saudi Arabia' ),
-			'+98'  => array( 'flag' => '🇮🇷', 'name' => 'Iran' ),
-			'+90'  => array( 'flag' => '🇹🇷', 'name' => 'Türkiye' ),
-			'+91'  => array( 'flag' => '🇮🇳', 'name' => 'India' ),
-			'+61'  => array( 'flag' => '🇦🇺', 'name' => 'Australia' ),
-			'+49'  => array( 'flag' => '🇩🇪', 'name' => 'Germany' ),
-			'+33'  => array( 'flag' => '🇫🇷', 'name' => 'France' ),
-			'+34'  => array( 'flag' => '🇪🇸', 'name' => 'Spain' ),
-			'+39'  => array( 'flag' => '🇮🇹', 'name' => 'Italy' ),
-			'+31'  => array( 'flag' => '🇳🇱', 'name' => 'Netherlands' ),
-			'+86'  => array( 'flag' => '🇨🇳', 'name' => 'China' ),
-			'+81'  => array( 'flag' => '🇯🇵', 'name' => 'Japan' ),
-			'+82'  => array( 'flag' => '🇰🇷', 'name' => 'South Korea' ),
-			'+65'  => array( 'flag' => '🇸🇬', 'name' => 'Singapore' ),
-			'+52'  => array( 'flag' => '🇲🇽', 'name' => 'Mexico' ),
-			'+55'  => array( 'flag' => '🇧🇷', 'name' => 'Brazil' ),
-			'+27'  => array( 'flag' => '🇿🇦', 'name' => 'South Africa' ),
-		);
 	}
 }

@@ -189,11 +189,25 @@
 		}
 	}
 
-	.sml-card .sml-phone-group {
+	.sml-card .sml-field-boxed > .sml-phone-group {
 		display: flex !important;
 		align-items: center !important;
 		gap: 8px !important;
+	}
+
+	.sml-card .sml-phone-code {
+		display: flex !important;
+		align-items: center !important;
+		gap: 5px !important;
+		flex: 0 0 auto !important;
 		height: 100% !important;
+	}
+
+	.sml-phone-flag {
+		flex: 0 0 auto !important;
+		width: 18px !important;
+		height: 13px !important;
+		display: block !important;
 	}
 
 	.sml-card .sml-phone-group select {
@@ -202,7 +216,7 @@
 		max-width: 74px !important;
 		height: 100% !important;
 		padding: 0 !important;
-		font-size: 15px !important;
+		font-size: 13px !important;
 		color: var(--sml-fg) !important;
 		background: transparent !important;
 		border: none !important;
@@ -224,10 +238,42 @@
 		outline: none !important;
 	}
 
-	.sml-card .sml-password-group {
+	@media (max-width: 480px) {
+		.sml-card .sml-field-boxed:has(.sml-phone-group) {
+			height: auto !important;
+			padding-top: 26px !important;
+			padding-bottom: 8px !important;
+		}
+
+		.sml-card .sml-field-boxed:has(.sml-phone-group) > .sml-phone-group {
+			position: static !important;
+			flex-direction: column !important;
+			align-items: stretch !important;
+			gap: 6px !important;
+			height: auto !important;
+		}
+
+		.sml-card .sml-phone-code {
+			border-bottom: 1px solid var(--sml-border) !important;
+			padding-bottom: 6px !important;
+		}
+
+		.sml-card .sml-phone-group select {
+			max-width: none !important;
+			width: 100% !important;
+			height: 22px !important;
+			font-size: 14px !important;
+		}
+
+		.sml-card .sml-phone-group input {
+			width: 100% !important;
+			height: 22px !important;
+		}
+	}
+
+	.sml-card .sml-field-boxed > .sml-password-group {
 		display: flex !important;
 		align-items: center !important;
-		height: 100% !important;
 	}
 
 	.sml-card .sml-password-group input {
@@ -495,18 +541,26 @@
 					<input type="email" id="sml-reg-email" name="email" autocomplete="email" placeholder=" " required>
 					<label for="sml-reg-email">Email <span class="sml-required">*</span></label>
 				</div>
+				<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+					<symbol id="sml-flag-us" viewBox="0 0 20 14"><rect width="20" height="14" fill="#fff"/><g fill="#B22234"><rect y="0" width="20" height="1.08"/><rect y="2.15" width="20" height="1.08"/><rect y="4.31" width="20" height="1.08"/><rect y="6.46" width="20" height="1.08"/><rect y="8.62" width="20" height="1.08"/><rect y="10.77" width="20" height="1.08"/><rect y="12.92" width="20" height="1.08"/></g><rect width="9" height="7.54" fill="#3C3B6E"/></symbol>
+					<symbol id="sml-flag-ca" viewBox="0 0 20 14"><rect width="20" height="14" fill="#fff"/><rect width="5" height="14" fill="#D80621"/><rect x="15" width="5" height="14" fill="#D80621"/><path d="M10 3l1 2.2 2-1-.6 2.2L14 7l-1.6 1.4.9 1.1-1.8-.2.1 1.3-.6-1-.6 1 .1-1.3-1.8.2.9-1.1L8 7l1.6-.6-.6-2.2 2 1z" fill="#D80621"/></symbol>
+					<symbol id="sml-flag-gb" viewBox="0 0 20 14"><rect width="20" height="14" fill="#00247D"/><path d="M0 0l20 14M20 0L0 14" stroke="#fff" stroke-width="2.4"/><path d="M0 0l20 14M20 0L0 14" stroke="#CF142B" stroke-width="0.9"/><path d="M10 0v14M0 7h20" stroke="#fff" stroke-width="3.6"/><path d="M10 0v14M0 7h20" stroke="#CF142B" stroke-width="1.6"/></symbol>
+					<symbol id="sml-flag-fr" viewBox="0 0 20 14"><rect width="20" height="14" fill="#fff"/><rect width="6.67" height="14" fill="#0055A4"/><rect x="13.33" width="6.67" height="14" fill="#EF4135"/></symbol>
+					<symbol id="sml-flag-de" viewBox="0 0 20 14"><rect width="20" height="14" fill="#FFCC00"/><rect width="20" height="4.67" fill="#000"/><rect y="4.67" width="20" height="4.67" fill="#DD0000"/></symbol>
+				</svg>
 				<div class="sml-field-boxed">
 					<div class="sml-phone-group">
-						<select id="sml-reg-phone-country" aria-label="Country code">
-							<option title="United States/Canada">🇺🇸 +1</option>
-							<option title="United Kingdom">🇬🇧 +44</option>
-							<option title="UAE">🇦🇪 +971</option>
-							<option title="Saudi Arabia">🇸🇦 +966</option>
-							<option title="Iran">🇮🇷 +98</option>
-							<option title="Türkiye">🇹🇷 +90</option>
-							<option title="India">🇮🇳 +91</option>
-						</select>
-						<input type="tel" id="sml-reg-phone" name="phone_number" autocomplete="tel-national" inputmode="numeric" placeholder="555 123 4567" required>
+						<div class="sml-phone-code">
+							<svg class="sml-phone-flag" viewBox="0 0 20 14" aria-hidden="true"><use href="#sml-flag-us" data-sml-flag-use></use></svg>
+							<select id="sml-reg-phone-country" aria-label="Country code" data-sml-flag-select>
+								<option value="us">+1 United States</option>
+								<option value="ca">+1 Canada</option>
+								<option value="gb">+44 United Kingdom</option>
+								<option value="fr">+33 France</option>
+								<option value="de">+49 Germany</option>
+							</select>
+						</div>
+						<input type="tel" id="sml-reg-phone" name="phone_number" autocomplete="tel-national" inputmode="numeric" placeholder="Phone number" required>
 					</div>
 					<label for="sml-reg-phone">Mobile number <span class="sml-required">*</span></label>
 				</div>
@@ -585,6 +639,13 @@
 			root.querySelectorAll( '[data-sml-panel]' ).forEach( function ( p ) {
 				p.hidden = p.getAttribute( 'data-sml-panel' ) !== tab.getAttribute( 'data-sml-tab' );
 			} );
+		} );
+	} );
+
+	document.querySelectorAll( '[data-sml-flag-select]' ).forEach( function ( select ) {
+		select.addEventListener( 'change', function () {
+			var use = select.parentElement && select.parentElement.querySelector( '[data-sml-flag-use]' );
+			if ( use ) { use.setAttribute( 'href', '#sml-flag-' + select.value ); }
 		} );
 	} );
 

@@ -194,6 +194,16 @@
 
 			wireOtp( root );
 
+			// The <select> can't render an SVG inside its own closed state,
+			// so a real flag icon sits next to it and is swapped by hand
+			// whenever the selection changes.
+			qsa( '[data-sml-flag-select]', root ).forEach( function ( select ) {
+				select.addEventListener( 'change', function () {
+					var use = select.parentElement && select.parentElement.querySelector( '[data-sml-flag-use]' );
+					if ( use ) { use.setAttribute( 'href', '#sml-flag-' + select.value ); }
+				} );
+			} );
+
 			qsa( '[data-sml-password-toggle]', root ).forEach( function ( toggle ) {
 				toggle.addEventListener( 'click', function () {
 					var input = toggle.previousElementSibling;

@@ -24,6 +24,7 @@ class SML_Settings {
 			'enable_registration'      => 1,
 			'enable_login_form'        => 1,
 			'default_role'             => 'subscriber',
+			'allowed_countries'        => SML_Countries::default_allowed_csv(),
 
 			// Verification.
 			'code_length'              => 6,

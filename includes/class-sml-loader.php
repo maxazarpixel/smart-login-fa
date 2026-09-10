@@ -18,6 +18,12 @@ class SML_Loader {
 		add_action( 'init', array( __CLASS__, 'load_textdomain' ) );
 		add_action( 'sml_cleanup_expired_verifications', array( 'SML_Verification', 'cleanup_expired' ) );
 
+		// Always on (not gated by the debug-log setting): a failed send is
+		// exactly the kind of thing an admin needs to see when "the email
+		// never arrived" gets reported, and wp_mail() itself gives no other
+		// signal beyond a bare `false` return value.
+		add_action( 'wp_mail_failed', array( __CLASS__, 'log_mail_failure' ) );
+
 		// Not gated by is_admin(): the settings page's Save button calls the
 		// REST route this class registers (via rest_api_init), and REST API
 		// requests are not admin requests — gating construction to admin
@@ -42,6 +48,8 @@ class SML_Loader {
 
 	protected static function load_files() {
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-settings.php';
+		require_once SML_PLUGIN_DIR . 'includes/class-sml-countries.php';
+		require_once SML_PLUGIN_DIR . 'includes/class-sml-flags.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-verification.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-email.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-lockout.php';
@@ -73,6 +81,24 @@ class SML_Loader {
 			default:
 				return null;
 		}
+	}
+
+	/**
+	 * Fired for every failed wp_mail() call site-wide, not just this
+	 * plugin's own sends — that's deliberate: if the site's mailer (e.g.
+	 * WP Mail SMTP) is misconfigured, every plugin's mail fails the same
+	 * way, and seeing that clearly here is often the fastest way to tell
+	 * "this is a Smart Login bug" from "this is an SMTP/server problem".
+	 *
+	 * @param WP_Error $error
+	 */
+	public static function log_mail_failure( $error ) {
+		self::log(
+			sprintf(
+				'wp_mail() failed: %s',
+				is_wp_error( $error ) ? $error->get_error_message() : 'unknown error'
+			)
+		);
 	}
 
 	/**

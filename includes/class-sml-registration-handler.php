@@ -35,12 +35,12 @@ class SML_Registration_Handler {
 			wp_send_json_error( array( 'message' => $bot_check->get_error_message() ) );
 		}
 
-		$first_name   = isset( $_POST['first_name'] ) ? sanitize_text_field( wp_unslash( $_POST['first_name'] ) ) : '';
-		$last_name    = isset( $_POST['last_name'] ) ? sanitize_text_field( wp_unslash( $_POST['last_name'] ) ) : '';
-		$email        = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
-		$phone_dial   = isset( $_POST['phone_country'] ) ? sanitize_text_field( wp_unslash( $_POST['phone_country'] ) ) : '';
-		$phone_number = isset( $_POST['phone_number'] ) ? preg_replace( '/[^0-9]/', '', wp_unslash( $_POST['phone_number'] ) ) : '';
-		$password     = isset( $_POST['password'] ) ? (string) wp_unslash( $_POST['password'] ) : '';
+		$first_name    = isset( $_POST['first_name'] ) ? sanitize_text_field( wp_unslash( $_POST['first_name'] ) ) : '';
+		$last_name     = isset( $_POST['last_name'] ) ? sanitize_text_field( wp_unslash( $_POST['last_name'] ) ) : '';
+		$email         = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+		$country_id    = isset( $_POST['phone_country'] ) ? sanitize_key( wp_unslash( $_POST['phone_country'] ) ) : '';
+		$phone_number  = isset( $_POST['phone_number'] ) ? preg_replace( '/[^0-9]/', '', wp_unslash( $_POST['phone_number'] ) ) : '';
+		$password      = isset( $_POST['password'] ) ? (string) wp_unslash( $_POST['password'] ) : '';
 
 		if ( ! $first_name || ! $last_name || ! $email || ! $phone_number || ! $password ) {
 			wp_send_json_error( array( 'message' => __( 'Please fill in all fields.', 'smart-login' ) ) );
@@ -50,9 +50,13 @@ class SML_Registration_Handler {
 			wp_send_json_error( array( 'message' => __( 'Please enter a valid email address.', 'smart-login' ) ) );
 		}
 
-		if ( ! preg_match( '/^\+[1-9][0-9]{0,3}$/', $phone_dial ) ) {
-			wp_send_json_error( array( 'message' => __( 'Please select a valid country code.', 'smart-login' ) ) );
+		$countries = SML_Countries::all();
+
+		if ( ! isset( $countries[ $country_id ] ) || ! SML_Countries::is_allowed( $country_id ) ) {
+			wp_send_json_error( array( 'message' => __( 'Registration from the selected country is not available.', 'smart-login' ) ) );
 		}
+
+		$phone_dial = $countries[ $country_id ]['dial'];
 
 		if ( strlen( $phone_number ) < 4 || strlen( $phone_number ) > 14 ) {
 			wp_send_json_error( array( 'message' => __( 'Please enter a valid mobile number.', 'smart-login' ) ) );

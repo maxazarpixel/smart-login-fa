@@ -238,11 +238,33 @@
 	}
 }
 
-.sml-card .sml-phone-group {
+/*
+ * Specificity note: these must match (or beat) the 3-class specificity of
+ * `.sml-card .sml-field-boxed > .sml-phone-group` above (which sets
+ * `display: block !important` as part of the shared reset for every kind
+ * of field-box content) — otherwise that rule wins the tie and this flex
+ * layout silently never applies, collapsing the flag/select/input into
+ * three stacked block rows instead of one line.
+ */
+.sml-card .sml-field-boxed > .sml-phone-group {
 	display: flex !important;
 	align-items: center !important;
 	gap: 8px !important;
+}
+
+.sml-card .sml-phone-code {
+	display: flex !important;
+	align-items: center !important;
+	gap: 5px !important;
+	flex: 0 0 auto !important;
 	height: 100% !important;
+}
+
+.sml-phone-flag {
+	flex: 0 0 auto !important;
+	width: 18px !important;
+	height: 13px !important;
+	display: block !important;
 }
 
 .sml-card .sml-phone-group select {
@@ -251,7 +273,7 @@
 	max-width: 74px !important;
 	height: 100% !important;
 	padding: 0 !important;
-	font-size: 15px !important;
+	font-size: 13px !important;
 	color: var(--sml-fg) !important;
 	background: transparent !important;
 	border: none !important;
@@ -273,10 +295,49 @@
 	outline: none !important;
 }
 
-.sml-card .sml-password-group {
+/*
+ * On narrow/mobile viewports the country code (flag + select, kept
+ * together on one line) and the phone number move onto separate lines
+ * instead of squeezing into one row. The phone field's box grows to fit
+ * two stacked rows instead of the fixed single-row height every other
+ * field uses.
+ */
+@media (max-width: 480px) {
+	.sml-card .sml-field-boxed:has(.sml-phone-group) {
+		height: auto !important;
+		padding-top: 26px !important;
+		padding-bottom: 8px !important;
+	}
+
+	.sml-card .sml-field-boxed:has(.sml-phone-group) > .sml-phone-group {
+		position: static !important;
+		flex-direction: column !important;
+		align-items: stretch !important;
+		gap: 6px !important;
+		height: auto !important;
+	}
+
+	.sml-card .sml-phone-code {
+		border-bottom: 1px solid var(--sml-border) !important;
+		padding-bottom: 6px !important;
+	}
+
+	.sml-card .sml-phone-group select {
+		max-width: none !important;
+		width: 100% !important;
+		height: 22px !important;
+		font-size: 14px !important;
+	}
+
+	.sml-card .sml-phone-group input {
+		width: 100% !important;
+		height: 22px !important;
+	}
+}
+
+.sml-card .sml-field-boxed > .sml-password-group {
 	display: flex !important;
 	align-items: center !important;
-	height: 100% !important;
 }
 
 .sml-card .sml-password-group input {

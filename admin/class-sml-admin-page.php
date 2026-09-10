@@ -120,6 +120,13 @@ class SML_Admin_Page extends APX_Admin_Page {
 						),
 					),
 				),
+				array(
+					'heading' => __( 'Allowed countries for registration', 'smart-login' ),
+					'desc'    => __( 'Only checked countries appear in the mobile-number country selector on the registration form; registering with any other country is rejected server-side too. Enabled by default: United States, Canada, and Western Europe.', 'smart-login' ),
+					'fields'  => array(
+						array( 'type' => 'countries', 'name' => 'allowed_countries', 'label' => __( 'Allowed countries', 'smart-login' ) ),
+					),
+				),
 			),
 		);
 	}
@@ -205,6 +212,7 @@ class SML_Admin_Page extends APX_Admin_Page {
 					'fields'  => array(
 						array( 'type' => 'text', 'name' => 'from_name', 'label' => __( 'From name', 'smart-login' ) ),
 						array( 'type' => 'text', 'name' => 'from_email', 'label' => __( 'From email', 'smart-login' ) ),
+						array( 'type' => 'html', 'html' => $this->test_email_html() ),
 					),
 				),
 				array(
@@ -287,6 +295,107 @@ class SML_Admin_Page extends APX_Admin_Page {
 		return $roles;
 	}
 
+	/**
+	 * A self-contained "does mail even work on this site" button. It calls
+	 * wp_mail() the same way every other email in the plugin does (same
+	 * from-address/content-type filters), independent of the
+	 * registration/verification flow — so if this also fails, the cause is
+	 * the site's mailer (e.g. WP Mail SMTP) or server, not this plugin.
+	 */
+	protected function test_email_html() {
+		return '<div class="apx-row">'
+			. '<label>' . esc_html__( 'Test delivery', 'smart-login' ) . '</label>'
+			. '<button type="button" class="button button-secondary" id="sml-test-email-btn">' . esc_html__( 'Send test email', 'smart-login' ) . '</button> '
+			. '<span id="sml-test-email-status" style="font-size:13px;"></span>'
+			. '<p class="description">' . esc_html__( 'Sends a plain test email to your account using the exact same code path as every other Smart Login email. If this fails too, the problem is your SMTP setup (e.g. WP Mail SMTP), not this plugin.', 'smart-login' ) . '</p>'
+			. '</div>'
+			. '<script>(function(){
+				var btn = document.getElementById("sml-test-email-btn");
+				var status = document.getElementById("sml-test-email-status");
+				if (!btn) { return; }
+				btn.addEventListener("click", function(){
+					btn.disabled = true;
+					status.textContent = "' . esc_js( __( 'Sending…', 'smart-login' ) ) . '";
+					fetch(window.APX_UI.restUrl.replace(/\/$/, "") + "/test-email", {
+						method: "POST",
+						credentials: "same-origin",
+						headers: { "X-WP-Nonce": window.APX_UI.restNonce }
+					}).then(function(r){ return r.json(); }).then(function(data){
+						status.textContent = data.message || "";
+						status.style.color = data.sent ? "#12805c" : "#d92d20";
+					}).catch(function(){
+						status.textContent = "' . esc_js( __( 'Request failed.', 'smart-login' ) ) . '";
+						status.style.color = "#d92d20";
+					}).then(function(){ btn.disabled = false; });
+				});
+			})();</script>';
+	}
+
+	/**
+	 * Sends a bare test email through the identical filters/content-type
+	 * every other Smart Login email uses, to the current admin's address.
+	 *
+	 * @param WP_REST_Request $req
+	 * @return WP_REST_Response
+	 */
+	public function rest_test_email( WP_REST_Request $req ) {
+		$to             = wp_get_current_user()->user_email;
+		$captured_error = null;
+
+		$capture = function ( $error ) use ( &$captured_error ) {
+			$captured_error = $error;
+		};
+		add_action( 'wp_mail_failed', $capture );
+
+		add_filter( 'wp_mail_content_type', array( 'SML_Email', 'content_type' ) );
+		add_filter( 'wp_mail_from', array( 'SML_Email', 'from_email' ) );
+		add_filter( 'wp_mail_from_name', array( 'SML_Email', 'from_name' ) );
+
+		$sent = wp_mail(
+			$to,
+			__( 'Smart Login test email', 'smart-login' ),
+			__( 'If you are reading this, Smart Login was able to send email through this site\'s configured mailer.', 'smart-login' )
+		);
+
+		remove_filter( 'wp_mail_content_type', array( 'SML_Email', 'content_type' ) );
+		remove_filter( 'wp_mail_from', array( 'SML_Email', 'from_email' ) );
+		remove_filter( 'wp_mail_from_name', array( 'SML_Email', 'from_name' ) );
+		remove_action( 'wp_mail_failed', $capture );
+
+		if ( ! $sent ) {
+			return rest_ensure_response(
+				array(
+					'sent'    => false,
+					'message' => $captured_error instanceof WP_Error
+						? $captured_error->get_error_message()
+						: __( 'wp_mail() returned false with no further detail from your mailer.', 'smart-login' ),
+				)
+			);
+		}
+
+		return rest_ensure_response(
+			array(
+				'sent'    => true,
+				/* translators: %s: email address */
+				'message' => sprintf( __( 'Sent to %s — check your inbox (and spam folder).', 'smart-login' ), $to ),
+			)
+		);
+	}
+
+	public function register_rest() {
+		parent::register_rest();
+
+		register_rest_route(
+			$this->cfg['rest_ns'],
+			'/test-email',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'rest_test_email' ),
+				'permission_callback' => array( $this, 'rest_permission' ),
+			)
+		);
+	}
+
 	/* ── field-type extensions the base kit doesn't ship ────────────── */
 
 	protected function render_field( array $f, array $s ) {
@@ -336,6 +445,43 @@ class SML_Admin_Page extends APX_Admin_Page {
 			return;
 		}
 
+		if ( 'countries' === $f['type'] ) {
+			$name    = $f['name'];
+			$current = isset( $s[ $name ] ) ? (string) $s[ $name ] : '';
+			$allowed = array_filter( array_map( 'trim', explode( ',', $current ) ) );
+			$all     = SML_Countries::all();
+
+			echo '<div class="apx-field-row">';
+			printf( '<label><strong>%s</strong></label>', esc_html( $f['label'] ) );
+			printf( '<input type="hidden" id="%1$s" name="%1$s" value="%2$s" data-apx-field>', esc_attr( $name ), esc_attr( $current ) );
+			echo '<style>.sml-country-flag{width:18px;height:13px;flex:0 0 auto;vertical-align:middle;}</style>';
+			echo '<div class="sml-country-grid" data-sml-country-grid="' . esc_attr( $name ) . '" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px 14px;max-width:760px;margin-top:4px;">';
+			foreach ( $all as $id => $country ) {
+				printf(
+					'<label style="display:flex;align-items:center;gap:6px;font-weight:400;"><input type="checkbox" value="%1$s" %2$s>%3$s <span>%4$s (%5$s)</span></label>',
+					esc_attr( $id ),
+					checked( in_array( $id, $allowed, true ), true, false ),
+					SML_Flags::icon( $id, 'sml-country-flag' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					esc_html( $country['name'] ),
+					esc_html( $country['dial'] )
+				);
+			}
+			echo '</div>';
+			SML_Flags::sprite();
+			echo '<script>(function(){
+				var grid = document.querySelector(\'[data-sml-country-grid="' . esc_js( $name ) . '"]\');
+				var hidden = document.getElementById(\'' . esc_js( $name ) . '\');
+				if (!grid || !hidden) { return; }
+				grid.addEventListener("change", function(){
+					var ids = Array.prototype.slice.call(grid.querySelectorAll(\'input[type="checkbox"]:checked\')).map(function(cb){ return cb.value; });
+					hidden.value = ids.join(",");
+					hidden.dispatchEvent(new Event("change", { bubbles: true }));
+				});
+			})();</script>';
+			echo '</div>';
+			return;
+		}
+
 		if ( 'password' === $f['type'] && ! empty( $f['secret'] ) ) {
 			$name    = $f['name'];
 			$hasval  = '' !== (string) ( isset( $s[ $name ] ) ? $s[ $name ] : '' );
@@ -359,6 +505,14 @@ class SML_Admin_Page extends APX_Admin_Page {
 	}
 
 	protected function sanitize( $value, array $field ) {
+		if ( 'countries' === $field['type'] ) {
+			$ids   = array_filter( array_map( 'trim', explode( ',', (string) $value ) ) );
+			$known = array_keys( SML_Countries::all() );
+			$valid = array_values( array_intersect( $ids, $known ) );
+
+			return $valid ? implode( ',', $valid ) : SML_Countries::default_allowed_csv();
+		}
+
 		if ( 'textarea' === $field['type'] ) {
 			// Email bodies may contain admin-authored basic HTML (see
 			// SML_Email::send()), so this allows the wp_kses_post() tag set

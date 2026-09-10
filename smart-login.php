@@ -3,7 +3,7 @@
  * Plugin Name:       Smart Login
  * Plugin URI:        https://www.azarpixel.com
  * Description:       Modern, secure login & registration plugin with email verification (code + link), for standard WordPress and WooCommerce sites.
- * Version:           1.2.0
+ * Version:           1.3.0
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Author:            Maziyar Nikbakhsh
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SML_VERSION', '1.2.0' );
+define( 'SML_VERSION', '1.3.0' );
 define( 'SML_DB_VERSION', '1.0.0' );
 define( 'SML_PLUGIN_FILE', __FILE__ );
 define( 'SML_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
@@ -29,6 +29,7 @@ define( 'SML_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
 require_once SML_PLUGIN_DIR . 'includes/class-sml-loader.php';
 require_once SML_PLUGIN_DIR . 'includes/class-sml-settings.php';
+require_once SML_PLUGIN_DIR . 'includes/class-sml-countries.php';
 
 /**
  * Creates/upgrades the sml_verifications table via dbDelta.

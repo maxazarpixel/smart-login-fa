@@ -104,7 +104,12 @@ class SML_Email {
 
 		self::$sending = false;
 
-		if ( SML_Settings::get( 'enable_debug_log' ) ) {
+		// Failures always get logged (they're diagnostic-critical); a
+		// success is only logged when debug mode is on. wp_mail_failed
+		// (logged separately in SML_Loader) carries the actual WP_Error
+		// reason — this line just ties that failure back to which of our
+		// own sends triggered it.
+		if ( ! $sent || SML_Settings::get( 'enable_debug_log' ) ) {
 			SML_Loader::log( sprintf( 'Email to %s ("%s"): %s', $to, $subject, $sent ? 'sent' : 'FAILED' ) );
 		}
 

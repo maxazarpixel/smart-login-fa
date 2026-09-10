@@ -30,6 +30,7 @@ $users = get_users(
 );
 foreach ( $users as $user_id ) {
 	delete_user_meta( $user_id, 'sml_email_verified' );
+	delete_user_meta( $user_id, 'sml_phone' );
 }
 
 wp_clear_scheduled_hook( 'sml_cleanup_expired_verifications' );
