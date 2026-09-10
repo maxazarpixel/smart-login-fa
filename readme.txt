@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.18.2
+Stable tag: 1.19.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,9 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.19.0 =
+* The Dashboard now has a "Most password-reset requests" table — the accounts that have asked for a reset link the most, with the request count and when they last asked. Useful for spotting a confused customer or abuse. Each forgot-password submission for a real account is counted from now on (older history isn't backfilled).
 
 = 1.18.2 =
 * Dashboard polish: the sign-up chart's solid-black bars are now a soft indigo gradient sitting in a light column track, with a baseline and no more clipped value label on the tallest bar. The KPI cards get a light background, a thin colour accent on top, and softer (not pure-black) numbers.

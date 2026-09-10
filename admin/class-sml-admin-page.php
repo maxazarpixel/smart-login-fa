@@ -501,6 +501,31 @@ class SML_Admin_Page extends APX_Admin_Page {
 				<?php echo $this->activity_table( $s['recent_logins'], __( 'Last login', 'smart-login' ), 'when' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			</div>
 		</div>
+
+		<h2 class="apx-section-h" style="margin-top:28px;"><?php esc_html_e( 'Most password-reset requests', 'smart-login' ); ?></h2>
+		<div class="apx-table-scroll">
+			<table class="widefat striped">
+				<thead><tr>
+					<th><?php esc_html_e( 'User', 'smart-login' ); ?></th>
+					<th><?php esc_html_e( 'Email', 'smart-login' ); ?></th>
+					<th><?php esc_html_e( 'Requests', 'smart-login' ); ?></th>
+					<th><?php esc_html_e( 'Last request', 'smart-login' ); ?></th>
+				</tr></thead>
+				<tbody>
+					<?php if ( ! $s['top_reset'] ) : ?>
+						<tr><td colspan="4"><?php esc_html_e( 'No password-reset requests yet.', 'smart-login' ); ?></td></tr>
+					<?php endif; ?>
+					<?php foreach ( $s['top_reset'] as $row ) : ?>
+						<tr>
+							<td><?php echo esc_html( $row['name'] ); ?></td>
+							<td><?php echo esc_html( $row['email'] ); ?></td>
+							<td><strong><?php echo esc_html( number_format_i18n( $row['count'] ) ); ?></strong></td>
+							<td><?php echo esc_html( $row['when'] ); ?></td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+		</div>
 		<?php
 		return ob_get_clean();
 	}
@@ -618,7 +643,53 @@ class SML_Admin_Page extends APX_Admin_Page {
 			'chart'          => $this->signups_last_6_months(),
 			'recent_signups' => $this->recent_signups( 8 ),
 			'recent_logins'  => $this->recent_logins( 8 ),
+			'top_reset'      => $this->top_reset_requesters( 8 ),
 		);
+	}
+
+	/**
+	 * Accounts that have requested the most password resets.
+	 *
+	 * @param int $limit
+	 * @return array<int,array{name:string,email:string,count:int,when:string}>
+	 */
+	protected function top_reset_requesters( $limit = 8 ) {
+		global $wpdb;
+
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT user_id, meta_value AS c FROM {$wpdb->usermeta} WHERE meta_key = 'sml_reset_requests' AND ( meta_value + 0 ) > 0 ORDER BY ( meta_value + 0 ) DESC LIMIT %d", // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				$limit
+			)
+		);
+
+		$ids = array_map(
+			function ( $r ) {
+				return (int) $r->user_id;
+			},
+			(array) $rows
+		);
+		if ( $ids ) {
+			cache_users( $ids );
+		}
+
+		$out = array();
+		foreach ( (array) $rows as $r ) {
+			$user = get_userdata( (int) $r->user_id );
+			if ( ! $user ) {
+				continue;
+			}
+			$last = (int) get_user_meta( $user->ID, 'sml_reset_requested_at', true );
+			$out[] = array(
+				'name'  => $user->display_name ? $user->display_name : trim( $user->first_name . ' ' . $user->last_name ),
+				'email' => $user->user_email,
+				'count' => (int) $r->c,
+				/* translators: %s: human-readable time difference, e.g. "3 hours" */
+				'when'  => $last ? sprintf( __( '%s ago', 'smart-login' ), human_time_diff( $last, time() ) ) : '&mdash;',
+			);
+		}
+
+		return $out;
 	}
 
 	/**

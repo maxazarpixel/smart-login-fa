@@ -79,6 +79,15 @@ class SML_Password_Reset_Handler {
 				// not a bare home page that may not contain it.
 				$reset_url = add_query_arg( $args, SML_Settings::form_page_url() );
 				SML_Email::send_password_reset( $user, $reset_url );
+
+				// Per-account counter for the dashboard's "Most password-reset
+				// requests" table (helps spot a confused user or abuse).
+				update_user_meta(
+					$user->ID,
+					'sml_reset_requests',
+					(int) get_user_meta( $user->ID, 'sml_reset_requests', true ) + 1
+				);
+				update_user_meta( $user->ID, 'sml_reset_requested_at', time() );
 			}
 		}
 

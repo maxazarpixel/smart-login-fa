@@ -23,7 +23,7 @@ delete_option( 'sml_login_settings' );
 delete_option( 'sml_db_version' );
 
 $wpdb->query(
-	"DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('sml_email_verified', 'sml_phone', 'sml_last_login')" // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	"DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('sml_email_verified', 'sml_phone', 'sml_last_login', 'sml_reset_requests', 'sml_reset_requested_at')" // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 );
 
 $wpdb->query(
