@@ -11,36 +11,97 @@
 
 	var resendTimer = null;
 
+	// Turnstile widget id per panel name ('login' | 'register' | 'forgot' |
+	// 'reset'). Each form gets its own widget, rendered only once it's on
+	// screen; recaptcha v3 is invisible and needs none of this.
+	var turnstileWidgets = {};
+
+	/**
+	 * Renders a Turnstile widget into the given panel's form, once. Safe to
+	 * call repeatedly and before the Turnstile API has loaded.
+	 */
+	function renderTurnstileFor( name, root ) {
+		if ( 'turnstile' !== SmartLogin.botProvider || ! window.turnstile || ! SmartLogin.botSiteKey ) {
+			return;
+		}
+		var form = qs( '[data-sml-form="' + name + '"]', root );
+		if ( ! form ) { return; }
+		var holder = qs( '[data-sml-turnstile]', form );
+		if ( ! holder || holder.getAttribute( 'data-rendered' ) ) { return; }
+
+		var tokenInput = qs( '[data-sml-bot-token]', form );
+		var writeToken = function ( value ) {
+			if ( tokenInput ) { tokenInput.value = value || ''; }
+		};
+
+		try {
+			var id = window.turnstile.render( holder, {
+				sitekey: SmartLogin.botSiteKey,
+				callback: writeToken,
+				'error-callback': function () { writeToken( '' ); },
+				'expired-callback': function () { writeToken( '' ); },
+				'timeout-callback': function () { writeToken( '' ); }
+			} );
+			holder.setAttribute( 'data-rendered', '1' );
+			turnstileWidgets[ name ] = id;
+		} catch ( e ) {}
+	}
+
+	// Turnstile's api.js?onload= calls this once the API object exists.
+	window.smlTurnstileOnload = function () {
+		qsa( '[data-sml-root]' ).forEach( function ( root ) {
+			var visible = qs( '[data-sml-panel]:not([hidden])', root );
+			if ( visible ) {
+				renderTurnstileFor( visible.getAttribute( 'data-sml-panel' ), root );
+			}
+		} );
+	};
+
+	/**
+	 * Discards the current Turnstile token for a panel and asks the widget
+	 * for a fresh one — call after a failed submit, since a Turnstile token
+	 * is single-use and the widget won't reissue on its own.
+	 */
+	function resetTurnstile( name ) {
+		if ( 'turnstile' !== SmartLogin.botProvider || ! window.turnstile ) { return; }
+		var id = turnstileWidgets[ name ];
+		if ( 'undefined' === typeof id ) { return; }
+		try { window.turnstile.reset( id ); } catch ( e ) {}
+	}
+
 	/**
 	 * Resolves to a bot-protection response token for the currently
 	 * configured provider, or an empty string when none is configured or a
 	 * token can't be obtained (the server re-validates regardless).
+	 *
+	 * @param {HTMLElement} form  The form being submitted.
+	 * @param {string}      name  Panel name — 'login' | 'register' | 'forgot' | 'reset'.
 	 */
-	function getBotToken( form ) {
+	function getBotToken( form, name ) {
 		if ( 'recaptcha' === SmartLogin.botProvider && window.grecaptcha && SmartLogin.botSiteKey ) {
 			return new Promise( function ( resolve ) {
 				window.grecaptcha.ready( function () {
-					window.grecaptcha.execute( SmartLogin.botSiteKey, { action: 'sml_register' } )
+					window.grecaptcha.execute( SmartLogin.botSiteKey, { action: 'sml_' + name } )
 						.then( resolve )
 						.catch( function () { resolve( '' ); } );
 				} );
 			} );
 		}
 
-		if ( 'turnstile' === SmartLogin.botProvider ) {
-			var input = qs( '[data-sml-bot-token]', form );
-			return Promise.resolve( input ? input.value : '' );
+		if ( 'turnstile' === SmartLogin.botProvider && window.turnstile ) {
+			var id    = turnstileWidgets[ name ];
+			var token = 'undefined' !== typeof id ? ( window.turnstile.getResponse( id ) || '' ) : '';
+			if ( ! token ) {
+				// Fallback to whatever the callback last wrote, in case the
+				// widget id lookup is unavailable for any reason.
+				var input = qs( '[data-sml-bot-token]', form );
+				token = input ? input.value : '';
+			}
+			return Promise.resolve( token );
 		}
 
 		return Promise.resolve( '' );
 	}
-
-	// Cloudflare Turnstile's implicit render calls this by name (data-callback).
-	// With one login form per page (the supported case) a global lookup is fine.
-	window.smlTurnstileCallback = function ( token ) {
-		var input = qs( '[data-sml-bot-token]' );
-		if ( input ) { input.value = token; }
-	};
 
 	function qs( sel, ctx ) {
 		return ( ctx || document ).querySelector( sel );
@@ -84,6 +145,8 @@
 			tab.classList.toggle( 'active', active );
 			tab.setAttribute( 'aria-selected', active ? 'true' : 'false' );
 		} );
+		// Render this panel's Turnstile widget the first time it's shown.
+		renderTurnstileFor( name, root );
 	}
 
 	/**
@@ -275,7 +338,12 @@
 					submitBtn.dataset.originalText = submitBtn.textContent;
 					submitBtn.textContent = SmartLogin.i18n.loggingIn;
 
-					post( 'sml_login', SmartLogin.loginNonce, formData( loginForm ) )
+					getBotToken( loginForm, 'login' )
+						.then( function ( token ) {
+							var tokenField = qs( '[data-sml-bot-token]', loginForm );
+							if ( tokenField ) { tokenField.value = token || ''; }
+							return post( 'sml_login', SmartLogin.loginNonce, formData( loginForm ) );
+						} )
 						.then( function ( res ) {
 							if ( res.success ) {
 								var redirect = function () {
@@ -293,6 +361,7 @@
 								}
 								return;
 							}
+							resetTurnstile( 'login' );
 							if ( res.data.unverified ) {
 								// Rather than leaving them on the login form
 								// with an error, drop straight into the
@@ -307,6 +376,7 @@
 							showMessage( root, res.data.message || SmartLogin.i18n.genericError, true );
 						} )
 						.catch( function () {
+							resetTurnstile( 'login' );
 							showMessage( root, SmartLogin.i18n.genericError, true );
 						} )
 						.finally( function () {
@@ -327,7 +397,7 @@
 					submitBtn.dataset.originalText = submitBtn.textContent;
 					submitBtn.textContent = SmartLogin.i18n.sending;
 
-					getBotToken( registerForm )
+					getBotToken( registerForm, 'register' )
 						.then( function ( token ) {
 							var tokenField = qs( '[data-sml-bot-token]', registerForm );
 							if ( tokenField ) { tokenField.value = token || ''; }
@@ -337,10 +407,12 @@
 							if ( res.success ) {
 								enterVerifyStep( root, res.data.user_id, res.data.resend_available );
 							} else {
+								resetTurnstile( 'register' );
 								showMessage( root, res.data.message || SmartLogin.i18n.genericError, true );
 							}
 						} )
 						.catch( function () {
+							resetTurnstile( 'register' );
 							showMessage( root, SmartLogin.i18n.genericError, true );
 						} )
 						.finally( function () {
@@ -398,12 +470,18 @@
 					submitBtn.dataset.originalText = submitBtn.textContent;
 					submitBtn.textContent = SmartLogin.i18n.sending;
 
-					post( 'sml_forgot_password', SmartLogin.passwordResetNonce, formData( forgotForm ) )
+					getBotToken( forgotForm, 'forgot' )
+						.then( function ( token ) {
+							var tokenField = qs( '[data-sml-bot-token]', forgotForm );
+							if ( tokenField ) { tokenField.value = token || ''; }
+							return post( 'sml_forgot_password', SmartLogin.passwordResetNonce, formData( forgotForm ) );
+						} )
 						.then( function ( res ) {
 							showMessage( root, ( res.data && res.data.message ) || SmartLogin.i18n.genericError, ! res.success );
-							if ( res.success ) { forgotForm.reset(); }
+							if ( res.success ) { forgotForm.reset(); } else { resetTurnstile( 'forgot' ); }
 						} )
 						.catch( function () {
+							resetTurnstile( 'forgot' );
 							showMessage( root, SmartLogin.i18n.genericError, true );
 						} )
 						.finally( function () {
@@ -424,7 +502,12 @@
 					submitBtn.dataset.originalText = submitBtn.textContent;
 					submitBtn.textContent = SmartLogin.i18n.resetting;
 
-					post( 'sml_reset_password', SmartLogin.passwordResetNonce, formData( resetForm ) )
+					getBotToken( resetForm, 'reset' )
+						.then( function ( token ) {
+							var tokenField = qs( '[data-sml-bot-token]', resetForm );
+							if ( tokenField ) { tokenField.value = token || ''; }
+							return post( 'sml_reset_password', SmartLogin.passwordResetNonce, formData( resetForm ) );
+						} )
 						.then( function ( res ) {
 							if ( res.success ) {
 								showMessage( root, res.data.message, false );
@@ -432,10 +515,12 @@
 									window.location.href = res.data.redirect || window.location.href;
 								}, 1500 );
 							} else {
+								resetTurnstile( 'reset' );
 								showMessage( root, res.data.message || SmartLogin.i18n.genericError, true );
 							}
 						} )
 						.catch( function () {
+							resetTurnstile( 'reset' );
 							showMessage( root, SmartLogin.i18n.genericError, true );
 						} )
 						.finally( function () {

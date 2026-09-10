@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.11.2
+Stable tag: 1.12.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,12 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.12.0 =
+* Bot protection now covers every form. The selected provider (Google reCAPTCHA v3 / Cloudflare Turnstile) is verified on the login, registration, forgot-password and reset-password submissions — previously only registration was checked.
+* The Cloudflare Turnstile widget now renders just above each form's submit button instead of at the very top of the card.
+* Fixed: "Bot verification failed. Please try again." after a first submit that failed for another reason (e.g. a rejected email). Turnstile tokens are single-use; the widget is now reset after any failed submit so the retry gets a fresh token, and the token is read live from the widget rather than a cached copy.
+* Turnstile is now rendered explicitly, one widget per visible panel, so switching tabs no longer leaves stale or duplicate challenges on the page.
 
 = 1.11.2 =
 * Theme compatibility: the verification-code digit boxes now hold their own square shape, background and font size instead of picking up a host theme's generic `input[type=text]` styling (which was rendering them as tall grey pills on some themes).

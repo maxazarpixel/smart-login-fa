@@ -231,24 +231,53 @@ class SML_Registration_Handler {
 	}
 
 	/**
-	 * Honeypot (hidden field + time-trap) and, if configured, the selected
-	 * bot-protection provider. Always evaluated server-side.
+	 * Registration's full bot gate: honeypot + configured provider. The two
+	 * halves are also callable on their own — the login / forgot-password /
+	 * reset forms run only the provider half (they have no honeypot fields).
 	 *
 	 * @return true|WP_Error
 	 */
 	public static function check_bot_protection() {
-		if ( SML_Settings::get( 'enable_honeypot' ) ) {
-			$hp = isset( $_POST['sml_hp'] ) ? sanitize_text_field( wp_unslash( $_POST['sml_hp'] ) ) : '';
-			if ( '' !== $hp ) {
-				return new WP_Error( 'sml_bot_detected', __( 'Submission rejected.', 'smart-login' ) );
-			}
-
-			$rendered_at = isset( $_POST['sml_ts'] ) ? absint( $_POST['sml_ts'] ) : 0;
-			if ( ! $rendered_at || ( time() - (int) round( $rendered_at / 1000 ) ) < self::HONEYPOT_MIN_SECONDS ) {
-				return new WP_Error( 'sml_bot_detected', __( 'Submission rejected.', 'smart-login' ) );
-			}
+		$honeypot = self::check_honeypot();
+		if ( is_wp_error( $honeypot ) ) {
+			return $honeypot;
 		}
 
+		return self::check_bot_provider();
+	}
+
+	/**
+	 * Hidden-field + time-trap honeypot. Only the registration form carries
+	 * the `sml_hp` / `sml_ts` inputs this reads.
+	 *
+	 * @return true|WP_Error
+	 */
+	public static function check_honeypot() {
+		if ( ! SML_Settings::get( 'enable_honeypot' ) ) {
+			return true;
+		}
+
+		$hp = isset( $_POST['sml_hp'] ) ? sanitize_text_field( wp_unslash( $_POST['sml_hp'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( '' !== $hp ) {
+			return new WP_Error( 'sml_bot_detected', __( 'Submission rejected.', 'smart-login' ) );
+		}
+
+		$rendered_at = isset( $_POST['sml_ts'] ) ? absint( $_POST['sml_ts'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( ! $rendered_at || ( time() - (int) round( $rendered_at / 1000 ) ) < self::HONEYPOT_MIN_SECONDS ) {
+			return new WP_Error( 'sml_bot_detected', __( 'Submission rejected.', 'smart-login' ) );
+		}
+
+		return true;
+	}
+
+	/**
+	 * The configured bot-protection provider (Google reCAPTCHA v3 /
+	 * Cloudflare Turnstile), if any. Reads the `sml_bot_token` field that
+	 * every form now includes. Safe to call when no provider is configured.
+	 *
+	 * @return true|WP_Error
+	 */
+	public static function check_bot_provider() {
 		$provider_key = SML_Settings::get( 'bot_protection_provider', 'none' );
 		if ( 'none' === $provider_key ) {
 			return true;
@@ -259,7 +288,7 @@ class SML_Registration_Handler {
 			return true;
 		}
 
-		$token = isset( $_POST['sml_bot_token'] ) ? sanitize_text_field( wp_unslash( $_POST['sml_bot_token'] ) ) : '';
+		$token = isset( $_POST['sml_bot_token'] ) ? sanitize_text_field( wp_unslash( $_POST['sml_bot_token'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( ! $provider->verify( $token ) ) {
 			return new WP_Error( 'sml_bot_detected', __( 'Bot verification failed. Please try again.', 'smart-login' ) );
 		}

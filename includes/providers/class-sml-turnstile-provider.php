@@ -45,10 +45,14 @@ class SML_Turnstile_Provider implements SML_Bot_Protection_Provider {
 	}
 
 	public function enqueue() {
+		// Explicit rendering (not the default auto-scan for `.cf-turnstile`):
+		// the form has up to four panels — login, register, forgot, reset —
+		// and smart-login.js renders / resets a widget for whichever one is
+		// on screen. `onload` fires once the API is ready.
 		wp_enqueue_script(
 			'sml-turnstile',
-			'https://challenges.cloudflare.com/turnstile/v0/api.js',
-			array(),
+			'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=smlTurnstileOnload',
+			array( 'smart-login' ),
 			null, // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
 			true
 		);

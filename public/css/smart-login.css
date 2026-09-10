@@ -501,6 +501,16 @@
 	overflow: hidden;
 }
 
+/*
+ * Cloudflare Turnstile widget slot (one per form, above the submit button).
+ * Reserve the widget's height up front so the form doesn't jump when the
+ * iframe renders a moment after load.
+ */
+.sml-bot-widget {
+	margin: 2px 0 14px;
+	min-height: 65px;
+}
+
 .sml-btn {
 	display: block;
 	width: 100%;

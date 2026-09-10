@@ -28,6 +28,11 @@ class SML_Login_Handler {
 			wp_send_json_error( array( 'message' => __( 'Please enter your username/email and password.', 'smart-login' ) ) );
 		}
 
+		$bot_check = SML_Registration_Handler::check_bot_provider();
+		if ( is_wp_error( $bot_check ) ) {
+			wp_send_json_error( array( 'message' => $bot_check->get_error_message() ) );
+		}
+
 		$lock_check = SML_Lockout::check( $username );
 		if ( is_wp_error( $lock_check ) ) {
 			wp_send_json_error( array( 'message' => $lock_check->get_error_message() ) );

@@ -42,6 +42,11 @@ class SML_Password_Reset_Handler {
 			wp_send_json_error( array( 'message' => __( 'Please enter your email address.', 'smart-login' ) ) );
 		}
 
+		$bot_check = SML_Registration_Handler::check_bot_provider();
+		if ( is_wp_error( $bot_check ) ) {
+			wp_send_json_error( array( 'message' => $bot_check->get_error_message() ) );
+		}
+
 		$rate_check = SML_Rate_Limit::check( 'forgot', self::FORGOT_IP_LIMIT, self::FORGOT_IP_WINDOW );
 		if ( is_wp_error( $rate_check ) ) {
 			wp_send_json_error( array( 'message' => $rate_check->get_error_message() ) );
@@ -87,6 +92,11 @@ class SML_Password_Reset_Handler {
 
 		if ( ! $login || ! $key || ! $pass ) {
 			wp_send_json_error( array( 'message' => __( 'Missing reset information. Please request a new link.', 'smart-login' ) ) );
+		}
+
+		$bot_check = SML_Registration_Handler::check_bot_provider();
+		if ( is_wp_error( $bot_check ) ) {
+			wp_send_json_error( array( 'message' => $bot_check->get_error_message() ) );
 		}
 
 		if ( $pass !== $confirm ) {

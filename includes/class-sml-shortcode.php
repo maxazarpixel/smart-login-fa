@@ -140,6 +140,16 @@ class SML_Shortcode {
 			$initial_panel = 'login';
 		}
 
+		// Bot-protection markup shared by every form. reCAPTCHA v3 is
+		// invisible (token fetched in JS), so only Turnstile adds a visible
+		// widget; the hidden token field is always present so the JS has one
+		// place to write into and the server one field to read.
+		$sml_bot_provider   = SML_Settings::get( 'bot_protection_provider', 'none' );
+		$sml_bot_site_key   = 'none' === $sml_bot_provider ? '' : (string) SML_Settings::get( 'bot_site_key' );
+		$sml_show_turnstile = 'turnstile' === $sml_bot_provider && '' !== $sml_bot_site_key;
+		$sml_bot_fields     = '<input type="hidden" name="sml_bot_token" data-sml-bot-token value="">'
+			. ( $sml_show_turnstile ? '<div class="sml-bot-widget" data-sml-turnstile></div>' : '' );
+
 		$button_bg   = sanitize_hex_color( SML_Settings::get( 'button_bg_color' ) );
 		$button_text = sanitize_hex_color( SML_Settings::get( 'button_text_color' ) );
 		$button_vars = '';
@@ -184,6 +194,7 @@ class SML_Shortcode {
 						<label for="sml-login-pass"><?php esc_html_e( 'Password', 'smart-login' ); ?></label>
 					</div>
 					<a class="sml-forgot-link" data-sml-tab="forgot" href="<?php echo $forgot_url; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"><?php esc_html_e( 'Forgot password?', 'smart-login' ); ?></a>
+					<?php echo $sml_bot_fields; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 					<button type="submit" class="sml-btn sml-btn--primary"><?php esc_html_e( 'Log In', 'smart-login' ); ?></button>
 					<?php if ( $show_register ) : ?>
 						<a class="sml-btn sml-btn--secondary" data-sml-tab="register" href="<?php echo $register_url; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"><?php esc_html_e( 'Create Account', 'smart-login' ); ?></a>
@@ -204,10 +215,6 @@ class SML_Shortcode {
 							<input type="text" id="sml-hp" name="sml_hp" tabindex="-1" autocomplete="off">
 						</div>
 						<input type="hidden" name="sml_ts" value="<?php echo esc_attr( (int) round( microtime( true ) * 1000 ) ); ?>">
-						<input type="hidden" name="sml_bot_token" data-sml-bot-token value="">
-						<?php if ( 'turnstile' === SML_Settings::get( 'bot_protection_provider', 'none' ) && SML_Settings::get( 'bot_site_key' ) ) : ?>
-							<div class="cf-turnstile" data-sitekey="<?php echo esc_attr( SML_Settings::get( 'bot_site_key' ) ); ?>" data-callback="smlTurnstileCallback"></div>
-						<?php endif; ?>
 						<div class="sml-field-row">
 							<div class="sml-field-boxed">
 								<input type="text" id="sml-reg-first" class="sml-input" name="first_name" autocomplete="given-name" placeholder=" " required>
@@ -250,6 +257,7 @@ class SML_Shortcode {
 							</div>
 							<label for="sml-reg-pass"><?php esc_html_e( 'Password', 'smart-login' ); ?> <span class="sml-required">*</span></label>
 						</div>
+						<?php echo $sml_bot_fields; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 						<button type="submit" class="sml-btn sml-btn--primary"><?php esc_html_e( 'Create Account', 'smart-login' ); ?></button>
 						<a class="sml-btn sml-btn--secondary" data-sml-tab="login" href="<?php echo $login_url; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"><?php esc_html_e( 'Log In', 'smart-login' ); ?></a>
 					</form>
@@ -268,6 +276,7 @@ class SML_Shortcode {
 						<input type="email" id="sml-forgot-email" class="sml-input" name="login" autocomplete="email" placeholder=" " required>
 						<label for="sml-forgot-email"><?php esc_html_e( 'Email', 'smart-login' ); ?></label>
 					</div>
+					<?php echo $sml_bot_fields; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 					<button type="submit" class="sml-btn sml-btn--primary"><?php esc_html_e( 'Send Reset Link', 'smart-login' ); ?></button>
 					<a class="sml-btn sml-btn--secondary" data-sml-tab="login" href="<?php echo $login_url; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"><?php esc_html_e( 'Back to Log In', 'smart-login' ); ?></a>
 				</form>
@@ -304,6 +313,7 @@ class SML_Shortcode {
 							</div>
 							<label for="sml-reset-pass-confirm"><?php esc_html_e( 'Confirm password', 'smart-login' ); ?></label>
 						</div>
+						<?php echo $sml_bot_fields; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 						<button type="submit" class="sml-btn sml-btn--primary"><?php esc_html_e( 'Reset Password', 'smart-login' ); ?></button>
 					</form>
 				<?php endif; ?>
