@@ -98,8 +98,12 @@ class SML_Login_Handler {
 				}
 			} else {
 				// A pre-existing account from before this plugin was active.
-				// Never block someone out of an account they already had.
-				if ( 'prompt' === SML_Settings::get( 'legacy_unverified_prompt', 'email_only' ) ) {
+				// It is never blocked, and by default nothing at all happens —
+				// only new registrations are ever asked to verify. The two
+				// other modes are opt-in.
+				$legacy_mode = SML_Settings::get( 'legacy_unverified_prompt', 'none' );
+
+				if ( 'prompt' === $legacy_mode ) {
 					// They're already signed in (wp_signon succeeded). Show
 					// the verify screen with a fresh code, plus a "Not now"
 					// escape hatch the front end wires to the redirect.
@@ -124,12 +128,10 @@ class SML_Login_Handler {
 							'resend_available' => $resend_available,
 						)
 					);
-				}
-
-				// Default: just nudge them to verify, quietly, after they're in.
-				if ( self::maybe_send_legacy_reminder( $user ) ) {
+				} elseif ( 'email_only' === $legacy_mode && self::maybe_send_legacy_reminder( $user ) ) {
 					$notice = __( "We noticed your email address isn't verified yet — we've sent you a verification email.", 'smart-login' );
 				}
+				// 'none': nothing — they just log in.
 			}
 		}
 

@@ -245,10 +245,11 @@ class SML_Admin_Page extends APX_Admin_Page {
 							'name'    => 'legacy_unverified_prompt',
 							'label'   => __( 'Pre-existing unverified accounts', 'smart-login' ),
 							'options' => array(
+								'none'       => __( 'No verification needed — log them straight in', 'smart-login' ),
 								'email_only' => __( 'Send a reminder email only', 'smart-login' ),
 								'prompt'     => __( 'Show a verification screen they can skip', 'smart-login' ),
 							),
-							'desc'    => __( 'How to treat accounts that existed before Smart Login was installed and never verified their email. They are never blocked — with "Show a verification screen" they see the code entry on login with a "Not now" button that lets them continue.', 'smart-login' ),
+							'desc'    => __( 'How to treat accounts that existed before Smart Login was installed and never verified their email. They are never blocked. Only new registrations are ever required to verify. "Show a verification screen" adds the code entry on login with a "Not now" button.', 'smart-login' ),
 						),
 					),
 				),
