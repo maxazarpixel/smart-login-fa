@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.11.1
+Stable tag: 1.11.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,9 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.11.2 =
+* Theme compatibility: the verification-code digit boxes now hold their own square shape, background and font size instead of picking up a host theme's generic `input[type=text]` styling (which was rendering them as tall grey pills on some themes).
 
 = 1.11.1 =
 * Theme compatibility: every visible form field now carries an `.sml-input` class, and the stylesheet re-asserts the plugin's own field colours/shape for the properties host themes commonly override with generic `input[type=...]` / `.wd select` rules.

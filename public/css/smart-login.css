@@ -463,6 +463,36 @@
 	box-shadow: 0 0 0 3px color-mix(in srgb, var(--sml-accent) 25%, transparent);
 }
 
+/*
+ * The one-time-code boxes are standalone fields (not wrapped in
+ * .sml-field-boxed), so a host theme's generic `input[type=text]` /
+ * `input[type=number]` rule — height, radius, background, border, font-size —
+ * otherwise wins on specificity and turns them into pills. Re-assert the
+ * plugin's own look; keep in sync with the base .sml-otp-box rule above.
+ */
+.sml-card .sml-otp-box {
+	width: auto !important;
+	height: auto !important;
+	min-height: 0 !important;
+	aspect-ratio: 1 !important;
+	padding: 0 !important;
+	font-size: 20px !important;
+	font-weight: 700 !important;
+	line-height: normal !important;
+	text-align: center !important;
+	color: var(--sml-fg) !important;
+	background: var(--sml-surface) !important;
+	border: 1.5px solid var(--sml-border) !important;
+	border-radius: var(--sml-radius-sm) !important;
+	box-shadow: none !important;
+	vertical-align: baseline !important;
+}
+
+.sml-card .sml-otp-box:focus {
+	border-color: var(--sml-accent) !important;
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--sml-accent) 25%, transparent) !important;
+}
+
 .sml-hp-field {
 	position: absolute !important;
 	left: -9999px !important;
