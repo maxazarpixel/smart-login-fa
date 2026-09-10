@@ -86,6 +86,8 @@ class SML_Admin_Page extends APX_Admin_Page {
 				'panels'      => $panels,
 			)
 		);
+
+		add_action( 'wp_ajax_sml_users_table', array( $this, 'ajax_users_table' ) );
 	}
 
 	/* ── panel definitions ───────────────────────────────────────────── */
@@ -754,7 +756,7 @@ class SML_Admin_Page extends APX_Admin_Page {
 	protected function panel_users() {
 		return array(
 			'title'    => __( 'Users', 'smart-login' ),
-			'desc'     => __( 'Every account, with data pulled together from Smart Login and (when active) WooCommerce. Search by name, email, address or phone.', 'smart-login' ),
+			'desc'     => __( 'Every account, with data pulled together from Smart Login and (when active) WooCommerce.', 'smart-login' ),
 			'sections' => array(
 				array(
 					'fields' => array(
@@ -768,206 +770,448 @@ class SML_Admin_Page extends APX_Admin_Page {
 	/** Per-page row count for the Users table. */
 	const USERS_PER_PAGE = 25;
 
+	/** Meta key each sortable-by-value column maps to. */
+	protected function users_sort_meta() {
+		return array(
+			'last_login' => 'sml_last_login',
+			'resets'     => 'sml_reset_requests',
+			'orders'     => '_order_count',
+			'spent'      => '_money_spent',
+		);
+	}
+
 	/**
-	 * Server-rendered (no REST/JS) users table: search box, paged results,
-	 * and columns aggregated from Smart Login meta + WooCommerce.
+	 * Static shell for the Users panel: filter bar, table, pager container.
+	 * Rows are (re)filled by ajax_users_table() over admin-ajax; the first
+	 * page is also rendered inline so there is no initial flash.
 	 */
 	protected function users_html() {
-		$search   = isset( $_GET['sml_uq'] ) ? sanitize_text_field( wp_unslash( $_GET['sml_uq'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$page     = isset( $_GET['sml_upg'] ) ? max( 1, (int) $_GET['sml_upg'] ) : 1; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$per_page = self::USERS_PER_PAGE;
-		$wc       = function_exists( 'wc_get_customer_order_count' );
+		$wc    = function_exists( 'wc_get_customer_order_count' );
+		$first = $this->users_table_payload( $this->users_table_args( array() ) );
+		$nonce = wp_create_nonce( 'sml_users_table' );
 
-		$found = $this->users_query( $search, $page, $per_page );
-		$ids   = $found['ids'];
-		$total = $found['total'];
-		$pages = max( 1, (int) ceil( $total / $per_page ) );
-
-		if ( $ids ) {
-			cache_users( $ids );
-		}
-
-		$base = admin_url( 'admin.php?page=smart-login' );
-		$fmt  = get_option( 'date_format' );
+		$col = function ( $key, $label ) {
+			return sprintf(
+				'<th data-sort="%1$s" style="cursor:pointer;user-select:none;white-space:nowrap;">%2$s<span class="sml-arrow" style="color:#4d5fd6;"></span></th>',
+				esc_attr( $key ),
+				esc_html( $label )
+			);
+		};
 
 		ob_start();
 		?>
-		<form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" class="apx-row" style="align-items:center;gap:8px;margin-bottom:12px;">
-			<input type="hidden" name="page" value="smart-login">
-			<label for="sml-uq"><?php esc_html_e( 'Search', 'smart-login' ); ?></label>
-			<input type="search" id="sml-uq" name="sml_uq" value="<?php echo esc_attr( $search ); ?>" placeholder="<?php esc_attr_e( 'Name, email, address, phone…', 'smart-login' ); ?>" style="min-width:320px">
-			<button type="submit" class="button"><?php esc_html_e( 'Search', 'smart-login' ); ?></button>
-			<?php if ( '' !== $search ) : ?>
-				<a class="button-link" href="<?php echo esc_url( $base . '#users' ); ?>"><?php esc_html_e( 'Clear', 'smart-login' ); ?></a>
-			<?php endif; ?>
-		</form>
+		<div id="sml-users" data-nonce="<?php echo esc_attr( $nonce ); ?>">
 
-		<div class="apx-table-scroll">
-			<table class="widefat striped">
-				<thead><tr>
-					<th><?php esc_html_e( 'User', 'smart-login' ); ?></th>
-					<th><?php esc_html_e( 'Email', 'smart-login' ); ?></th>
-					<th><?php esc_html_e( 'Phone', 'smart-login' ); ?></th>
-					<th><?php esc_html_e( 'Address', 'smart-login' ); ?></th>
-					<th><?php esc_html_e( 'Registered', 'smart-login' ); ?></th>
-					<th><?php esc_html_e( 'Last login', 'smart-login' ); ?></th>
-					<th><?php esc_html_e( 'Verified', 'smart-login' ); ?></th>
-					<th><?php esc_html_e( 'Resets', 'smart-login' ); ?></th>
-					<?php if ( $wc ) : ?>
-						<th><?php esc_html_e( 'Orders', 'smart-login' ); ?></th>
-						<th><?php esc_html_e( 'Spent', 'smart-login' ); ?></th>
-						<th><?php esc_html_e( 'Last order', 'smart-login' ); ?></th>
-					<?php endif; ?>
-				</tr></thead>
-				<tbody>
-					<?php if ( ! $ids ) : ?>
-						<tr><td colspan="<?php echo $wc ? 11 : 8; ?>"><?php esc_html_e( 'No matching users.', 'smart-login' ); ?></td></tr>
-					<?php endif; ?>
-					<?php
-					foreach ( $ids as $id ) :
-						$user = get_userdata( $id );
-						if ( ! $user ) {
-							continue;
-						}
-						$status  = $this->user_status( $id );
-						$last_ts = (int) get_user_meta( $id, 'sml_last_login', true );
-						$resets  = (int) get_user_meta( $id, 'sml_reset_requests', true );
-						$summary = $wc ? $this->wc_customer_summary( $id ) : null;
+			<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px;">
+				<input type="search" data-filter="search" placeholder="<?php esc_attr_e( 'Name, email, address, phone…', 'smart-login' ); ?>" style="min-width:260px;flex:1;max-width:420px;">
+				<select data-filter="status">
+					<option value=""><?php esc_html_e( 'All statuses', 'smart-login' ); ?></option>
+					<option value="verified"><?php esc_html_e( 'Verified', 'smart-login' ); ?></option>
+					<option value="pending"><?php esc_html_e( 'Pending', 'smart-login' ); ?></option>
+					<option value="legacy"><?php esc_html_e( 'Legacy', 'smart-login' ); ?></option>
+				</select>
+				<?php if ( $wc ) : ?>
+					<select data-filter="customer">
+						<option value=""><?php esc_html_e( 'All customers', 'smart-login' ); ?></option>
+						<option value="has"><?php esc_html_e( 'Has orders', 'smart-login' ); ?></option>
+						<option value="none"><?php esc_html_e( 'No orders', 'smart-login' ); ?></option>
+					</select>
+				<?php endif; ?>
+				<select data-filter="window">
+					<option value=""><?php esc_html_e( 'Registered: any time', 'smart-login' ); ?></option>
+					<option value="d1"><?php esc_html_e( 'Registered: last 24h', 'smart-login' ); ?></option>
+					<option value="d7"><?php esc_html_e( 'Registered: last 7 days', 'smart-login' ); ?></option>
+					<option value="d30"><?php esc_html_e( 'Registered: last 30 days', 'smart-login' ); ?></option>
+					<option value="m12"><?php esc_html_e( 'Registered: last 12 months', 'smart-login' ); ?></option>
+				</select>
+				<span data-users-count style="font-size:13px;color:#7a7a85;"></span>
+			</div>
+
+			<div class="apx-table-scroll">
+				<table class="widefat striped">
+					<thead><tr>
+						<?php
+						echo $col( 'name', __( 'User', 'smart-login' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						echo $col( 'email', __( 'Email', 'smart-login' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 						?>
-						<tr>
-							<td><?php echo esc_html( $user->display_name ? $user->display_name : trim( $user->first_name . ' ' . $user->last_name ) ); ?></td>
-							<td><?php echo esc_html( $user->user_email ); ?></td>
-							<td><?php echo esc_html( $this->user_phone( $id ) ?: '—' ); ?></td>
-							<td style="max-width:240px;"><?php echo esc_html( $this->billing_address_line( $id ) ?: '—' ); ?></td>
-							<td><?php echo esc_html( $user->user_registered ? date_i18n( $fmt, strtotime( $user->user_registered . ' UTC' ) ) : '' ); ?></td>
-							<td><?php echo $last_ts ? esc_html( sprintf( __( '%s ago', 'smart-login' ), human_time_diff( $last_ts, time() ) ) ) : '—'; ?></td>
-							<td>
-								<?php if ( 'verified' === $status ) : ?>
-									<span style="color:#12805c;">&#9679; <?php esc_html_e( 'Verified', 'smart-login' ); ?></span>
-								<?php elseif ( 'pending' === $status ) : ?>
-									<span style="color:#92590a;">&#9679; <?php esc_html_e( 'Pending', 'smart-login' ); ?></span>
-								<?php else : ?>
-									<span style="color:#9a9aa2;">— <?php esc_html_e( 'Legacy', 'smart-login' ); ?></span>
-								<?php endif; ?>
-							</td>
-							<td><?php echo $resets ? esc_html( number_format_i18n( $resets ) ) : '—'; ?></td>
-							<?php if ( $wc ) : ?>
-								<td><?php echo esc_html( number_format_i18n( $summary['orders'] ) ); ?></td>
-								<td><?php echo wp_kses_post( $summary['spent'] ); ?></td>
-								<td><?php echo esc_html( $summary['last_order'] ?: '—' ); ?></td>
-							<?php endif; ?>
-						</tr>
-					<?php endforeach; ?>
-				</tbody>
-			</table>
-		</div>
+						<th><?php esc_html_e( 'Phone', 'smart-login' ); ?></th>
+						<th><?php esc_html_e( 'Address', 'smart-login' ); ?></th>
+						<?php
+						echo $col( 'registered', __( 'Registered', 'smart-login' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						echo $col( 'last_login', __( 'Last login', 'smart-login' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						?>
+						<th><?php esc_html_e( 'Verified', 'smart-login' ); ?></th>
+						<?php echo $col( 'resets', __( 'Resets', 'smart-login' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<?php if ( $wc ) : ?>
+							<?php
+							echo $col( 'orders', __( 'Orders', 'smart-login' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+							echo $col( 'spent', __( 'Spent', 'smart-login' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+							?>
+							<th><?php esc_html_e( 'Last order', 'smart-login' ); ?></th>
+						<?php endif; ?>
+					</tr></thead>
+					<tbody><?php echo $first['tbody']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></tbody>
+				</table>
+			</div>
 
-		<div style="display:flex;align-items:center;gap:14px;margin-top:12px;">
-			<?php
-			$q = array( 'page' => 'smart-login' );
-			if ( '' !== $search ) {
-				$q['sml_uq'] = $search;
-			}
-			$prev_url = add_query_arg( array_merge( $q, array( 'sml_upg' => max( 1, $page - 1 ) ) ), admin_url( 'admin.php' ) ) . '#users';
-			$next_url = add_query_arg( array_merge( $q, array( 'sml_upg' => min( $pages, $page + 1 ) ) ), admin_url( 'admin.php' ) ) . '#users';
-			?>
-			<a class="button<?php echo $page <= 1 ? ' disabled" aria-disabled="true' : ''; ?>" href="<?php echo esc_url( $prev_url ); ?>">&larr; <?php esc_html_e( 'Prev', 'smart-login' ); ?></a>
-			<a class="button<?php echo $page >= $pages ? ' disabled" aria-disabled="true' : ''; ?>" href="<?php echo esc_url( $next_url ); ?>"><?php esc_html_e( 'Next', 'smart-login' ); ?> &rarr;</a>
-			<span style="font-size:13px;color:#7a7a85;">
-				<?php
-				printf(
-					/* translators: 1: total users 2: current page 3: total pages */
-					esc_html__( 'Total: %1$s · page %2$d/%3$d', 'smart-login' ),
-					esc_html( number_format_i18n( $total ) ),
-					(int) $page,
-					(int) $pages
-				);
-				?>
-			</span>
+			<div data-users-pager style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:12px;"><?php echo $first['pager']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
 		</div>
 
 		<script>
-		// A search submit reloads the page without the #users fragment; re-open
-		// this panel once the kit has booted.
-		window.addEventListener('load', function () {
-			var p = new URLSearchParams(window.location.search);
-			if (p.has('sml_uq') || p.has('sml_upg')) {
-				var nav = document.querySelector('[data-apx-tab="users"]');
-				if (nav && !nav.classList.contains('active')) { nav.click(); }
+		( function () {
+			var wrap = document.getElementById( 'sml-users' );
+			if ( ! wrap || ! window.ajaxurl ) { return; }
+			var tbody = wrap.querySelector( 'tbody' );
+			var pager = wrap.querySelector( '[data-users-pager]' );
+			var count = wrap.querySelector( '[data-users-count]' );
+			var nonce = wrap.dataset.nonce;
+			var timer = null;
+			var state = { search: '', status: '', customer: '', window: '', orderby: 'registered', order: 'desc', page: 1 };
+
+			function arrows() {
+				wrap.querySelectorAll( 'th[data-sort]' ).forEach( function ( th ) {
+					var s = th.querySelector( '.sml-arrow' );
+					if ( ! s ) { return; }
+					s.textContent = th.dataset.sort === state.orderby ? ( state.order === 'asc' ? ' ▲' : ' ▼' ) : '';
+				} );
 			}
-		});
+
+			function load() {
+				tbody.style.opacity = '0.45';
+				var body = new URLSearchParams();
+				body.set( 'action', 'sml_users_table' );
+				body.set( 'nonce', nonce );
+				Object.keys( state ).forEach( function ( k ) { body.set( k, state[ k ] ); } );
+				fetch( window.ajaxurl, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() } )
+					.then( function ( r ) { return r.json(); } )
+					.then( function ( res ) {
+						if ( res && res.success ) {
+							tbody.innerHTML = res.data.tbody;
+							pager.innerHTML = res.data.pager;
+							if ( count ) { count.textContent = res.data.count || ''; }
+						}
+					} )
+					.catch( function () {} )
+					.then( function () { tbody.style.opacity = ''; arrows(); } );
+			}
+
+			wrap.addEventListener( 'input', function ( e ) {
+				if ( ! e.target.matches( '[data-filter="search"]' ) ) { return; }
+				state.search = e.target.value;
+				state.page = 1;
+				clearTimeout( timer );
+				timer = setTimeout( load, 350 );
+			} );
+			wrap.addEventListener( 'change', function ( e ) {
+				var el = e.target.closest( 'select[data-filter]' );
+				if ( ! el ) { return; }
+				state[ el.dataset.filter ] = el.value;
+				state.page = 1;
+				load();
+			} );
+			wrap.addEventListener( 'click', function ( e ) {
+				var th = e.target.closest( 'th[data-sort]' );
+				if ( th ) {
+					var k = th.dataset.sort;
+					if ( state.orderby === k ) { state.order = state.order === 'asc' ? 'desc' : 'asc'; }
+					else { state.orderby = k; state.order = 'desc'; }
+					state.page = 1;
+					load();
+					return;
+				}
+				var pg = e.target.closest( '[data-page]' );
+				if ( pg ) {
+					e.preventDefault();
+					state.page = parseInt( pg.dataset.page, 10 ) || 1;
+					load();
+				}
+			} );
+
+			arrows();
+		} )();
 		</script>
 		<?php
 		return ob_get_clean();
 	}
 
+	/** admin-ajax handler for the Users table. */
+	public function ajax_users_table() {
+		check_ajax_referer( 'sml_users_table', 'nonce' );
+		if ( ! current_user_can( $this->cfg['capability'] ) ) {
+			wp_send_json_error();
+		}
+
+		wp_send_json_success( $this->users_table_payload( $this->users_table_args( $_POST ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+	}
+
 	/**
-	 * Resolves the user id set + total for the Users table. Empty search =
-	 * newest-registered first; a search unions the core columns with a
-	 * usermeta LIKE over phone / name / billing address fields.
+	 * Normalises a request bag (or an empty array for defaults) into the
+	 * filter / sort / page args the table uses.
 	 *
-	 * @param string $search
-	 * @param int    $page
-	 * @param int    $per_page
+	 * @param array $src
+	 * @return array
+	 */
+	protected function users_table_args( $src ) {
+		$get = function ( $k, $d = '' ) use ( $src ) {
+			return isset( $src[ $k ] ) ? sanitize_text_field( wp_unslash( $src[ $k ] ) ) : $d;
+		};
+
+		$orderby = sanitize_key( $get( 'orderby', 'registered' ) );
+		$allowed = array_merge( array( 'registered', 'name', 'email' ), array_keys( $this->users_sort_meta() ) );
+
+		return array(
+			'search'   => $get( 'search' ),
+			'status'   => sanitize_key( $get( 'status' ) ),
+			'customer' => sanitize_key( $get( 'customer' ) ),
+			'window'   => sanitize_key( $get( 'window' ) ),
+			'orderby'  => in_array( $orderby, $allowed, true ) ? $orderby : 'registered',
+			'order'    => 'asc' === strtolower( $get( 'order' ) ) ? 'ASC' : 'DESC',
+			'page'     => max( 1, (int) $get( 'page', 1 ) ),
+		);
+	}
+
+	/**
+	 * Runs the query for the given args and returns ready-to-inject
+	 * tbody / pager HTML plus the results-count string.
+	 *
+	 * @param array $args
+	 * @return array{tbody:string,pager:string,count:string}
+	 */
+	protected function users_table_payload( $args ) {
+		$per_page = self::USERS_PER_PAGE;
+		$found    = $this->users_query( $args );
+		$pages    = max( 1, (int) ceil( $found['total'] / $per_page ) );
+
+		if ( $found['ids'] ) {
+			cache_users( $found['ids'] );
+		}
+
+		return array(
+			'tbody' => $this->render_users_tbody( $found['ids'] ),
+			'pager' => $this->render_users_pager( (int) $args['page'], $pages ),
+			'count' => sprintf(
+				/* translators: %s: number of users */
+				_n( '%s user', '%s users', $found['total'], 'smart-login' ),
+				number_format_i18n( $found['total'] )
+			),
+		);
+	}
+
+	/**
+	 * @param array $args From users_table_args().
 	 * @return array{ids:int[],total:int}
 	 */
-	protected function users_query( $search, $page, $per_page ) {
-		global $wpdb;
+	protected function users_query( $args ) {
+		$q = array(
+			'number'      => self::USERS_PER_PAGE,
+			'paged'       => $args['page'],
+			'fields'      => 'ID',
+			'count_total' => true,
+		);
 
-		if ( '' === $search ) {
-			$q = new WP_User_Query(
-				array(
-					'number'      => $per_page,
-					'paged'       => $page,
-					'orderby'     => 'registered',
-					'order'       => 'DESC',
-					'fields'      => 'ID',
-					'count_total' => true,
-				)
-			);
-			return array(
-				'ids'   => array_map( 'intval', (array) $q->get_results() ),
-				'total' => (int) $q->get_total(),
+		if ( '' !== $args['search'] ) {
+			$include = $this->search_user_ids( $args['search'] );
+			if ( ! $include ) {
+				return array( 'ids' => array(), 'total' => 0 );
+			}
+			$q['include'] = $include;
+		}
+
+		$meta_query = array();
+
+		if ( 'verified' === $args['status'] ) {
+			$meta_query[] = array( 'key' => 'sml_email_verified', 'value' => '1' );
+		} elseif ( 'pending' === $args['status'] ) {
+			$meta_query[] = array( 'key' => 'sml_email_verified', 'value' => '0' );
+		} elseif ( 'legacy' === $args['status'] ) {
+			$meta_query[] = array( 'key' => 'sml_email_verified', 'compare' => 'NOT EXISTS' );
+		}
+
+		if ( 'has' === $args['customer'] ) {
+			$meta_query[] = array( 'key' => '_order_count', 'value' => 0, 'type' => 'NUMERIC', 'compare' => '>' );
+		} elseif ( 'none' === $args['customer'] ) {
+			$meta_query[] = array(
+				'relation' => 'OR',
+				array( 'key' => '_order_count', 'compare' => 'NOT EXISTS' ),
+				array( 'key' => '_order_count', 'value' => 0, 'type' => 'NUMERIC', 'compare' => '<=' ),
 			);
 		}
+
+		$sort_meta = $this->users_sort_meta();
+		if ( isset( $sort_meta[ $args['orderby'] ] ) ) {
+			$key = $sort_meta[ $args['orderby'] ];
+			// OR + NOT EXISTS forces a LEFT JOIN so users without the meta
+			// still appear (they sort last).
+			$meta_query['sml_sort'] = array(
+				'relation' => 'OR',
+				array( 'key' => $key, 'compare' => 'EXISTS', 'type' => 'NUMERIC' ),
+				array( 'key' => $key, 'compare' => 'NOT EXISTS' ),
+			);
+			$q['orderby'] = array( 'sml_sort' => $args['order'], 'user_registered' => 'DESC' );
+		} elseif ( 'name' === $args['orderby'] ) {
+			$q['orderby'] = array( 'display_name' => $args['order'] );
+		} elseif ( 'email' === $args['orderby'] ) {
+			$q['orderby'] = array( 'user_email' => $args['order'] );
+		} else {
+			$q['orderby'] = array( 'user_registered' => $args['order'] );
+		}
+
+		if ( $meta_query ) {
+			$q['meta_query'] = $meta_query; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+		}
+
+		$days = array( 'd1' => 1, 'd7' => 7, 'd30' => 30, 'm12' => 365 );
+		if ( isset( $days[ $args['window'] ] ) ) {
+			$q['date_query'] = array(
+				array( 'after' => $days[ $args['window'] ] . ' days ago', 'column' => 'user_registered', 'inclusive' => true ),
+			);
+		}
+
+		$uq = new WP_User_Query( $q );
+
+		return array(
+			'ids'   => array_map( 'intval', (array) $uq->get_results() ),
+			'total' => (int) $uq->get_total(),
+		);
+	}
+
+	/**
+	 * Union of user ids matching a term across the core columns and the
+	 * phone / name / billing-address meta. Capped so a broad term can't
+	 * blow up memory.
+	 *
+	 * @param string $term
+	 * @return int[]
+	 */
+	protected function search_user_ids( $term ) {
+		global $wpdb;
 
 		$core = new WP_User_Query(
 			array(
-				'search'         => '*' . $search . '*',
+				'search'         => '*' . $term . '*',
 				'search_columns' => array( 'user_login', 'user_email', 'user_nicename', 'display_name' ),
 				'fields'         => 'ID',
-				'number'         => 500,
+				'number'         => 2000,
 			)
 		);
-		$core_ids = array_map( 'intval', (array) $core->get_results() );
+		$ids = array_map( 'intval', (array) $core->get_results() );
 
-		$meta_keys    = array( 'sml_phone', 'first_name', 'last_name', 'billing_phone', 'billing_company', 'billing_address_1', 'billing_address_2', 'billing_city', 'billing_state', 'billing_postcode', 'billing_country' );
-		$placeholders = implode( ',', array_fill( 0, count( $meta_keys ), '%s' ) );
+		$keys         = array( 'sml_phone', 'first_name', 'last_name', 'billing_phone', 'billing_company', 'billing_address_1', 'billing_address_2', 'billing_city', 'billing_state', 'billing_postcode', 'billing_country' );
+		$placeholders = implode( ',', array_fill( 0, count( $keys ), '%s' ) );
 		$meta_ids     = $wpdb->get_col(
 			$wpdb->prepare(
 				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				"SELECT DISTINCT user_id FROM {$wpdb->usermeta} WHERE meta_key IN ($placeholders) AND meta_value LIKE %s LIMIT 500",
-				array_merge( $meta_keys, array( '%' . $wpdb->esc_like( $search ) . '%' ) )
+				"SELECT DISTINCT user_id FROM {$wpdb->usermeta} WHERE meta_key IN ($placeholders) AND meta_value LIKE %s LIMIT 2000",
+				array_merge( $keys, array( '%' . $wpdb->esc_like( $term ) . '%' ) )
 			)
 		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
-		$all = array_values( array_unique( array_merge( $core_ids, array_map( 'intval', (array) $meta_ids ) ) ) );
+		return array_values( array_unique( array_merge( $ids, array_map( 'intval', (array) $meta_ids ) ) ) );
+	}
 
-		$slice = array_slice( $all, ( $page - 1 ) * $per_page, $per_page );
-		if ( $slice ) {
-			$oq    = new WP_User_Query(
-				array(
-					'include' => $slice,
-					'orderby' => 'registered',
-					'order'   => 'DESC',
-					'fields'  => 'ID',
-					'number'  => $per_page,
-				)
-			);
-			$slice = array_map( 'intval', (array) $oq->get_results() );
+	/**
+	 * @param int[] $ids
+	 * @return string <tr> markup.
+	 */
+	protected function render_users_tbody( array $ids ) {
+		$wc  = function_exists( 'wc_get_customer_order_count' );
+		$fmt = get_option( 'date_format' );
+
+		if ( ! $ids ) {
+			return '<tr><td colspan="' . ( $wc ? 11 : 8 ) . '">' . esc_html__( 'No matching users.', 'smart-login' ) . '</td></tr>';
 		}
 
-		return array( 'ids' => $slice, 'total' => count( $all ) );
+		$out = '';
+		foreach ( $ids as $id ) {
+			$user = get_userdata( $id );
+			if ( ! $user ) {
+				continue;
+			}
+
+			$status  = $this->user_status( $id );
+			$last_ts = (int) get_user_meta( $id, 'sml_last_login', true );
+			$resets  = (int) get_user_meta( $id, 'sml_reset_requests', true );
+
+			if ( 'verified' === $status ) {
+				$badge = '<span style="color:#12805c;">&#9679; ' . esc_html__( 'Verified', 'smart-login' ) . '</span>';
+			} elseif ( 'pending' === $status ) {
+				$badge = '<span style="color:#92590a;">&#9679; ' . esc_html__( 'Pending', 'smart-login' ) . '</span>';
+			} else {
+				$badge = '<span style="color:#9a9aa2;">&mdash; ' . esc_html__( 'Legacy', 'smart-login' ) . '</span>';
+			}
+
+			$phone = $this->user_phone( $id );
+			$addr  = $this->billing_address_line( $id );
+
+			$out .= '<tr>';
+			$out .= '<td>' . esc_html( $user->display_name ? $user->display_name : trim( $user->first_name . ' ' . $user->last_name ) ) . '</td>';
+			$out .= '<td>' . esc_html( $user->user_email ) . '</td>';
+			$out .= '<td>' . ( '' !== $phone ? esc_html( $phone ) : '&mdash;' ) . '</td>';
+			$out .= '<td style="max-width:240px;">' . ( '' !== $addr ? esc_html( $addr ) : '&mdash;' ) . '</td>';
+			$out .= '<td>' . esc_html( $user->user_registered ? date_i18n( $fmt, strtotime( $user->user_registered . ' UTC' ) ) : '' ) . '</td>';
+			$out .= '<td>' . ( $last_ts ? esc_html( sprintf( __( '%s ago', 'smart-login' ), human_time_diff( $last_ts, time() ) ) ) : '&mdash;' ) . '</td>';
+			$out .= '<td>' . $badge . '</td>';
+			$out .= '<td>' . ( $resets ? esc_html( number_format_i18n( $resets ) ) : '&mdash;' ) . '</td>';
+
+			if ( $wc ) {
+				$summary = $this->wc_customer_summary( $id );
+				$out    .= '<td>' . esc_html( number_format_i18n( $summary['orders'] ) ) . '</td>';
+				$out    .= '<td>' . wp_kses_post( $summary['spent'] ) . '</td>';
+				$out    .= '<td>' . ( '' !== $summary['last_order'] ? esc_html( $summary['last_order'] ) : '&mdash;' ) . '</td>';
+			}
+
+			$out .= '</tr>';
+		}
+
+		return $out;
+	}
+
+	/**
+	 * @param int $page
+	 * @param int $pages
+	 * @return string
+	 */
+	protected function render_users_pager( $page, $pages ) {
+		if ( $pages < 2 ) {
+			return '';
+		}
+		$page = max( 1, min( $page, $pages ) );
+
+		$btn = function ( $target, $label, $disabled = false, $current = false ) {
+			$style = 'padding:3px 9px;border:1px solid #d5d5dd;border-radius:5px;font-size:12.5px;background:'
+				. ( $current ? '#4d5fd6;color:#fff;' : '#fff;color:#2b2f38;' )
+				. ( $disabled ? 'opacity:.4;pointer-events:none;' : 'cursor:pointer;' );
+			return sprintf(
+				'<button type="button" data-page="%1$d" style="%2$s">%3$s</button>',
+				(int) $target,
+				esc_attr( $style ),
+				esc_html( $label )
+			);
+		};
+
+		$out  = $btn( $page - 1, __( 'Prev', 'smart-login' ), $page <= 1 );
+		$from = max( 1, $page - 2 );
+		$to   = min( $pages, $page + 2 );
+
+		if ( $from > 1 ) {
+			$out .= $btn( 1, '1' );
+			if ( $from > 2 ) {
+				$out .= '<span style="color:#9a9aa2;">&hellip;</span>';
+			}
+		}
+		for ( $i = $from; $i <= $to; $i++ ) {
+			$out .= $btn( $i, (string) $i, false, $i === $page );
+		}
+		if ( $to < $pages ) {
+			if ( $to < $pages - 1 ) {
+				$out .= '<span style="color:#9a9aa2;">&hellip;</span>';
+			}
+			$out .= $btn( $pages, (string) $pages );
+		}
+
+		$out .= $btn( $page + 1, __( 'Next', 'smart-login' ), $page >= $pages );
+
+		return $out;
 	}
 
 	/** WooCommerce billing address as one line, or '' when empty. */
