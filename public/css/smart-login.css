@@ -106,6 +106,59 @@
 }
 
 /*
+ * Theme hardening. Every visible field carries `.sml-input`. A host theme's
+ * generic form rules — `input[type=email]`, `input[type=text]`, `.wd select`,
+ * etc. — otherwise recolour/reshape these fields, and Chrome's autofill state
+ * pulls in the theme's `input:-webkit-autofill` box-shadow and
+ * `-webkit-text-fill-color` on top. These rules re-assert the plugin's own
+ * look for exactly the properties themes reliably fight — kept in sync with
+ * the design tokens, never hard-coded.
+ */
+.sml-card .sml-input {
+	color: var(--sml-fg) !important;
+	font-family: inherit !important;
+	letter-spacing: normal !important;
+	text-transform: none !important;
+}
+
+/*
+ * Autofill. Chrome forces its own background and text colour onto an
+ * autofilled field; the background can only be overridden with a large inset
+ * shadow and the text colour only with `-webkit-text-fill-color`. We paint
+ * the field's own background so an autofilled value looks identical to a
+ * typed one — inside a boxed field the shadow colour simply matches the box
+ * drawn behind it. The very long transition defeats Chrome's fade back to
+ * yellow.
+ */
+.sml-card .sml-input:-webkit-autofill,
+.sml-card .sml-input:-webkit-autofill:hover,
+.sml-card .sml-input:-webkit-autofill:focus,
+.sml-card .sml-input:-webkit-autofill:active,
+.sml-card input:-webkit-autofill,
+.sml-card select:-webkit-autofill {
+	-webkit-text-fill-color: var(--sml-fg) !important;
+	-webkit-box-shadow: 0 0 0 100px var(--sml-bg) inset !important;
+	box-shadow: 0 0 0 100px var(--sml-bg) inset !important;
+	caret-color: var(--sml-fg) !important;
+	border-color: var(--sml-border) !important;
+	border-radius: var(--sml-radius-sm) !important;
+	font-family: inherit !important;
+	transition: background-color 600000s 0s, color 600000s 0s !important;
+}
+
+/*
+ * Inside a boxed field the input itself is borderless and transparent (the
+ * box draws the frame), so an autofilled input must stay borderless and just
+ * fill with the box's own background colour.
+ */
+.sml-card .sml-field-boxed > .sml-input:-webkit-autofill,
+.sml-card .sml-field-boxed .sml-password-group > .sml-input:-webkit-autofill,
+.sml-card .sml-field-boxed .sml-phone-group > .sml-input:-webkit-autofill {
+	border: none !important;
+	border-radius: 0 !important;
+}
+
+/*
  * Boxed field, Material-style floating label. Structure is always
  * <box><input-or-wrapper><label>. The label overlays the input as a
  * placeholder-sized prompt at rest; :focus-within or a non-empty input

@@ -202,8 +202,16 @@ class SML_Email {
 	protected static function cta_button( $url, $label = '' ) {
 		$label = '' !== trim( (string) $label ) ? $label : __( 'Verify Email', 'smart-login' );
 
+		// Match the front-end form's button colours (Settings → General →
+		// "Button appearance"), falling back to the plugin's near-black
+		// default when either isn't a valid hex value.
+		$bg = sanitize_hex_color( (string) SML_Settings::get( 'button_bg_color' ) );
+		$fg = sanitize_hex_color( (string) SML_Settings::get( 'button_text_color' ) );
+		$bg = $bg ? $bg : '#111114';
+		$fg = $fg ? $fg : '#ffffff';
+
 		return '<div style="text-align:center;margin:12px 0 6px;">'
-			. '<a href="' . esc_url( $url ) . '" style="display:inline-block;background:#111114;color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:14px;font-weight:600;text-decoration:none;padding:12px 30px;border-radius:6px;">'
+			. '<a href="' . esc_url( $url ) . '" style="display:inline-block;background:' . esc_attr( $bg ) . ';color:' . esc_attr( $fg ) . ';font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:14px;font-weight:600;text-decoration:none;padding:12px 30px;border-radius:6px;">'
 			. esc_html( $label )
 			. '</a></div>'
 			. '<p style="text-align:center;margin:10px 0 0;font-size:12px;color:#9a9aa2;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;">'

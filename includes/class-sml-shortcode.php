@@ -171,12 +171,12 @@ class SML_Shortcode {
 				<form data-sml-form="login" novalidate>
 					<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>">
 					<div class="sml-field-boxed">
-						<input type="email" id="sml-login-user" name="username" autocomplete="username" placeholder=" " required>
+						<input type="email" id="sml-login-user" class="sml-input" name="username" autocomplete="username" placeholder=" " required>
 						<label for="sml-login-user"><?php esc_html_e( 'Email', 'smart-login' ); ?></label>
 					</div>
 					<div class="sml-field-boxed">
 						<div class="sml-password-group">
-							<input type="password" id="sml-login-pass" name="password" autocomplete="current-password" placeholder=" " required>
+							<input type="password" id="sml-login-pass" class="sml-input" name="password" autocomplete="current-password" placeholder=" " required>
 							<button type="button" class="sml-password-toggle" data-sml-password-toggle aria-label="<?php esc_attr_e( 'Show password', 'smart-login' ); ?>">
 								<?php esc_html_e( 'Show', 'smart-login' ); ?>
 							</button>
@@ -210,16 +210,16 @@ class SML_Shortcode {
 						<?php endif; ?>
 						<div class="sml-field-row">
 							<div class="sml-field-boxed">
-								<input type="text" id="sml-reg-first" name="first_name" autocomplete="given-name" placeholder=" " required>
+								<input type="text" id="sml-reg-first" class="sml-input" name="first_name" autocomplete="given-name" placeholder=" " required>
 								<label for="sml-reg-first"><?php esc_html_e( 'First name', 'smart-login' ); ?> <span class="sml-required">*</span></label>
 							</div>
 							<div class="sml-field-boxed">
-								<input type="text" id="sml-reg-last" name="last_name" autocomplete="family-name" placeholder=" " required>
+								<input type="text" id="sml-reg-last" class="sml-input" name="last_name" autocomplete="family-name" placeholder=" " required>
 								<label for="sml-reg-last"><?php esc_html_e( 'Last name', 'smart-login' ); ?> <span class="sml-required">*</span></label>
 							</div>
 						</div>
 						<div class="sml-field-boxed">
-							<input type="email" id="sml-reg-email" name="email" autocomplete="email" placeholder=" " required>
+							<input type="email" id="sml-reg-email" class="sml-input" name="email" autocomplete="email" placeholder=" " required>
 							<label for="sml-reg-email"><?php esc_html_e( 'Email', 'smart-login' ); ?> <span class="sml-required">*</span></label>
 						</div>
 						<?php
@@ -231,19 +231,19 @@ class SML_Shortcode {
 							<div class="sml-phone-group">
 								<div class="sml-phone-code">
 									<span class="sml-phone-flag" data-sml-flag-wrap><?php echo SML_Flags::icon( $sml_default_country ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
-									<select name="phone_country" id="sml-reg-phone-country" aria-label="<?php esc_attr_e( 'Country code', 'smart-login' ); ?>" data-sml-flag-select>
+									<select name="phone_country" id="sml-reg-phone-country" class="sml-input" aria-label="<?php esc_attr_e( 'Country code', 'smart-login' ); ?>" data-sml-flag-select>
 										<?php foreach ( $sml_allowed_countries as $id => $country ) : ?>
 											<option value="<?php echo esc_attr( $id ); ?>" data-max="<?php echo esc_attr( SML_Phone::max_length( $id ) ); ?>" data-flag="<?php echo esc_attr( base64_encode( SML_Flags::icon( $id ) ) ); ?>"<?php selected( $sml_default_country, $id ); ?>><?php echo esc_html( $country['dial'] . ' ' . $country['name'] ); ?></option>
 										<?php endforeach; ?>
 									</select>
 								</div>
-								<input type="tel" id="sml-reg-phone" name="phone_number" data-sml-phone-input autocomplete="tel-national" inputmode="numeric" placeholder="<?php esc_attr_e( 'Phone number', 'smart-login' ); ?>" maxlength="<?php echo esc_attr( SML_Phone::max_length( $sml_default_country ) + 4 ); ?>" required>
+								<input type="tel" id="sml-reg-phone" class="sml-input" name="phone_number" data-sml-phone-input autocomplete="tel-national" inputmode="numeric" placeholder="<?php esc_attr_e( 'Phone number', 'smart-login' ); ?>" maxlength="<?php echo esc_attr( SML_Phone::max_length( $sml_default_country ) + 4 ); ?>" required>
 							</div>
 							<label for="sml-reg-phone"><?php esc_html_e( 'Mobile number', 'smart-login' ); ?> <span class="sml-required">*</span></label>
 						</div>
 						<div class="sml-field-boxed">
 							<div class="sml-password-group">
-								<input type="password" id="sml-reg-pass" name="password" autocomplete="new-password" placeholder=" " required>
+								<input type="password" id="sml-reg-pass" class="sml-input" name="password" autocomplete="new-password" placeholder=" " required>
 								<button type="button" class="sml-password-toggle" data-sml-password-toggle aria-label="<?php esc_attr_e( 'Show password', 'smart-login' ); ?>">
 									<?php esc_html_e( 'Show', 'smart-login' ); ?>
 								</button>
@@ -265,7 +265,7 @@ class SML_Shortcode {
 				<form data-sml-form="forgot" novalidate>
 					<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>">
 					<div class="sml-field-boxed">
-						<input type="email" id="sml-forgot-email" name="login" autocomplete="email" placeholder=" " required>
+						<input type="email" id="sml-forgot-email" class="sml-input" name="login" autocomplete="email" placeholder=" " required>
 						<label for="sml-forgot-email"><?php esc_html_e( 'Email', 'smart-login' ); ?></label>
 					</div>
 					<button type="submit" class="sml-btn sml-btn--primary"><?php esc_html_e( 'Send Reset Link', 'smart-login' ); ?></button>
@@ -288,7 +288,7 @@ class SML_Shortcode {
 						<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>">
 						<div class="sml-field-boxed">
 							<div class="sml-password-group">
-								<input type="password" id="sml-reset-pass" name="password" autocomplete="new-password" placeholder=" " required>
+								<input type="password" id="sml-reset-pass" class="sml-input" name="password" autocomplete="new-password" placeholder=" " required>
 								<button type="button" class="sml-password-toggle" data-sml-password-toggle aria-label="<?php esc_attr_e( 'Show password', 'smart-login' ); ?>">
 									<?php esc_html_e( 'Show', 'smart-login' ); ?>
 								</button>
@@ -297,7 +297,7 @@ class SML_Shortcode {
 						</div>
 						<div class="sml-field-boxed">
 							<div class="sml-password-group">
-								<input type="password" id="sml-reset-pass-confirm" name="password_confirm" autocomplete="new-password" placeholder=" " required>
+								<input type="password" id="sml-reset-pass-confirm" class="sml-input" name="password_confirm" autocomplete="new-password" placeholder=" " required>
 								<button type="button" class="sml-password-toggle" data-sml-password-toggle aria-label="<?php esc_attr_e( 'Show password', 'smart-login' ); ?>">
 									<?php esc_html_e( 'Show', 'smart-login' ); ?>
 								</button>
@@ -320,7 +320,7 @@ class SML_Shortcode {
 						<?php for ( $i = 0; $i < $code_length; $i++ ) : ?>
 							<input
 								type="text"
-								class="sml-otp-box"
+								class="sml-otp-box sml-input"
 								inputmode="numeric"
 								pattern="[0-9]*"
 								maxlength="1"

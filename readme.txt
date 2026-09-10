@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.11.0
+Stable tag: 1.11.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,11 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.11.1 =
+* Theme compatibility: every visible form field now carries an `.sml-input` class, and the stylesheet re-asserts the plugin's own field colours/shape for the properties host themes commonly override with generic `input[type=...]` / `.wd select` rules.
+* Fixed: Chrome autofill made fields adopt the host theme's colours (via its `input:-webkit-autofill` rules). Autofilled fields now use the plugin's own background and text colour, matching a typed value.
+* Fixed: the button in every plugin email was always near-black. It now uses the configured button colours (Settings → General → "Button appearance"), matching the front-end form.
 
 = 1.11.0 =
 * Fixed: the password-reset email's button read "Verify Email" — it now reads "Reset Password". The button label is set per email type rather than hard-coded.
