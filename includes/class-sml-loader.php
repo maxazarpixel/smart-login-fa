@@ -49,6 +49,10 @@ class SML_Loader {
 		// it here has no front-end effect beyond registering the route.
 		new SML_Admin_Page();
 
+		if ( is_admin() ) {
+			SML_Users_List::init();
+		}
+
 		SML_Registration_Handler::init();
 		SML_Login_Handler::init();
 		SML_Password_Reset_Handler::init();
@@ -101,6 +105,7 @@ class SML_Loader {
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-password-reset-handler.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-page-guard.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-shortcode.php';
+		require_once SML_PLUGIN_DIR . 'includes/class-sml-users-list.php';
 
 		require_once SML_PLUGIN_DIR . 'includes/providers/interface-sml-bot-protection-provider.php';
 		require_once SML_PLUGIN_DIR . 'includes/providers/class-sml-recaptcha-provider.php';

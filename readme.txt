@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.17.2
+Stable tag: 1.18.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,9 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.18.0 =
+* User management moved to the native WordPress Users screen. It now shows "Verified" (Verified / Pending / Legacy), "Phone", "Last login" and "Registered" columns, with sortable Last login / Registered and Verified / Pending / Legacy filter links above the list. The plugin's own "Users" tab is now a shortcut to that screen; its bespoke REST-backed table (which wasn't loading on some sites) was removed.
 
 = 1.17.2 =
 * Added a "Settings" link to the plugin's row on Plugins → Installed Plugins.

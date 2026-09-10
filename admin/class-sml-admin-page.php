@@ -678,88 +678,21 @@ class SML_Admin_Page extends APX_Admin_Page {
 	protected function panel_users() {
 		return array(
 			'title'    => __( 'Users', 'smart-login' ),
-			'desc'     => __( 'Every account: when they signed up, their last login, and whether their email is verified. Search by name, email, address or phone.', 'smart-login' ),
+			'desc'     => __( 'Accounts are managed in the WordPress Users screen. Smart Login adds Verified / Phone / Last login / Registered columns there, plus Verified / Pending / Legacy filters.', 'smart-login' ),
 			'sections' => array(
 				array(
 					'fields' => array(
-						array( 'type' => 'html', 'html' => $this->users_html() ),
+						array(
+							'type' => 'html',
+							'html' => '<p><a class="button button-primary" href="' . esc_url( admin_url( 'users.php' ) ) . '">'
+								. esc_html__( 'Open the Users screen', 'smart-login' ) . '</a></p>'
+								. '<p class="apx-row"><a href="' . esc_url( admin_url( 'users.php?sml_status=pending' ) ) . '">'
+								. esc_html__( 'Show accounts pending verification', 'smart-login' ) . '</a></p>',
+						),
 					),
 				),
 			),
 		);
-	}
-
-	/**
-	 * Search box + results table, filled from the /users REST route so a
-	 * large user base is paged rather than dumped into the page.
-	 */
-	protected function users_html() {
-		$rest = 'window.APX_UI.restUrl.replace(/\/$/, "")';
-
-		return '<div class="apx-row" style="align-items:flex-start;">'
-			. '<label for="sml-user-search">' . esc_html__( 'Search', 'smart-login' ) . '</label>'
-			. '<input type="search" id="sml-user-search" placeholder="' . esc_attr__( 'Name, email, address, phone…', 'smart-login' ) . '" style="min-width:340px" autocomplete="off">'
-			. '</div>'
-			. '<div class="apx-table-scroll" style="margin-top:10px;">'
-			. '<table class="widefat striped" id="sml-users-table">'
-			. '<thead><tr>'
-			. '<th>' . esc_html__( 'User', 'smart-login' ) . '</th>'
-			. '<th>' . esc_html__( 'Email', 'smart-login' ) . '</th>'
-			. '<th>' . esc_html__( 'Phone', 'smart-login' ) . '</th>'
-			. '<th>' . esc_html__( 'Address', 'smart-login' ) . '</th>'
-			. '<th>' . esc_html__( 'Registered', 'smart-login' ) . '</th>'
-			. '<th>' . esc_html__( 'Last login', 'smart-login' ) . '</th>'
-			. '<th>' . esc_html__( 'Verified', 'smart-login' ) . '</th>'
-			. '</tr></thead><tbody></tbody>'
-			. '</table></div>'
-			. '<div style="display:flex;align-items:center;gap:12px;margin-top:12px;">'
-			. '<button type="button" class="button button-secondary" id="sml-users-prev">&larr; ' . esc_html__( 'Prev', 'smart-login' ) . '</button>'
-			. '<button type="button" class="button button-secondary" id="sml-users-next">' . esc_html__( 'Next', 'smart-login' ) . ' &rarr;</button>'
-			. '<span id="sml-users-meta" style="font-size:13px;color:#7a7a85;"></span>'
-			. '</div>'
-			. '<script>(function(){
-				var R = ' . $rest . ', N = window.APX_UI.restNonce;
-				var box = document.getElementById("sml-user-search");
-				var tbody = document.querySelector("#sml-users-table tbody");
-				var prev = document.getElementById("sml-users-prev");
-				var next = document.getElementById("sml-users-next");
-				var meta = document.getElementById("sml-users-meta");
-				if (!tbody) { return; }
-				var page = 1, pages = 1, timer = null;
-				var esc = function(s){ var d = document.createElement("span"); d.textContent = (s == null ? "" : String(s)); return d.innerHTML; };
-				function badge(v){
-					if (v === "verified") { return \'<span style="color:#12805c;">● ' . esc_js( __( 'Verified', 'smart-login' ) ) . '</span>\'; }
-					if (v === "pending") { return \'<span style="color:#92590a;">● ' . esc_js( __( 'Pending', 'smart-login' ) ) . '</span>\'; }
-					return \'<span style="color:#9a9aa2;">— ' . esc_js( __( 'Legacy', 'smart-login' ) ) . '</span>\';
-				}
-				function load(){
-					tbody.innerHTML = \'<tr><td colspan="7">' . esc_js( __( 'Loading…', 'smart-login' ) ) . '</td></tr>\';
-					fetch(R + "/users?search=" + encodeURIComponent(box.value || "") + "&page=" + page, {
-						credentials:"same-origin", headers:{ "X-WP-Nonce": N }
-					}).then(function(r){ return r.json(); }).then(function(d){
-						var rows = (d && d.rows) || [];
-						pages = (d && d.pages) || 1;
-						if (!rows.length) {
-							tbody.innerHTML = \'<tr><td colspan="7">' . esc_js( __( 'No matching users.', 'smart-login' ) ) . '</td></tr>\';
-						} else {
-							tbody.innerHTML = rows.map(function(u){
-								return "<tr><td>" + esc(u.name) + "</td><td>" + esc(u.email) + "</td><td>" + esc(u.phone) +
-									"</td><td>" + esc(u.address) + "</td><td>" + esc(u.registered) + "</td><td>" + esc(u.last_login) +
-									"</td><td>" + badge(u.status) + "</td></tr>";
-							}).join("");
-						}
-						meta.textContent = (d && d.meta_text) || "";
-						prev.disabled = page <= 1;
-						next.disabled = page >= pages;
-					}).catch(function(){
-						tbody.innerHTML = \'<tr><td colspan="7">' . esc_js( __( 'Request failed.', 'smart-login' ) ) . '</td></tr>\';
-					});
-				}
-				box.addEventListener("input", function(){ clearTimeout(timer); timer = setTimeout(function(){ page = 1; load(); }, 300); });
-				prev.addEventListener("click", function(){ if (page > 1) { page--; load(); } });
-				next.addEventListener("click", function(){ if (page < pages) { page++; load(); } });
-				load();
-			})();</script>';
 	}
 
 	/**
@@ -1064,148 +997,6 @@ class SML_Admin_Page extends APX_Admin_Page {
 			})();</script>';
 	}
 
-	/** Billing-address meta keys, joined for the Users table's Address column. */
-	const ADDRESS_META_KEYS = array( 'billing_address_1', 'billing_address_2', 'billing_city', 'billing_state', 'billing_postcode', 'billing_country' );
-
-	/**
-	 * Paged, searchable user list for the Users panel. Search matches the
-	 * core columns (login, email, nicename, display name) plus the phone
-	 * and billing-address meta keys.
-	 *
-	 * @param WP_REST_Request $req
-	 * @return WP_REST_Response
-	 */
-	public function rest_users_list( WP_REST_Request $req ) {
-		global $wpdb;
-
-		$search   = trim( (string) $req->get_param( 'search' ) );
-		$page     = max( 1, (int) $req->get_param( 'page' ) );
-		$per_page = 25;
-
-		$meta_keys = array_merge(
-			array( 'sml_phone', 'first_name', 'last_name', 'billing_phone', 'billing_company' ),
-			self::ADDRESS_META_KEYS
-		);
-
-		if ( '' === $search ) {
-			$q     = new WP_User_Query( array(
-				'number'      => $per_page,
-				'paged'       => $page,
-				'orderby'     => 'registered',
-				'order'       => 'DESC',
-				'fields'      => 'ID',
-				'count_total' => true,
-			) );
-			$ids   = array_map( 'intval', (array) $q->get_results() );
-			$total = (int) $q->get_total();
-		} else {
-			$core = new WP_User_Query( array(
-				'search'         => '*' . $search . '*',
-				'search_columns' => array( 'user_login', 'user_email', 'user_nicename', 'display_name' ),
-				'fields'         => 'ID',
-				'number'         => 500,
-			) );
-			$core_ids = array_map( 'intval', (array) $core->get_results() );
-
-			$placeholders = implode( ',', array_fill( 0, count( $meta_keys ), '%s' ) );
-			$meta_ids     = $wpdb->get_col(
-				$wpdb->prepare(
-					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-					"SELECT DISTINCT user_id FROM {$wpdb->usermeta} WHERE meta_key IN ($placeholders) AND meta_value LIKE %s LIMIT 500",
-					array_merge( $meta_keys, array( '%' . $wpdb->esc_like( $search ) . '%' ) )
-				)
-			); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-
-			$all_ids = array_values( array_unique( array_merge( $core_ids, array_map( 'intval', (array) $meta_ids ) ) ) );
-			$total   = count( $all_ids );
-
-			$slice = array_slice( $all_ids, ( $page - 1 ) * $per_page, $per_page );
-			if ( $slice ) {
-				$oq  = new WP_User_Query( array(
-					'include' => $slice,
-					'orderby' => 'registered',
-					'order'   => 'DESC',
-					'fields'  => 'ID',
-					'number'  => $per_page,
-				) );
-				$ids = array_map( 'intval', (array) $oq->get_results() );
-			} else {
-				$ids = array();
-			}
-		}
-
-		$pages = max( 1, (int) ceil( $total / $per_page ) );
-
-		if ( $ids ) {
-			cache_users( $ids );
-		}
-
-		$fmt  = get_option( 'date_format' ) . ' ' . get_option( 'time_format' );
-		$rows = array();
-
-		foreach ( $ids as $id ) {
-			$u = get_userdata( $id );
-			if ( ! $u ) {
-				continue;
-			}
-
-			$verified = SML_Verification::is_verified( $id );
-			$status   = $verified
-				? 'verified'
-				: ( SML_Verification::has_verification_record( $id ) ? 'pending' : 'legacy' );
-
-			$phone = (string) get_user_meta( $id, 'sml_phone', true );
-			if ( '' === $phone ) {
-				$phone = (string) get_user_meta( $id, 'billing_phone', true );
-			}
-
-			$last_ts = (int) get_user_meta( $id, 'sml_last_login', true );
-
-			$rows[] = array(
-				'name'       => $u->display_name ? $u->display_name : trim( $u->first_name . ' ' . $u->last_name ),
-				'email'      => $u->user_email,
-				'phone'      => $phone,
-				'address'    => $this->user_address( $id ),
-				'registered' => $u->user_registered ? date_i18n( $fmt, strtotime( $u->user_registered . ' UTC' ) ) : '',
-				'last_login' => $last_ts ? date_i18n( $fmt, $last_ts ) : '—',
-				'status'     => $status,
-			);
-		}
-
-		return rest_ensure_response(
-			array(
-				'rows'      => $rows,
-				'total'     => $total,
-				'pages'     => $pages,
-				'meta_text' => sprintf(
-					/* translators: 1: total users 2: current page 3: total pages */
-					__( 'Total: %1$s · page %2$d/%3$d', 'smart-login' ),
-					number_format_i18n( $total ),
-					$page,
-					$pages
-				),
-			)
-		);
-	}
-
-	/**
-	 * WooCommerce billing address for a user, as one comma-joined line, or
-	 * an empty string when none of the parts are filled in.
-	 *
-	 * @param int $user_id
-	 * @return string
-	 */
-	protected function user_address( $user_id ) {
-		$parts = array();
-		foreach ( self::ADDRESS_META_KEYS as $key ) {
-			$val = trim( (string) get_user_meta( $user_id, $key, true ) );
-			if ( '' !== $val ) {
-				$parts[] = $val;
-			}
-		}
-		return implode( ', ', $parts );
-	}
-
 	/**
 	 * Builds the shareable export payload: metadata + every setting except
 	 * secret-typed fields (those become the "unchanged" placeholder).
@@ -1330,20 +1121,6 @@ class SML_Admin_Page extends APX_Admin_Page {
 				'methods'             => 'POST',
 				'callback'            => array( $this, 'rest_import_settings' ),
 				'permission_callback' => array( $this, 'rest_permission' ),
-			)
-		);
-
-		register_rest_route(
-			$this->cfg['rest_ns'],
-			'/users',
-			array(
-				'methods'             => 'GET',
-				'callback'            => array( $this, 'rest_users_list' ),
-				'permission_callback' => array( $this, 'rest_permission' ),
-				'args'                => array(
-					'search' => array( 'type' => 'string', 'default' => '' ),
-					'page'   => array( 'type' => 'integer', 'default' => 1 ),
-				),
 			)
 		);
 	}
