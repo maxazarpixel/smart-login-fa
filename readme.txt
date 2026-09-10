@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.10.0
+Stable tag: 1.11.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,11 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.11.0 =
+* Fixed: the password-reset email's button read "Verify Email" — it now reads "Reset Password". The button label is set per email type rather than hard-coded.
+* Fixed: after logging in, verifying an email, or resetting a password with no specific destination requested, users were always dropped on the site home page. Added a "Redirect after login" page setting (Settings → General) — point it at your My Account page, for example. Requests that already carry a destination (Cart/Checkout gating, etc.) are unchanged.
+* Added: "Branding & footer" section under Settings → Emails — an overridable site name shown in the email header/footer (blank = WordPress site title) and an optional free-text footer block for company name, address, or support contact. {site_name} is available in the footer text.
 
 = 1.10.0 =
 * Security: registration now enforces the same 8-character minimum password length that the reset flow already required — the form gates Cart and Checkout, so a one-character password there was a real account-takeover path.

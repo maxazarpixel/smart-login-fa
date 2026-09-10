@@ -147,6 +147,12 @@ class SML_Admin_Page extends APX_Admin_Page {
 							'label'   => __( 'Default role for new users', 'smart-login' ),
 							'options' => $this->role_options(),
 						),
+						array(
+							'type'  => 'page_select',
+							'name'  => 'login_redirect_page_id',
+							'label' => __( 'Redirect after login', 'smart-login' ),
+							'desc'  => __( 'Where users land after logging in, verifying their email, or resetting their password — unless a specific destination was already requested (e.g. Cart/Checkout). Leave unset to use the site home page. Tip: point this at your My Account page.', 'smart-login' ),
+						),
 					),
 				),
 				array(
@@ -286,6 +292,14 @@ class SML_Admin_Page extends APX_Admin_Page {
 						array( 'type' => 'text', 'name' => 'from_name', 'label' => __( 'From name', 'smart-login' ) ),
 						array( 'type' => 'text', 'name' => 'from_email', 'label' => __( 'From email', 'smart-login' ) ),
 						array( 'type' => 'html', 'html' => $this->test_email_html() ),
+					),
+				),
+				array(
+					'heading' => __( 'Branding & footer', 'smart-login' ),
+					'desc'    => __( 'Shown at the top and bottom of every email this plugin sends. {site_name} is available in the footer text.', 'smart-login' ),
+					'fields'  => array(
+						array( 'type' => 'text', 'name' => 'email_footer_name', 'label' => __( 'Site name in email', 'smart-login' ), 'desc' => __( 'Heading shown at the top of the email and in the footer line. Leave blank to use the WordPress site title.', 'smart-login' ) ),
+						array( 'type' => 'textarea', 'name' => 'email_footer_text', 'label' => __( 'Extra footer text', 'smart-login' ), 'desc' => __( 'Optional lines below the automated-message notice — company name, postal address, support contact, etc. Basic HTML and line breaks are allowed.', 'smart-login' ) ),
 					),
 				),
 				array(

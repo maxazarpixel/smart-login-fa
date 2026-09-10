@@ -103,7 +103,7 @@ class SML_Login_Handler {
 
 		wp_send_json_success(
 			array(
-				'redirect' => $redirect_to ?: home_url( '/' ),
+				'redirect' => $redirect_to ?: ( SML_Settings::post_login_redirect_url() ?: home_url( '/' ) ),
 				'message'  => __( 'Login successful.', 'smart-login' ),
 				'notice'   => $notice,
 			)

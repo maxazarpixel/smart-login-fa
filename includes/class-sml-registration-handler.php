@@ -176,7 +176,7 @@ class SML_Registration_Handler {
 		wp_send_json_success(
 			array(
 				'message'  => __( 'Your email has been verified.', 'smart-login' ),
-				'redirect' => $redirect_to ?: home_url( '/' ),
+				'redirect' => $redirect_to ?: ( SML_Settings::post_login_redirect_url() ?: home_url( '/' ) ),
 			)
 		);
 	}

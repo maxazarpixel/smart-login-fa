@@ -78,7 +78,15 @@ class SML_Email {
 		$subject   = self::substitute( SML_Settings::get( 'reset_subject' ), $user );
 		$body_text = self::substitute( SML_Settings::get( 'reset_body' ), $user );
 
-		return self::send( $user->user_email, $subject, $body_text, array( 'link' => $reset_url ) );
+		return self::send(
+			$user->user_email,
+			$subject,
+			$body_text,
+			array(
+				'link'       => $reset_url,
+				'link_label' => __( 'Reset Password', 'smart-login' ),
+			)
+		);
 	}
 
 	protected static function verify_link( $token, $redirect_to = '' ) {
@@ -121,7 +129,9 @@ class SML_Email {
 	 * @param string $body_text  Plain-text-with-placeholders body (already had
 	 *                           {user}/{site_name}/{expiry_minutes} substituted).
 	 * @param array  $rich       Optional 'code' and/or 'link' raw values, swapped
-	 *                           in as styled HTML after sanitisation.
+	 *                           in as styled HTML after sanitisation. An optional
+	 *                           'link_label' sets the CTA button text (defaults
+	 *                           to "Verify Email").
 	 * @return bool
 	 */
 	protected static function send( $to, $subject, $body_text, array $rich = array() ) {
@@ -141,7 +151,8 @@ class SML_Email {
 			$body = str_replace( '{code}', self::code_badge( $rich['code'] ), $body );
 		}
 		if ( isset( $rich['link'] ) ) {
-			$body = str_replace( '{link}', self::cta_button( $rich['link'] ), $body );
+			$link_label = isset( $rich['link_label'] ) ? (string) $rich['link_label'] : '';
+			$body       = str_replace( '{link}', self::cta_button( $rich['link'], $link_label ), $body );
 		}
 
 		$html = self::wrap_shell( $body );
@@ -185,12 +196,15 @@ class SML_Email {
 	 * A real button instead of a bare, easy-to-mistrust URL.
 	 *
 	 * @param string $url
+	 * @param string $label Button text. Falls back to "Verify Email" when empty.
 	 * @return string
 	 */
-	protected static function cta_button( $url ) {
+	protected static function cta_button( $url, $label = '' ) {
+		$label = '' !== trim( (string) $label ) ? $label : __( 'Verify Email', 'smart-login' );
+
 		return '<div style="text-align:center;margin:12px 0 6px;">'
 			. '<a href="' . esc_url( $url ) . '" style="display:inline-block;background:#111114;color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:14px;font-weight:600;text-decoration:none;padding:12px 30px;border-radius:6px;">'
-			. esc_html__( 'Verify Email', 'smart-login' )
+			. esc_html( $label )
 			. '</a></div>'
 			. '<p style="text-align:center;margin:10px 0 0;font-size:12px;color:#9a9aa2;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;">'
 			. '<a href="' . esc_url( $url ) . '" style="color:#9a9aa2;word-break:break-all;">' . esc_html( $url ) . '</a>'
@@ -206,8 +220,23 @@ class SML_Email {
 	 * @return string
 	 */
 	protected static function wrap_shell( $inner_html ) {
-		$site_name = esc_html( get_bloginfo( 'name' ) );
-		$font      = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+		// Header/footer branding name — admin-overridable, falls back to the
+		// WordPress site title.
+		$footer_name = trim( (string) SML_Settings::get( 'email_footer_name', '' ) );
+		$raw_name    = '' !== $footer_name ? $footer_name : get_bloginfo( 'name' );
+		$site_name   = esc_html( $raw_name );
+		$font        = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+
+		// Optional extra footer block (company address, contact info, legal
+		// line, etc.). Admin-authored, so basic HTML is allowed; {site_name}
+		// is substituted for convenience.
+		$footer_text  = trim( (string) SML_Settings::get( 'email_footer_text', '' ) );
+		$footer_extra = '';
+		if ( '' !== $footer_text ) {
+			$footer_extra = '<p style="font-family:' . $font . ';font-size:12px;color:#9a9aa2;text-align:center;margin:10px 0 0;line-height:1.5;">'
+				. nl2br( wp_kses_post( str_replace( '{site_name}', $site_name, $footer_text ) ) )
+				. '</p>';
+		}
 
 		return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
 			. '<title>' . $site_name . '</title></head>'
@@ -228,7 +257,9 @@ class SML_Email {
 				esc_html__( 'This is an automated message from %s. If you did not request this, you can safely ignore it.', 'smart-login' ),
 				$site_name
 			)
-			. '</p></td></tr>'
+			. '</p>'
+			. $footer_extra // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			. '</td></tr>'
 			. '</table></td></tr></table>'
 			. '</body></html>';
 	}

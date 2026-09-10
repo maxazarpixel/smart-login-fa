@@ -24,6 +24,7 @@ class SML_Settings {
 			'enable_registration'      => 1,
 			'enable_login_form'        => 1,
 			'default_role'             => 'subscriber',
+			'login_redirect_page_id'   => 0,
 			'allowed_countries'        => SML_Countries::default_allowed_csv(),
 			'button_bg_color'          => '#111114',
 			'button_text_color'        => '#ffffff',
@@ -61,6 +62,8 @@ class SML_Settings {
 			'welcome_body'             => __( 'Hi {user},\n\nYour email has been verified and your account is now active.', 'smart-login' ),
 			'reset_subject'            => __( 'Reset your password for {site_name}', 'smart-login' ),
 			'reset_body'               => __( "Hi {user},\n\nWe received a request to reset your password. This link can only be used once and expires soon.\n\n{link}\n\nIf you didn't request this, you can safely ignore this email — your password won't be changed.", 'smart-login' ),
+			'email_footer_name'        => '',
+			'email_footer_text'        => '',
 
 			// WooCommerce (only relevant if WooCommerce is active).
 			'wc_replace_login'         => 0,
@@ -112,5 +115,25 @@ class SML_Settings {
 		}
 
 		return $role_key;
+	}
+
+	/**
+	 * Where to send a user after a login / email-verification / password
+	 * reset that didn't carry an explicit `redirect_to` of its own. Resolves
+	 * the configured "redirect after login" page to its permalink; returns
+	 * an empty string when unset or the page no longer exists, so callers
+	 * can fall back to the site home.
+	 *
+	 * @return string
+	 */
+	public static function post_login_redirect_url() {
+		$page_id = (int) self::get( 'login_redirect_page_id' );
+		if ( ! $page_id ) {
+			return '';
+		}
+
+		$url = get_permalink( $page_id );
+
+		return $url ? $url : '';
 	}
 }

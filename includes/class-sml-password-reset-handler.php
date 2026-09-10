@@ -137,7 +137,7 @@ class SML_Password_Reset_Handler {
 
 		wp_send_json_success(
 			array(
-				'redirect' => $redirect_to ?: home_url( '/' ),
+				'redirect' => $redirect_to ?: ( SML_Settings::post_login_redirect_url() ?: home_url( '/' ) ),
 				'message'  => __( 'Your password has been reset. You are now logged in.', 'smart-login' ),
 			)
 		);
