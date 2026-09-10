@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.19.0
+Stable tag: 1.20.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,9 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.20.0 =
+* The "Users" tab is a real table again — this time rendered server-side (no REST/JS, which is what failed to load before). Columns: name, email, phone, WooCommerce billing address, registered, last login, verification status, password-reset count, and — when WooCommerce is active — order count, lifetime spend and last-order date. Search by name / email / address / phone with paging; both use plain links so they work without JavaScript.
 
 = 1.19.0 =
 * The Dashboard now has a "Most password-reset requests" table — the accounts that have asked for a reset link the most, with the request count and when they last asked. Useful for spotting a confused customer or abuse. Each forgot-password submission for a real account is counted from now on (older history isn't backfilled).

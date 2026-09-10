@@ -120,6 +120,7 @@ class SML_Admin_Page extends APX_Admin_Page {
 	 */
 	public function render() {
 		$this->cfg['panels']['dashboard']['sections'][0]['fields'][0]['html'] = $this->dashboard_html();
+		$this->cfg['panels']['users']['sections'][0]['fields'][0]['html']     = $this->users_html();
 		parent::render();
 	}
 
@@ -746,23 +747,264 @@ class SML_Admin_Page extends APX_Admin_Page {
 
 	/* ── Users panel ─────────────────────────────────────────────────── */
 
+	/**
+	 * The 'html' is filled in render() (see panel_dashboard note) so the
+	 * per-user queries only run when this screen is actually viewed.
+	 */
 	protected function panel_users() {
 		return array(
 			'title'    => __( 'Users', 'smart-login' ),
-			'desc'     => __( 'Accounts are managed in the WordPress Users screen. Smart Login adds Verified / Phone / Last login / Registered columns there, plus Verified / Pending / Legacy filters.', 'smart-login' ),
+			'desc'     => __( 'Every account, with data pulled together from Smart Login and (when active) WooCommerce. Search by name, email, address or phone.', 'smart-login' ),
 			'sections' => array(
 				array(
 					'fields' => array(
-						array(
-							'type' => 'html',
-							'html' => '<p><a class="button button-primary" href="' . esc_url( admin_url( 'users.php' ) ) . '">'
-								. esc_html__( 'Open the Users screen', 'smart-login' ) . '</a></p>'
-								. '<p class="apx-row"><a href="' . esc_url( admin_url( 'users.php?sml_status=pending' ) ) . '">'
-								. esc_html__( 'Show accounts pending verification', 'smart-login' ) . '</a></p>',
-						),
+						array( 'type' => 'html', 'html' => '' ),
 					),
 				),
 			),
+		);
+	}
+
+	/** Per-page row count for the Users table. */
+	const USERS_PER_PAGE = 25;
+
+	/**
+	 * Server-rendered (no REST/JS) users table: search box, paged results,
+	 * and columns aggregated from Smart Login meta + WooCommerce.
+	 */
+	protected function users_html() {
+		$search   = isset( $_GET['sml_uq'] ) ? sanitize_text_field( wp_unslash( $_GET['sml_uq'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$page     = isset( $_GET['sml_upg'] ) ? max( 1, (int) $_GET['sml_upg'] ) : 1; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$per_page = self::USERS_PER_PAGE;
+		$wc       = function_exists( 'wc_get_customer_order_count' );
+
+		$found = $this->users_query( $search, $page, $per_page );
+		$ids   = $found['ids'];
+		$total = $found['total'];
+		$pages = max( 1, (int) ceil( $total / $per_page ) );
+
+		if ( $ids ) {
+			cache_users( $ids );
+		}
+
+		$base = admin_url( 'admin.php?page=smart-login' );
+		$fmt  = get_option( 'date_format' );
+
+		ob_start();
+		?>
+		<form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" class="apx-row" style="align-items:center;gap:8px;margin-bottom:12px;">
+			<input type="hidden" name="page" value="smart-login">
+			<label for="sml-uq"><?php esc_html_e( 'Search', 'smart-login' ); ?></label>
+			<input type="search" id="sml-uq" name="sml_uq" value="<?php echo esc_attr( $search ); ?>" placeholder="<?php esc_attr_e( 'Name, email, address, phone…', 'smart-login' ); ?>" style="min-width:320px">
+			<button type="submit" class="button"><?php esc_html_e( 'Search', 'smart-login' ); ?></button>
+			<?php if ( '' !== $search ) : ?>
+				<a class="button-link" href="<?php echo esc_url( $base . '#users' ); ?>"><?php esc_html_e( 'Clear', 'smart-login' ); ?></a>
+			<?php endif; ?>
+		</form>
+
+		<div class="apx-table-scroll">
+			<table class="widefat striped">
+				<thead><tr>
+					<th><?php esc_html_e( 'User', 'smart-login' ); ?></th>
+					<th><?php esc_html_e( 'Email', 'smart-login' ); ?></th>
+					<th><?php esc_html_e( 'Phone', 'smart-login' ); ?></th>
+					<th><?php esc_html_e( 'Address', 'smart-login' ); ?></th>
+					<th><?php esc_html_e( 'Registered', 'smart-login' ); ?></th>
+					<th><?php esc_html_e( 'Last login', 'smart-login' ); ?></th>
+					<th><?php esc_html_e( 'Verified', 'smart-login' ); ?></th>
+					<th><?php esc_html_e( 'Resets', 'smart-login' ); ?></th>
+					<?php if ( $wc ) : ?>
+						<th><?php esc_html_e( 'Orders', 'smart-login' ); ?></th>
+						<th><?php esc_html_e( 'Spent', 'smart-login' ); ?></th>
+						<th><?php esc_html_e( 'Last order', 'smart-login' ); ?></th>
+					<?php endif; ?>
+				</tr></thead>
+				<tbody>
+					<?php if ( ! $ids ) : ?>
+						<tr><td colspan="<?php echo $wc ? 11 : 8; ?>"><?php esc_html_e( 'No matching users.', 'smart-login' ); ?></td></tr>
+					<?php endif; ?>
+					<?php
+					foreach ( $ids as $id ) :
+						$user = get_userdata( $id );
+						if ( ! $user ) {
+							continue;
+						}
+						$status  = $this->user_status( $id );
+						$last_ts = (int) get_user_meta( $id, 'sml_last_login', true );
+						$resets  = (int) get_user_meta( $id, 'sml_reset_requests', true );
+						$summary = $wc ? $this->wc_customer_summary( $id ) : null;
+						?>
+						<tr>
+							<td><?php echo esc_html( $user->display_name ? $user->display_name : trim( $user->first_name . ' ' . $user->last_name ) ); ?></td>
+							<td><?php echo esc_html( $user->user_email ); ?></td>
+							<td><?php echo esc_html( $this->user_phone( $id ) ?: '—' ); ?></td>
+							<td style="max-width:240px;"><?php echo esc_html( $this->billing_address_line( $id ) ?: '—' ); ?></td>
+							<td><?php echo esc_html( $user->user_registered ? date_i18n( $fmt, strtotime( $user->user_registered . ' UTC' ) ) : '' ); ?></td>
+							<td><?php echo $last_ts ? esc_html( sprintf( __( '%s ago', 'smart-login' ), human_time_diff( $last_ts, time() ) ) ) : '—'; ?></td>
+							<td>
+								<?php if ( 'verified' === $status ) : ?>
+									<span style="color:#12805c;">&#9679; <?php esc_html_e( 'Verified', 'smart-login' ); ?></span>
+								<?php elseif ( 'pending' === $status ) : ?>
+									<span style="color:#92590a;">&#9679; <?php esc_html_e( 'Pending', 'smart-login' ); ?></span>
+								<?php else : ?>
+									<span style="color:#9a9aa2;">— <?php esc_html_e( 'Legacy', 'smart-login' ); ?></span>
+								<?php endif; ?>
+							</td>
+							<td><?php echo $resets ? esc_html( number_format_i18n( $resets ) ) : '—'; ?></td>
+							<?php if ( $wc ) : ?>
+								<td><?php echo esc_html( number_format_i18n( $summary['orders'] ) ); ?></td>
+								<td><?php echo wp_kses_post( $summary['spent'] ); ?></td>
+								<td><?php echo esc_html( $summary['last_order'] ?: '—' ); ?></td>
+							<?php endif; ?>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+		</div>
+
+		<div style="display:flex;align-items:center;gap:14px;margin-top:12px;">
+			<?php
+			$q = array( 'page' => 'smart-login' );
+			if ( '' !== $search ) {
+				$q['sml_uq'] = $search;
+			}
+			$prev_url = add_query_arg( array_merge( $q, array( 'sml_upg' => max( 1, $page - 1 ) ) ), admin_url( 'admin.php' ) ) . '#users';
+			$next_url = add_query_arg( array_merge( $q, array( 'sml_upg' => min( $pages, $page + 1 ) ) ), admin_url( 'admin.php' ) ) . '#users';
+			?>
+			<a class="button<?php echo $page <= 1 ? ' disabled" aria-disabled="true' : ''; ?>" href="<?php echo esc_url( $prev_url ); ?>">&larr; <?php esc_html_e( 'Prev', 'smart-login' ); ?></a>
+			<a class="button<?php echo $page >= $pages ? ' disabled" aria-disabled="true' : ''; ?>" href="<?php echo esc_url( $next_url ); ?>"><?php esc_html_e( 'Next', 'smart-login' ); ?> &rarr;</a>
+			<span style="font-size:13px;color:#7a7a85;">
+				<?php
+				printf(
+					/* translators: 1: total users 2: current page 3: total pages */
+					esc_html__( 'Total: %1$s · page %2$d/%3$d', 'smart-login' ),
+					esc_html( number_format_i18n( $total ) ),
+					(int) $page,
+					(int) $pages
+				);
+				?>
+			</span>
+		</div>
+
+		<script>
+		// A search submit reloads the page without the #users fragment; re-open
+		// this panel once the kit has booted.
+		window.addEventListener('load', function () {
+			var p = new URLSearchParams(window.location.search);
+			if (p.has('sml_uq') || p.has('sml_upg')) {
+				var nav = document.querySelector('[data-apx-tab="users"]');
+				if (nav && !nav.classList.contains('active')) { nav.click(); }
+			}
+		});
+		</script>
+		<?php
+		return ob_get_clean();
+	}
+
+	/**
+	 * Resolves the user id set + total for the Users table. Empty search =
+	 * newest-registered first; a search unions the core columns with a
+	 * usermeta LIKE over phone / name / billing address fields.
+	 *
+	 * @param string $search
+	 * @param int    $page
+	 * @param int    $per_page
+	 * @return array{ids:int[],total:int}
+	 */
+	protected function users_query( $search, $page, $per_page ) {
+		global $wpdb;
+
+		if ( '' === $search ) {
+			$q = new WP_User_Query(
+				array(
+					'number'      => $per_page,
+					'paged'       => $page,
+					'orderby'     => 'registered',
+					'order'       => 'DESC',
+					'fields'      => 'ID',
+					'count_total' => true,
+				)
+			);
+			return array(
+				'ids'   => array_map( 'intval', (array) $q->get_results() ),
+				'total' => (int) $q->get_total(),
+			);
+		}
+
+		$core = new WP_User_Query(
+			array(
+				'search'         => '*' . $search . '*',
+				'search_columns' => array( 'user_login', 'user_email', 'user_nicename', 'display_name' ),
+				'fields'         => 'ID',
+				'number'         => 500,
+			)
+		);
+		$core_ids = array_map( 'intval', (array) $core->get_results() );
+
+		$meta_keys    = array( 'sml_phone', 'first_name', 'last_name', 'billing_phone', 'billing_company', 'billing_address_1', 'billing_address_2', 'billing_city', 'billing_state', 'billing_postcode', 'billing_country' );
+		$placeholders = implode( ',', array_fill( 0, count( $meta_keys ), '%s' ) );
+		$meta_ids     = $wpdb->get_col(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT DISTINCT user_id FROM {$wpdb->usermeta} WHERE meta_key IN ($placeholders) AND meta_value LIKE %s LIMIT 500",
+				array_merge( $meta_keys, array( '%' . $wpdb->esc_like( $search ) . '%' ) )
+			)
+		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		$all = array_values( array_unique( array_merge( $core_ids, array_map( 'intval', (array) $meta_ids ) ) ) );
+
+		$slice = array_slice( $all, ( $page - 1 ) * $per_page, $per_page );
+		if ( $slice ) {
+			$oq    = new WP_User_Query(
+				array(
+					'include' => $slice,
+					'orderby' => 'registered',
+					'order'   => 'DESC',
+					'fields'  => 'ID',
+					'number'  => $per_page,
+				)
+			);
+			$slice = array_map( 'intval', (array) $oq->get_results() );
+		}
+
+		return array( 'ids' => $slice, 'total' => count( $all ) );
+	}
+
+	/** WooCommerce billing address as one line, or '' when empty. */
+	protected function billing_address_line( $user_id ) {
+		$parts = array();
+		foreach ( array( 'billing_address_1', 'billing_address_2', 'billing_city', 'billing_state', 'billing_postcode', 'billing_country' ) as $key ) {
+			$val = trim( (string) get_user_meta( $user_id, $key, true ) );
+			if ( '' !== $val ) {
+				$parts[] = $val;
+			}
+		}
+		return implode( ', ', $parts );
+	}
+
+	/**
+	 * Order count, lifetime spend (as wc_price() HTML) and last-order date
+	 * for a customer.
+	 *
+	 * @param int $user_id
+	 * @return array{orders:int,spent:string,last_order:string}
+	 */
+	protected function wc_customer_summary( $user_id ) {
+		$orders = function_exists( 'wc_get_customer_order_count' ) ? (int) wc_get_customer_order_count( $user_id ) : 0;
+		$spent  = function_exists( 'wc_get_customer_total_spent' ) ? (float) wc_get_customer_total_spent( $user_id ) : 0.0;
+
+		$last = '';
+		if ( function_exists( 'wc_get_customer_last_order' ) ) {
+			$order = wc_get_customer_last_order( $user_id );
+			if ( $order && is_a( $order, 'WC_Order' ) && $order->get_date_created() ) {
+				$last = date_i18n( get_option( 'date_format' ), $order->get_date_created()->getTimestamp() );
+			}
+		}
+
+		return array(
+			'orders'     => $orders,
+			'spent'      => function_exists( 'wc_price' ) ? wc_price( $spent ) : number_format_i18n( $spent, 2 ),
+			'last_order' => $last,
 		);
 	}
 
