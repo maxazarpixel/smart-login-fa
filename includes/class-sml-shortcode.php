@@ -120,13 +120,26 @@ class SML_Shortcode {
 		$forgot_url    = esc_url( add_query_arg( 'action', 'forgot' ) );
 		$login_url     = esc_url( remove_query_arg( 'action' ) );
 
-		// A visit carrying ?sml_reset=1&key=...&login=... is the link from
-		// the password-reset email — checked (not consumed) here purely to
-		// decide which panel to land on and whether to show an error;
+		// A visit carrying ?sml_reset=1&sml_key=...&sml_login=... is the link
+		// from the password-reset email — checked (not consumed) here purely
+		// to decide which panel to land on and whether to show an error;
 		// SML_Password_Reset_Handler::ajax_reset_password() re-validates
-		// (and actually consumes) the key when the form is submitted.
-		$reset_key       = isset( $_GET['key'] ) ? sanitize_text_field( wp_unslash( $_GET['key'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$reset_login     = isset( $_GET['login'] ) ? sanitize_text_field( wp_unslash( $_GET['login'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		// (and actually consumes) the key when the form is submitted. The
+		// bare `key` / `login` names are read as a fallback for links from
+		// before 1.14.1, but only off WooCommerce pages, which intercept
+		// those names first.
+		$reset_key   = ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$reset_login = ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( isset( $_GET['sml_key'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$reset_key = sanitize_text_field( wp_unslash( $_GET['sml_key'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		} elseif ( isset( $_GET['key'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$reset_key = sanitize_text_field( wp_unslash( $_GET['key'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		}
+		if ( isset( $_GET['sml_login'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$reset_login = sanitize_text_field( wp_unslash( $_GET['sml_login'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		} elseif ( isset( $_GET['login'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$reset_login = sanitize_text_field( wp_unslash( $_GET['login'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		}
 		$is_reset_link   = isset( $_GET['sml_reset'] ) && $reset_key && $reset_login; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$reset_key_valid = $is_reset_link && ! is_wp_error( check_password_reset_key( $reset_key, $reset_login ) );
 

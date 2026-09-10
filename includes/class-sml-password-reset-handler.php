@@ -62,10 +62,15 @@ class SML_Password_Reset_Handler {
 		if ( $user ) {
 			$key = get_password_reset_key( $user );
 			if ( ! is_wp_error( $key ) ) {
+				// `sml_key` / `sml_login` (not the bare `key` / `login`)
+				// because WooCommerce's My Account page intercepts the bare
+				// names on `template_redirect`, stashes them in a cookie and
+				// bounces to its own lost-password screen before this
+				// plugin's shortcode ever renders.
 				$args = array(
 					'sml_reset' => '1',
-					'key'       => rawurlencode( $key ),
-					'login'     => rawurlencode( $user->user_login ),
+					'sml_key'   => rawurlencode( $key ),
+					'sml_login' => rawurlencode( $user->user_login ),
 				);
 				if ( $redirect_to ) {
 					$args['redirect_to'] = rawurlencode( $redirect_to );

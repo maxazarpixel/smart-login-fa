@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.14.0
+Stable tag: 1.14.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,9 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.14.1 =
+* Fixed: on WooCommerce sites the password-reset link (pointed at /my-account/) was hijacked by WooCommerce's own lost-password handling — it grabbed the `key` / `login` query args, set a cookie and bounced to /my-account/lost-password/?show-reset-form=true with no form shown. The reset link now uses `sml_key` / `sml_login`, which WooCommerce ignores, so the Smart Login "Set a New Password" panel opens directly. Older links (bare `key` / `login`) still work on non-WooCommerce pages.
 
 = 1.14.0 =
 * Added "Import / export settings" under Settings → Advanced. Export downloads every setting as a JSON file (bot-protection secret keys are left out, so the file is safe to share for review); Import accepts a pasted or uploaded JSON, applies only recognised keys, and keeps any secret key already stored.
