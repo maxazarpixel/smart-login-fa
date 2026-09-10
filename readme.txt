@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.13.2
+Stable tag: 1.13.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,9 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.13.3 =
+* Links in the plugin's emails (the verify / reset button, the plain-text URL fallback, and any links in the admin-authored body or footer text) now open in a new tab.
 
 = 1.13.2 =
 * The front-end form no longer follows the operating system's dark-mode setting — it now always renders on a light (white) card. Removed the dark colour scheme; `color-scheme: light` also keeps the country dropdown, autofill hints and scrollbars light on dark-mode devices.

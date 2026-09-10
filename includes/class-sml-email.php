@@ -158,7 +158,7 @@ class SML_Email {
 			$body       = str_replace( '{link}', self::cta_button( $rich['link'], $link_label ), $body );
 		}
 
-		$html = self::wrap_shell( $body );
+		$html = self::links_new_tab( self::wrap_shell( $body ) );
 
 		$sent = wp_mail( $to, $subject, $html );
 
@@ -196,6 +196,22 @@ class SML_Email {
 	}
 
 	/**
+	 * Forces every link in the email to open in a new tab. A `target=` is
+	 * only added where the markup doesn't already set one (so the CTA
+	 * button's own target is left as-is), and `rel` only alongside it.
+	 *
+	 * @param string $html
+	 * @return string
+	 */
+	protected static function links_new_tab( $html ) {
+		return preg_replace(
+			'/<a\s+(?![^>]*\btarget\s*=)/i',
+			'<a target="_blank" rel="noopener noreferrer" ',
+			(string) $html
+		);
+	}
+
+	/**
 	 * A real button instead of a bare, easy-to-mistrust URL.
 	 *
 	 * @param string $url
@@ -214,11 +230,11 @@ class SML_Email {
 		$fg = $fg ? $fg : '#ffffff';
 
 		return '<div style="text-align:center;margin:12px 0 6px;">'
-			. '<a href="' . esc_url( $url ) . '" style="display:inline-block;background:' . esc_attr( $bg ) . ';color:' . esc_attr( $fg ) . ';font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:14px;font-weight:600;text-decoration:none;padding:12px 30px;border-radius:6px;">'
+			. '<a href="' . esc_url( $url ) . '" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:' . esc_attr( $bg ) . ';color:' . esc_attr( $fg ) . ';font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:14px;font-weight:600;text-decoration:none;padding:12px 30px;border-radius:6px;">'
 			. esc_html( $label )
 			. '</a></div>'
 			. '<p style="text-align:center;margin:10px 0 0;font-size:12px;color:#9a9aa2;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;">'
-			. '<a href="' . esc_url( $url ) . '" style="color:#9a9aa2;word-break:break-all;">' . esc_html( $url ) . '</a>'
+			. '<a href="' . esc_url( $url ) . '" target="_blank" rel="noopener noreferrer" style="color:#9a9aa2;word-break:break-all;">' . esc_html( $url ) . '</a>'
 			. '</p>';
 	}
 
