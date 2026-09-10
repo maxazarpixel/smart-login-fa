@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.15.0
+Stable tag: 1.16.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,9 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.16.0 =
+* Added a "Users" tab (Settings → Users). Paged, searchable list of every account showing name, email, phone, WooCommerce billing address, sign-up date, last login, and verification status (Verified / Pending / Legacy). Search matches name, email, address and phone.
 
 = 1.15.0 =
 * Added a "Pre-existing unverified accounts" option (Settings → Verification → "Access before verification"). "Show a verification screen they can skip" drops these users onto the code-entry screen after login, with a "Not now" button that lets them continue to their destination (cart, checkout, account). Default stays "Send a reminder email only". These accounts are still never blocked.
