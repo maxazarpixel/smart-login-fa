@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "statusMessage": "Syncing with origin/main...",
+            "command": "git rev-parse --is-inside-work-tree >/dev/null 2>&1 || exit 0; git fetch origin --quiet 2>&1; [ \"$(git symbolic-ref --short HEAD 2>/dev/null)\" = \"main\" ] || { echo \"smart-login SessionStart: not on main - skipped auto-pull\"; exit 0; }; if git diff --quiet && git diff --cached --quiet; then git pull --rebase origin main 2>&1; else echo \"smart-login SessionStart: uncommitted changes - skipped auto-pull, run 'git pull --rebase origin main' manually\"; fi"
+          }
+        ]
+      }
+    ]
+  }
+}
