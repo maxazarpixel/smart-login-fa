@@ -123,7 +123,7 @@
 .sml-card .sml-field-boxed {
 	position: relative !important;
 	display: block !important;
-	height: 44px !important;
+	height: 54px !important;
 	margin: 0 0 10px !important;
 	padding: 0 !important;
 	border: 1.5px solid var(--sml-border) !important;
@@ -145,7 +145,7 @@
 	left: 12px !important;
 	right: 12px !important;
 	top: auto !important;
-	bottom: 6px !important;
+	bottom: 8px !important;
 	width: auto !important;
 	height: 19px !important;
 	margin: 0 !important;
@@ -196,7 +196,7 @@
 .sml-card .sml-field-boxed:focus-within label,
 .sml-card .sml-field-boxed:has(input:not(:placeholder-shown)) label,
 .sml-card .sml-field-boxed:has(select) label {
-	top: 7px !important;
+	top: 8px !important;
 	transform: translateY(0) !important;
 	font-size: 10px !important;
 	font-weight: 600 !important;
