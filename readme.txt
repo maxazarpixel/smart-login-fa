@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.13.1
+Stable tag: 1.13.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,9 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.13.2 =
+* The front-end form no longer follows the operating system's dark-mode setting — it now always renders on a light (white) card. Removed the dark colour scheme; `color-scheme: light` also keeps the country dropdown, autofill hints and scrollbars light on dark-mode devices.
 
 = 1.13.1 =
 * Fixed: reset / verification links still landed on the home page on sites that use the WooCommerce "Replace My Account login form" option without a separate shortcode page. When that option is on, links now point at the My Account page, which renders the Smart Login form for logged-out visitors.

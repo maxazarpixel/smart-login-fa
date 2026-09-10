@@ -18,6 +18,11 @@
 	--sml-ok: #12805c;
 	--sml-ok-bg: #edfbf5;
 
+	/* Always light — the form does not follow the OS dark-mode setting.
+	   `color-scheme: light` also keeps native controls (the country
+	   <select>, autofill hints, scrollbars) light on a dark-mode device. */
+	color-scheme: light;
+
 	max-width: 420px;
 	margin: 0 auto;
 	padding: 22px 20px;
@@ -28,20 +33,6 @@
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 	-webkit-font-smoothing: antialiased;
 	box-sizing: border-box;
-}
-
-@media ( prefers-color-scheme: dark ) {
-	.sml-card {
-		--sml-bg: #17171a;
-		--sml-surface: #1f1f23;
-		--sml-fg: #f5f5f6;
-		--sml-muted: #94949c;
-		--sml-accent: #f5f5f6;
-		--sml-accent-fg: #17171a;
-		--sml-border: #3a3a40;
-		--sml-error-bg: rgba(217, 45, 32, 0.14);
-		--sml-ok-bg: rgba(18, 128, 92, 0.16);
-	}
 }
 
 .sml-card * {
