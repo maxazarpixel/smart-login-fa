@@ -1,13 +1,16 @@
 <#
-    Builds an installable plugin zip from the committed HEAD into release\.
-    Nothing is written to the repo root; release\ is gitignored.
+    Builds an installable plugin zip from the committed HEAD.
+    The zip is written OUTSIDE the repo, to ..\release next to the project
+    folder (e.g. D:\Dev\release\), so the project folder stays clean.
 
     Usage (from the repo root):
         .\bin\build-release.ps1            # build from HEAD
         .\bin\build-release.ps1 -Ref v1.13.0
+        .\bin\build-release.ps1 -OutDir D:\somewhere\else
 #>
 param(
-    [string]$Ref = "HEAD"
+    [string]$Ref = "HEAD",
+    [string]$OutDir = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -20,10 +23,12 @@ $verLine = $header | Where-Object { $_ -match '^\s*\*\s*Version:\s*(.+)$' }
 if (-not $verLine) { throw "Could not read Version from smart-login.php" }
 $version = ($Matches[1]).Trim()
 
-$releaseDir = Join-Path $repo "release"
-New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
+if ($OutDir -eq "") {
+    $OutDir = Join-Path (Split-Path -Parent $repo) "release"
+}
+New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 
-$out = Join-Path $releaseDir "smart-login-$version.zip"
+$out = Join-Path $OutDir "smart-login-$version.zip"
 if (Test-Path $out) { Remove-Item $out -Force }
 
 # git archive already honours .gitattributes export-ignore (CLAUDE.md,
