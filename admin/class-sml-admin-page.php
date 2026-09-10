@@ -238,6 +238,16 @@ class SML_Admin_Page extends APX_Admin_Page {
 							),
 						),
 						array( 'type' => 'number', 'name' => 'grace_period_days', 'label' => __( 'Grace period before block (days)', 'smart-login' ), 'min' => 0, 'max' => 365, 'desc' => __( 'Only used when "Allow for a grace period" is selected above. 0 blocks immediately.', 'smart-login' ) ),
+						array(
+							'type'    => 'select',
+							'name'    => 'legacy_unverified_prompt',
+							'label'   => __( 'Pre-existing unverified accounts', 'smart-login' ),
+							'options' => array(
+								'email_only' => __( 'Send a reminder email only', 'smart-login' ),
+								'prompt'     => __( 'Show a verification screen they can skip', 'smart-login' ),
+							),
+							'desc'    => __( 'How to treat accounts that existed before Smart Login was installed and never verified their email. They are never blocked — with "Show a verification screen" they see the code entry on login with a "Not now" button that lets them continue.', 'smart-login' ),
+						),
 					),
 				),
 			),

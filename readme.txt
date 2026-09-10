@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.14.1
+Stable tag: 1.15.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,10 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.15.0 =
+* Added a "Pre-existing unverified accounts" option (Settings → Verification → "Access before verification"). "Show a verification screen they can skip" drops these users onto the code-entry screen after login, with a "Not now" button that lets them continue to their destination (cart, checkout, account). Default stays "Send a reminder email only". These accounts are still never blocked.
+* Fixed: a pre-existing unverified account was tagged with the verification meta on its first login, which then made a later login treat it as a real Smart Login registration and apply the "block until verified" policy. It now stays classified as pre-existing until it actually verifies.
 
 = 1.14.1 =
 * Fixed: on WooCommerce sites the password-reset link (pointed at /my-account/) was hijacked by WooCommerce's own lost-password handling — it grabbed the `key` / `login` query args, set a cookie and bounced to /my-account/lost-password/?show-reset-form=true with no form shown. The reset link now uses `sml_key` / `sml_login`, which WooCommerce ignores, so the Smart Login "Set a New Password" panel opens directly. Older links (bare `key` / `login`) still work on non-WooCommerce pages.

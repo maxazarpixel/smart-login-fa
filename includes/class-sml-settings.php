@@ -39,6 +39,7 @@ class SML_Settings {
 			'resend_cooldown_seconds'  => 120,
 			'block_until_verified'     => 'block',
 			'grace_period_days'        => 0,
+			'legacy_unverified_prompt' => 'email_only',
 			'verify_intro_text'        => __( 'We sent a verification code to your email. Enter it below, or click the link in the email.', 'smart-login' ),
 
 			// Security.

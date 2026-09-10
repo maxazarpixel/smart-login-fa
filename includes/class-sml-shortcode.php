@@ -83,6 +83,7 @@ class SML_Shortcode {
 					'show'           => __( 'Show', 'smart-login' ),
 					'hide'           => __( 'Hide', 'smart-login' ),
 					'resetting'      => __( 'Resetting…', 'smart-login' ),
+					'softVerify'     => __( 'Please verify your email address to secure your account. You can also choose "Not now" and verify later.', 'smart-login' ),
 				),
 			)
 		);
@@ -353,6 +354,7 @@ class SML_Shortcode {
 						<?php endfor; ?>
 					</div>
 					<button type="submit" class="sml-btn sml-btn--primary"><?php esc_html_e( 'Verify', 'smart-login' ); ?></button>
+					<button type="button" class="sml-btn sml-btn--secondary" data-sml-verify-skip hidden><?php esc_html_e( 'Not now', 'smart-login' ); ?></button>
 					<p class="sml-resend-link">
 						<button type="button" class="sml-link-btn" data-sml-resend><?php esc_html_e( 'Resend code', 'smart-login' ); ?></button>
 					</p>

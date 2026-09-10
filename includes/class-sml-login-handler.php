@@ -98,8 +98,35 @@ class SML_Login_Handler {
 				}
 			} else {
 				// A pre-existing account from before this plugin was active.
-				// Never block someone out of an account they already had —
-				// just nudge them to verify, quietly, after they're in.
+				// Never block someone out of an account they already had.
+				if ( 'prompt' === SML_Settings::get( 'legacy_unverified_prompt', 'email_only' ) ) {
+					// They're already signed in (wp_signon succeeded). Show
+					// the verify screen with a fresh code, plus a "Not now"
+					// escape hatch the front end wires to the redirect.
+					$cooldown_check = SML_Verification::check_resend_cooldown( $user->ID );
+					if ( ! is_wp_error( $cooldown_check ) ) {
+						$issued = SML_Verification::issue( $user->ID );
+						SML_Email::send_verification( $user, $issued['code'], $issued['token'], true, $redirect_to );
+					}
+
+					$row              = SML_Verification::get_row( $user->ID );
+					$cooldown_seconds = (int) SML_Settings::get( 'resend_cooldown_seconds', 120 );
+					$resend_available = ( $row && $row->last_sent_at )
+						? ( strtotime( $row->last_sent_at . ' UTC' ) + $cooldown_seconds ) * 1000
+						: ( time() + $cooldown_seconds ) * 1000;
+
+					wp_send_json_success(
+						array(
+							'redirect'         => $redirect_to ?: ( SML_Settings::post_login_redirect_url() ?: home_url( '/' ) ),
+							'message'          => __( 'Login successful.', 'smart-login' ),
+							'soft_verify'      => true,
+							'user_id'          => $user->ID,
+							'resend_available' => $resend_available,
+						)
+					);
+				}
+
+				// Default: just nudge them to verify, quietly, after they're in.
 				if ( self::maybe_send_legacy_reminder( $user ) ) {
 					$notice = __( "We noticed your email address isn't verified yet — we've sent you a verification email.", 'smart-login' );
 				}
@@ -124,7 +151,12 @@ class SML_Login_Handler {
 	 * @return bool True if an email was actually sent this time.
 	 */
 	protected static function maybe_send_legacy_reminder( WP_User $user ) {
-		update_user_meta( $user->ID, 'sml_email_verified', 0 );
+		// Deliberately does NOT set the `sml_email_verified` meta key: doing
+		// so would make has_verification_record() treat this pre-existing
+		// account as a real Smart Login registration on its next login and
+		// subject it to the "block until verified" policy. is_verified()
+		// already reads a missing key as unverified, so the key isn't
+		// needed until the account actually verifies (which sets it to 1).
 
 		$throttle_key = 'sml_legacy_reminder_' . $user->ID;
 		if ( get_transient( $throttle_key ) ) {

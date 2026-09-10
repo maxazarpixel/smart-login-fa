@@ -271,11 +271,25 @@
 		resendTimer = setInterval( tick, 1000 );
 	}
 
-	function enterVerifyStep( root, userId, resendAvailableMs ) {
+	function enterVerifyStep( root, userId, resendAvailableMs, opts ) {
+		opts = opts || {};
 		qs( '[data-sml-user-id]', root ).value = userId;
 		showPanel( root, 'verify' );
 		resetOtp( root );
 		startResendCooldown( root, resendAvailableMs );
+
+		// "Not now": shown only on the soft path (a pre-existing, unverified
+		// account that is already logged in and may skip). Carries the URL
+		// to continue to.
+		var skip = qs( '[data-sml-verify-skip]', root );
+		if ( skip ) {
+			if ( opts.soft ) {
+				skip.dataset.redirect = opts.redirect || '';
+				skip.hidden = false;
+			} else {
+				skip.hidden = true;
+			}
+		}
 	}
 
 	document.addEventListener( 'DOMContentLoaded', function () {
@@ -375,6 +389,14 @@
 								var redirect = function () {
 									window.location.href = res.data.redirect || window.location.href;
 								};
+								// A pre-existing, unverified account that's now
+								// logged in: show the verify screen with a
+								// "Not now" button instead of redirecting.
+								if ( res.data.soft_verify ) {
+									enterVerifyStep( root, res.data.user_id, res.data.resend_available, { soft: true, redirect: res.data.redirect } );
+									showMessage( root, SmartLogin.i18n.softVerify, false );
+									return;
+								}
 								// A pre-existing (pre-plugin) account that still
 								// isn't verified gets a quiet reminder email
 								// instead of being blocked — give them a moment
@@ -574,6 +596,14 @@
 								showMessage( root, res.data.message || SmartLogin.i18n.genericError, true );
 							}
 						} );
+				} );
+			}
+
+			var verifySkip = qs( '[data-sml-verify-skip]', root );
+			if ( verifySkip ) {
+				verifySkip.addEventListener( 'click', function () {
+					var to = verifySkip.dataset.redirect || '';
+					window.location.href = to || window.location.href;
 				} );
 			}
 		} );
