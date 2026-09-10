@@ -468,12 +468,12 @@ class SML_Admin_Page extends APX_Admin_Page {
 		</div>
 
 		<div class="apx-kpi-strip" style="display:flex;flex-wrap:wrap;gap:14px;margin-bottom:28px;">
-			<div class="apx-metric" style="flex:2;min-width:280px;padding:16px 20px;border:1px solid #e6e6ea;border-radius:8px;">
-				<div style="font-size:12px;font-weight:600;color:#7a7a85;text-transform:uppercase;letter-spacing:.04em;"><?php esc_html_e( 'New sign-ups', 'smart-login' ); ?></div>
-				<div style="display:flex;gap:28px;margin-top:8px;">
-					<div><div style="font-size:24px;font-weight:700;color:#111114;"><?php echo esc_html( number_format_i18n( $s['new_24h'] ) ); ?></div><div style="font-size:11px;color:#7a7a85;"><?php esc_html_e( 'last 24h', 'smart-login' ); ?></div></div>
-					<div><div style="font-size:24px;font-weight:700;color:#111114;"><?php echo esc_html( number_format_i18n( $s['new_7d'] ) ); ?></div><div style="font-size:11px;color:#7a7a85;"><?php esc_html_e( 'last 7 days', 'smart-login' ); ?></div></div>
-					<div><div style="font-size:24px;font-weight:700;color:#111114;"><?php echo esc_html( number_format_i18n( $s['new_30d'] ) ); ?></div><div style="font-size:11px;color:#7a7a85;"><?php esc_html_e( 'last 30 days', 'smart-login' ); ?></div></div>
+			<div class="apx-metric" style="flex:2;min-width:280px;padding:15px 18px;background:#fcfcfd;border:1px solid #e9e9ee;border-top:3px solid #4d5fd6;border-radius:10px;">
+				<div style="font-size:11.5px;font-weight:600;color:#8b8b95;text-transform:uppercase;letter-spacing:.05em;"><?php esc_html_e( 'New sign-ups', 'smart-login' ); ?></div>
+				<div style="display:flex;gap:30px;margin-top:8px;">
+					<div><div style="font-size:23px;font-weight:700;color:#3a3f4b;line-height:1.15;"><?php echo esc_html( number_format_i18n( $s['new_24h'] ) ); ?></div><div style="font-size:11px;color:#8b8b95;"><?php esc_html_e( 'last 24h', 'smart-login' ); ?></div></div>
+					<div><div style="font-size:23px;font-weight:700;color:#3a3f4b;line-height:1.15;"><?php echo esc_html( number_format_i18n( $s['new_7d'] ) ); ?></div><div style="font-size:11px;color:#8b8b95;"><?php esc_html_e( 'last 7 days', 'smart-login' ); ?></div></div>
+					<div><div style="font-size:23px;font-weight:700;color:#3a3f4b;line-height:1.15;"><?php echo esc_html( number_format_i18n( $s['new_30d'] ) ); ?></div><div style="font-size:11px;color:#8b8b95;"><?php esc_html_e( 'last 30 days', 'smart-login' ); ?></div></div>
 				</div>
 			</div>
 			<?php echo $this->metric_card( __( 'Logins (24h)', 'smart-login' ), number_format_i18n( $s['logins_24h'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
@@ -515,16 +515,16 @@ class SML_Admin_Page extends APX_Admin_Page {
 	 * @param string $suffix
 	 * @return string
 	 */
-	protected function metric_card( $label, $value, $color = '#111114', $suffix = '' ) {
+	protected function metric_card( $label, $value, $color = '#3a3f4b', $suffix = '' ) {
 		return sprintf(
-			'<div class="apx-metric" style="flex:1;min-width:150px;padding:16px 20px;border:1px solid #e6e6ea;border-radius:8px;">'
-				. '<div style="font-size:12px;font-weight:600;color:#7a7a85;text-transform:uppercase;letter-spacing:.04em;">%1$s</div>'
-				. '<div style="font-size:28px;font-weight:700;color:%2$s;margin-top:4px;">%3$s%4$s</div>'
+			'<div class="apx-metric" style="flex:1;min-width:150px;padding:15px 18px;background:#fcfcfd;border:1px solid #e9e9ee;border-top:3px solid %2$s;border-radius:10px;">'
+				. '<div style="font-size:11.5px;font-weight:600;color:#8b8b95;text-transform:uppercase;letter-spacing:.05em;">%1$s</div>'
+				. '<div style="font-size:27px;font-weight:700;color:%2$s;margin-top:5px;line-height:1.15;">%3$s%4$s</div>'
 				. '</div>',
 			esc_html( $label ),
 			esc_attr( $color ),
 			esc_html( $value ),
-			'' !== $suffix ? ' <span style="font-size:13px;font-weight:500;color:#7a7a85;">' . esc_html( $suffix ) . '</span>' : ''
+			'' !== $suffix ? ' <span style="font-size:13px;font-weight:500;color:#8b8b95;">' . esc_html( $suffix ) . '</span>' : ''
 		);
 	}
 
@@ -781,43 +781,70 @@ class SML_Admin_Page extends APX_Admin_Page {
 	 * @return string
 	 */
 	protected function render_signup_chart( array $data ) {
-		$max      = max( 1, max( $data ) );
-		$bar_w    = 56;
-		$gap      = 28;
-		$chart_h  = 130;
-		$n        = count( $data );
-		$width    = max( 1, $n * ( $bar_w + $gap ) );
-		$height   = $chart_h + 34;
+		$max     = max( 1, max( $data ) );
+		$bar_w   = 46;
+		$gap     = 30;
+		$top_pad = 24; // headroom so the tallest bar's value label never clips
+		$chart_h = 132;
+		$n       = count( $data );
+		$width   = max( 1, $n * ( $bar_w + $gap ) );
+		$height  = $top_pad + $chart_h + 26;
+		$baseline = $top_pad + $chart_h;
+
+		$font = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 
 		$svg = sprintf(
-			'<svg viewBox="0 0 %1$d %2$d" preserveAspectRatio="xMinYMid meet" style="width:100%%;max-width:520px;height:auto;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;">',
+			'<svg viewBox="0 0 %1$d %2$d" preserveAspectRatio="xMinYMid meet" role="img" style="width:100%%;max-width:560px;height:auto;font-family:%3$s;">',
 			$width,
-			$height
+			$height,
+			$font
+		);
+
+		// Soft gradient fill — chic, and clearly not "solid black".
+		$svg .= '<defs><linearGradient id="sml-bar" x1="0" y1="0" x2="0" y2="1">'
+			. '<stop offset="0" stop-color="#7c8cf8"></stop>'
+			. '<stop offset="1" stop-color="#4d5fd6"></stop>'
+			. '</linearGradient></defs>';
+
+		// Faint baseline.
+		$svg .= sprintf(
+			'<line x1="0" y1="%1$d" x2="%2$d" y2="%1$d" stroke="#e6e6ea" stroke-width="1"></line>',
+			$baseline,
+			$width
 		);
 
 		$x = 0;
 		foreach ( $data as $label => $count ) {
-			$bar_h = $count > 0 ? max( 4, ( $count / $max ) * $chart_h ) : 2;
-			$bar_y = $chart_h - $bar_h;
+			$bar_h = $count > 0 ? max( 6, ( $count / $max ) * $chart_h ) : 3;
+			$bar_y = $baseline - $bar_h;
 			$cx    = $x + ( $bar_w / 2 );
 
+			// Ghost track behind each column so an empty month still reads as a slot.
 			$svg .= sprintf(
-				'<rect x="%1$d" y="%2$.1f" width="%3$d" height="%4$.1f" rx="4" fill="#111114"></rect>',
+				'<rect x="%1$.1f" y="%2$d" width="%3$d" height="%4$d" rx="7" fill="#f1f1f4"></rect>',
+				$x,
+				$top_pad,
+				$bar_w,
+				$chart_h
+			);
+
+			$svg .= sprintf(
+				'<rect x="%1$.1f" y="%2$.1f" width="%3$d" height="%4$.1f" rx="7" fill="url(#sml-bar)"></rect>',
 				$x,
 				$bar_y,
 				$bar_w,
 				$bar_h
 			);
 			$svg .= sprintf(
-				'<text x="%1$.1f" y="%2$d" text-anchor="middle" font-size="12" font-weight="700" fill="#111114">%3$s</text>',
+				'<text x="%1$.1f" y="%2$.1f" text-anchor="middle" font-size="12" font-weight="600" fill="#4b4b55">%3$s</text>',
 				$cx,
-				max( 12, $bar_y - 6 ),
+				$bar_y - 8,
 				esc_html( $count )
 			);
 			$svg .= sprintf(
-				'<text x="%1$.1f" y="%2$d" text-anchor="middle" font-size="11" fill="#7a7a85">%3$s</text>',
+				'<text x="%1$.1f" y="%2$d" text-anchor="middle" font-size="11" fill="#9aa0a8">%3$s</text>',
 				$cx,
-				$chart_h + 20,
+				$baseline + 18,
 				esc_html( $label )
 			);
 
