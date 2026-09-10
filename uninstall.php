@@ -22,15 +22,12 @@ $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}sml_verifications" ); // phpc
 delete_option( 'sml_login_settings' );
 delete_option( 'sml_db_version' );
 
-$users = get_users(
-	array(
-		'meta_key' => 'sml_email_verified', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-		'fields'   => 'ID',
-	)
+$wpdb->query(
+	"DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('sml_email_verified', 'sml_phone', 'sml_last_login')" // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 );
-foreach ( $users as $user_id ) {
-	delete_user_meta( $user_id, 'sml_email_verified' );
-	delete_user_meta( $user_id, 'sml_phone' );
-}
+
+$wpdb->query(
+	"DELETE FROM {$wpdb->options} WHERE option_name LIKE '\_transient\_sml\_legacy\_reminder\_%' OR option_name LIKE '\_transient\_timeout\_sml\_legacy\_reminder\_%'" // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+);
 
 wp_clear_scheduled_hook( 'sml_cleanup_expired_verifications' );

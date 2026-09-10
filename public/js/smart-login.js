@@ -230,7 +230,19 @@
 					post( 'sml_login', SmartLogin.loginNonce, formData( loginForm ) )
 						.then( function ( res ) {
 							if ( res.success ) {
-								window.location.href = res.data.redirect || window.location.href;
+								var redirect = function () {
+									window.location.href = res.data.redirect || window.location.href;
+								};
+								// A pre-existing (pre-plugin) account that still
+								// isn't verified gets a quiet reminder email
+								// instead of being blocked — give them a moment
+								// to actually see that before redirecting away.
+								if ( res.data.notice ) {
+									showMessage( root, res.data.notice, false );
+									setTimeout( redirect, 2200 );
+								} else {
+									redirect();
+								}
 								return;
 							}
 							showMessage( root, res.data.message || SmartLogin.i18n.genericError, true );

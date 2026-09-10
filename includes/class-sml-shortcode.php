@@ -100,9 +100,19 @@ class SML_Shortcode {
 		$register_url   = esc_url( add_query_arg( 'action', 'register' ) );
 		$login_url      = esc_url( remove_query_arg( 'action' ) );
 
+		$button_bg   = sanitize_hex_color( SML_Settings::get( 'button_bg_color' ) );
+		$button_text = sanitize_hex_color( SML_Settings::get( 'button_text_color' ) );
+		$button_vars = '';
+		if ( $button_bg ) {
+			$button_vars .= '--sml-accent:' . $button_bg . ';';
+		}
+		if ( $button_text ) {
+			$button_vars .= '--sml-accent-fg:' . $button_text . ';';
+		}
+
 		ob_start();
 		?>
-		<div class="sml-card" data-sml-root>
+		<div class="sml-card" data-sml-root<?php echo $button_vars ? ' style="' . esc_attr( $button_vars ) . '"' : ''; ?>>
 			<?php if ( $verified_status ) : ?>
 				<?php if ( 'success' === $verified_status ) : ?>
 					<div class="sml-notice sml-notice--ok"><?php esc_html_e( 'Your email has been verified. You are now logged in.', 'smart-login' ); ?></div>

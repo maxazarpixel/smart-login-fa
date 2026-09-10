@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.3.0
+Stable tag: 1.6.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,6 +38,18 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.6.0 =
+* Added a Dashboard tab (Settings → Dashboard, now the default landing tab): All Users and Verified Email KPI cards, a sign-ups-per-month chart for the last 6 months, and a recent-logins table (name, email, verified status, last login).
+* Pre-existing accounts (created before this plugin was active) are never blocked from logging in for being unverified — only accounts actually registered through Smart Login are subject to the "Block login until verified" policy. A pre-existing unverified user instead gets a verification email automatically after a successful login (at most once per day), with an on-screen notice telling them so.
+* Login now records a last-login timestamp for every user (any login path, not just this plugin's form), powering the new dashboard table.
+
+= 1.5.0 =
+* Added "Button background color" and "Button text color" settings (Settings → General) — controls the primary button (Log In, Create Account, Verify) across the whole form; secondary buttons and links are unaffected.
+
+= 1.4.0 =
+* Redesigned every email (verification, resend, welcome) as a proper branded HTML message — a card with the site name in the header, the verification code shown as a large letter-spaced badge, the verify link shown as a real button (with the plain URL underneath as a fallback), and an "automated message" footer — instead of plain text with raw placeholders.
+* Subject/body settings are unchanged (still plain text with {code}/{link}/{user}/{site_name}/{expiry_minutes} placeholders, still editable under Settings → Emails) — only the rendering improved, so existing customizations keep working.
 
 = 1.3.0 =
 * Added a "Send test email" diagnostic under Settings → Emails, and always-on logging of any failed `wp_mail()` call site-wide (not just this plugin's own sends) — use this to tell a Smart Login bug apart from a broken SMTP setup (e.g. WP Mail SMTP misconfiguration).

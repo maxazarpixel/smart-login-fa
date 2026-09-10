@@ -49,18 +49,30 @@ class SML_Login_Handler {
 
 		SML_Lockout::clear( $username );
 
-		if ( ! SML_Verification::is_verified( $user->ID ) ) {
-			$branch = self::verification_branch( $user->ID );
+		$notice = '';
 
-			if ( 'block' === $branch ) {
-				wp_logout();
-				wp_send_json_error(
-					array(
-						'message'          => __( 'Please verify your email address before logging in.', 'smart-login' ),
-						'unverified'       => true,
-						'user_id'          => $user->ID,
-					)
-				);
+		if ( ! SML_Verification::is_verified( $user->ID ) ) {
+			if ( SML_Verification::has_verification_record( $user->ID ) ) {
+				// A real Smart Login registration — the configured policy applies.
+				$branch = self::verification_branch( $user->ID );
+
+				if ( 'block' === $branch ) {
+					wp_logout();
+					wp_send_json_error(
+						array(
+							'message'    => __( 'Please verify your email address before logging in.', 'smart-login' ),
+							'unverified' => true,
+							'user_id'    => $user->ID,
+						)
+					);
+				}
+			} else {
+				// A pre-existing account from before this plugin was active.
+				// Never block someone out of an account they already had —
+				// just nudge them to verify, quietly, after they're in.
+				if ( self::maybe_send_legacy_reminder( $user ) ) {
+					$notice = __( "We noticed your email address isn't verified yet — we've sent you a verification email.", 'smart-login' );
+				}
 			}
 		}
 
@@ -68,8 +80,32 @@ class SML_Login_Handler {
 			array(
 				'redirect' => home_url( '/' ),
 				'message'  => __( 'Login successful.', 'smart-login' ),
+				'notice'   => $notice,
 			)
 		);
+	}
+
+	/**
+	 * Sends a pre-existing, never-verified user a verification email after
+	 * a successful login — at most once per day, so logging in repeatedly
+	 * doesn't spam their inbox.
+	 *
+	 * @param WP_User $user
+	 * @return bool True if an email was actually sent this time.
+	 */
+	protected static function maybe_send_legacy_reminder( WP_User $user ) {
+		update_user_meta( $user->ID, 'sml_email_verified', 0 );
+
+		$throttle_key = 'sml_legacy_reminder_' . $user->ID;
+		if ( get_transient( $throttle_key ) ) {
+			return false;
+		}
+
+		$issued = SML_Verification::issue( $user->ID );
+		SML_Email::send_verification( $user, $issued['code'], $issued['token'], true );
+		set_transient( $throttle_key, 1, DAY_IN_SECONDS );
+
+		return true;
 	}
 
 	/**

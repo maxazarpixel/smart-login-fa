@@ -491,7 +491,7 @@
 <body>
 
 <div class="sml-preview-col">
-	<div class="sml-preview-label">/login</div>
+	<div class="sml-preview-label">/login — default button colors</div>
 	<div class="sml-card" data-sml-root>
 		<div class="sml-message" data-sml-message hidden></div>
 
@@ -573,6 +573,34 @@
 				</div>
 				<button type="submit" class="sml-btn sml-btn--primary">Create Account</button>
 				<a class="sml-btn sml-btn--secondary" data-sml-tab="login" href="?">Log In</a>
+			</form>
+		</div>
+	</div>
+</div>
+
+<div class="sml-preview-col">
+	<div class="sml-preview-label">Admin-configured button colors</div>
+	<div class="sml-card" data-sml-root style="--sml-accent:#2271b1;--sml-accent-fg:#ffffff;">
+		<div class="sml-panel" data-sml-panel="login">
+			<div class="sml-heading">
+				<div class="sml-heading-line1">Log In</div>
+				<div class="sml-heading-line2">to your account</div>
+			</div>
+			<form data-sml-form="login" novalidate>
+				<div class="sml-field-boxed">
+					<input type="email" placeholder=" ">
+					<label>Email</label>
+				</div>
+				<div class="sml-field-boxed">
+					<div class="sml-password-group">
+						<input type="password" placeholder=" ">
+						<button type="button" class="sml-password-toggle" data-sml-password-toggle>Show</button>
+					</div>
+					<label>Password</label>
+				</div>
+				<a class="sml-forgot-link" href="#">Forgot password?</a>
+				<button type="submit" class="sml-btn sml-btn--primary">Log In</button>
+				<a class="sml-btn sml-btn--secondary" href="#">Create Account</a>
 			</form>
 		</div>
 	</div>

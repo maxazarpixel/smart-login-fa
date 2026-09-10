@@ -220,6 +220,20 @@ class SML_Verification {
 	}
 
 	/**
+	 * Distinguishes an account this plugin actually created (meta key set,
+	 * to 0 or 1) from a pre-existing account that predates the plugin (no
+	 * meta key at all). The "block until verified" setting only ever
+	 * applies to the former — an existing site's whole user base should
+	 * never be locked out just because Smart Login was installed.
+	 *
+	 * @param int $user_id
+	 * @return bool
+	 */
+	public static function has_verification_record( $user_id ) {
+		return metadata_exists( 'user', $user_id, 'sml_email_verified' );
+	}
+
+	/**
 	 * Hooked to the hourly `sml_cleanup_expired_verifications` cron event.
 	 */
 	public static function cleanup_expired() {

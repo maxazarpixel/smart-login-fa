@@ -3,6 +3,13 @@
  * Email templating and sending. Everything goes through wp_mail() so any
  * SMTP plugin already configured on the site picks it up transparently.
  *
+ * Subject/body are still stored (and admin-editable) as plain text with
+ * {placeholder} tokens, exactly as before — only how the result gets
+ * *rendered* changed: the whole message is wrapped in a branded HTML shell,
+ * and the {code}/{link} tokens specifically are swapped for a styled code
+ * badge and a real button instead of appearing as raw text, so the email
+ * looks like a normal transactional email rather than a plain-text note.
+ *
  * @package Smart_Login
  */
 
@@ -24,22 +31,28 @@ class SML_Email {
 	 */
 	public static function send_verification( WP_User $user, $code, $token, $is_resend = false ) {
 		$expiry_minutes = (int) SML_Settings::get( 'code_expiry_minutes', 10 );
+		$link           = self::verify_link( $token );
 
 		$subject_key = $is_resend ? 'resend_subject' : 'verify_subject';
 		$body_key    = $is_resend ? 'resend_body' : 'verify_body';
 
-		$subject = self::render(
+		$subject = self::substitute(
 			SML_Settings::get( $subject_key ),
 			$user,
-			array( 'code' => $code, 'link' => self::verify_link( $token ), 'expiry_minutes' => $expiry_minutes )
-		);
-		$body = self::render(
-			SML_Settings::get( $body_key ),
-			$user,
-			array( 'code' => $code, 'link' => self::verify_link( $token ), 'expiry_minutes' => $expiry_minutes )
+			array( 'expiry_minutes' => $expiry_minutes )
 		);
 
-		return self::send( $user->user_email, $subject, $body );
+		// {code} and {link} are deliberately left as literal tokens here —
+		// send() swaps them for styled HTML after the rest of the body has
+		// been through wp_kses_post(), so they always render as a proper
+		// badge/button regardless of what an admin has written around them.
+		$body_text = self::substitute(
+			SML_Settings::get( $body_key ),
+			$user,
+			array( 'expiry_minutes' => $expiry_minutes )
+		);
+
+		return self::send( $user->user_email, $subject, $body_text, array( 'code' => $code, 'link' => $link ) );
 	}
 
 	/**
@@ -47,8 +60,8 @@ class SML_Email {
 	 * @return bool
 	 */
 	public static function send_welcome( WP_User $user ) {
-		$subject = self::render( SML_Settings::get( 'welcome_subject' ), $user );
-		$body    = self::render( SML_Settings::get( 'welcome_body' ), $user );
+		$subject = self::substitute( SML_Settings::get( 'welcome_subject' ), $user );
+		$body    = self::substitute( SML_Settings::get( 'welcome_body' ), $user );
 
 		return self::send( $user->user_email, $subject, $body );
 	}
@@ -63,11 +76,11 @@ class SML_Email {
 	 * @param array   $extra Extra {placeholder} => value pairs.
 	 * @return string
 	 */
-	protected static function render( $template, WP_User $user, array $extra = array() ) {
+	protected static function substitute( $template, WP_User $user, array $extra = array() ) {
 		$replacements = array_merge(
 			array(
-				'{user}'            => $user->display_name,
-				'{site_name}'       => get_bloginfo( 'name' ),
+				'{user}'      => $user->display_name,
+				'{site_name}' => get_bloginfo( 'name' ),
 			),
 			array_combine(
 				array_map(
@@ -83,7 +96,16 @@ class SML_Email {
 		return strtr( (string) $template, $replacements );
 	}
 
-	protected static function send( $to, $subject, $body ) {
+	/**
+	 * @param string $to
+	 * @param string $subject
+	 * @param string $body_text  Plain-text-with-placeholders body (already had
+	 *                           {user}/{site_name}/{expiry_minutes} substituted).
+	 * @param array  $rich       Optional 'code' and/or 'link' raw values, swapped
+	 *                           in as styled HTML after sanitisation.
+	 * @return bool
+	 */
+	protected static function send( $to, $subject, $body_text, array $rich = array() ) {
 		self::$sending = true;
 
 		add_filter( 'wp_mail_content_type', array( __CLASS__, 'content_type' ) );
@@ -94,9 +116,18 @@ class SML_Email {
 		// HTML, which is why the plugin sends as text/html — but it still
 		// goes through wp_kses_post() so no script/unsafe markup survives.
 		$subject = wp_strip_all_tags( $subject );
-		$body    = nl2br( wp_kses_post( $body ) );
+		$body    = nl2br( wp_kses_post( $body_text ) );
 
-		$sent = wp_mail( $to, $subject, $body );
+		if ( isset( $rich['code'] ) ) {
+			$body = str_replace( '{code}', self::code_badge( $rich['code'] ), $body );
+		}
+		if ( isset( $rich['link'] ) ) {
+			$body = str_replace( '{link}', self::cta_button( $rich['link'] ), $body );
+		}
+
+		$html = self::wrap_shell( $body );
+
+		$sent = wp_mail( $to, $subject, $html );
 
 		remove_filter( 'wp_mail_content_type', array( __CLASS__, 'content_type' ) );
 		remove_filter( 'wp_mail_from', array( __CLASS__, 'from_email' ) );
@@ -114,6 +145,73 @@ class SML_Email {
 		}
 
 		return $sent;
+	}
+
+	/**
+	 * A large, letter-spaced code display instead of a bare number in the
+	 * middle of a sentence.
+	 *
+	 * @param string $code
+	 * @return string
+	 */
+	protected static function code_badge( $code ) {
+		return '<div style="text-align:center;margin:22px 0;">'
+			. '<div style="display:inline-block;background:#f7f7f8;border:1.5px solid #e6e6ea;border-radius:8px;padding:16px 26px;">'
+			. '<span style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:30px;font-weight:700;letter-spacing:8px;color:#111114;">'
+			. esc_html( $code )
+			. '</span></div></div>';
+	}
+
+	/**
+	 * A real button instead of a bare, easy-to-mistrust URL.
+	 *
+	 * @param string $url
+	 * @return string
+	 */
+	protected static function cta_button( $url ) {
+		return '<div style="text-align:center;margin:12px 0 6px;">'
+			. '<a href="' . esc_url( $url ) . '" style="display:inline-block;background:#111114;color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:14px;font-weight:600;text-decoration:none;padding:12px 30px;border-radius:6px;">'
+			. esc_html__( 'Verify Email', 'smart-login' )
+			. '</a></div>'
+			. '<p style="text-align:center;margin:10px 0 0;font-size:12px;color:#9a9aa2;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;">'
+			. '<a href="' . esc_url( $url ) . '" style="color:#9a9aa2;word-break:break-all;">' . esc_html( $url ) . '</a>'
+			. '</p>';
+	}
+
+	/**
+	 * Wraps rendered body HTML in a branded, table-based shell (max
+	 * compatibility with email clients) — site name header, card body,
+	 * automated-message footer.
+	 *
+	 * @param string $inner_html
+	 * @return string
+	 */
+	protected static function wrap_shell( $inner_html ) {
+		$site_name = esc_html( get_bloginfo( 'name' ) );
+		$font      = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+
+		return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+			. '<title>' . $site_name . '</title></head>'
+			. '<body style="margin:0;padding:0;background:#f5f5f5;">'
+			. '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 16px;font-family:' . $font . ';">'
+			. '<tr><td align="center">'
+			. '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:10px;">'
+			. '<tr><td style="padding:26px 32px 18px;text-align:center;border-bottom:1px solid #f0f0f1;">'
+			. '<span style="font-family:' . $font . ';font-size:16px;font-weight:700;color:#111114;">' . $site_name . '</span>'
+			. '</td></tr>'
+			. '<tr><td style="padding:28px 32px 6px;font-family:' . $font . ';font-size:14.5px;line-height:1.6;color:#33333a;">'
+			. $inner_html // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			. '</td></tr>'
+			. '<tr><td style="padding:18px 32px 28px;">'
+			. '<p style="font-family:' . $font . ';font-size:12px;color:#9a9aa2;text-align:center;margin:0;">'
+			. sprintf(
+				/* translators: %s: site name */
+				esc_html__( 'This is an automated message from %s. If you did not request this, you can safely ignore it.', 'smart-login' ),
+				$site_name
+			)
+			. '</p></td></tr>'
+			. '</table></td></tr></table>'
+			. '</body></html>';
 	}
 
 	public static function content_type() {

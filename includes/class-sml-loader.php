@@ -24,6 +24,12 @@ class SML_Loader {
 		// signal beyond a bare `false` return value.
 		add_action( 'wp_mail_failed', array( __CLASS__, 'log_mail_failure' ) );
 
+		// Powers the admin dashboard's "recent logins" table. Fires on every
+		// successful login regardless of entry point (this plugin's own AJAX
+		// handler, wp-login.php, WooCommerce, etc.), since wp_signon()/
+		// wp_authenticate() always trigger it.
+		add_action( 'wp_login', array( __CLASS__, 'track_last_login' ), 10, 2 );
+
 		// Not gated by is_admin(): the settings page's Save button calls the
 		// REST route this class registers (via rest_api_init), and REST API
 		// requests are not admin requests — gating construction to admin
@@ -99,6 +105,14 @@ class SML_Loader {
 				is_wp_error( $error ) ? $error->get_error_message() : 'unknown error'
 			)
 		);
+	}
+
+	/**
+	 * @param string  $user_login
+	 * @param WP_User $user
+	 */
+	public static function track_last_login( $user_login, $user ) {
+		update_user_meta( $user->ID, 'sml_last_login', time() );
 	}
 
 	/**

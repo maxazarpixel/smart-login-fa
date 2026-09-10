@@ -25,6 +25,8 @@ class SML_Settings {
 			'enable_login_form'        => 1,
 			'default_role'             => 'subscriber',
 			'allowed_countries'        => SML_Countries::default_allowed_csv(),
+			'button_bg_color'          => '#111114',
+			'button_text_color'        => '#ffffff',
 
 			// Verification.
 			'code_length'              => 6,
@@ -49,11 +51,11 @@ class SML_Settings {
 			'from_name'                => get_bloginfo( 'name' ),
 			'from_email'               => get_bloginfo( 'admin_email' ),
 			'verify_subject'           => __( 'Verify your email for {site_name}', 'smart-login' ),
-			'verify_body'              => __( "Hi {user},\n\nYour verification code is: {code}\nThis code expires in {expiry_minutes} minutes.\n\nOr click the link below to verify instantly:\n{link}\n\n— {site_name}", 'smart-login' ),
+			'verify_body'              => __( "Hi {user},\n\nUse the code below to verify your email address. It expires in {expiry_minutes} minutes.\n\n{code}\n\nOr verify instantly with the button below.\n\n{link}", 'smart-login' ),
 			'resend_subject'           => __( 'Your new verification code for {site_name}', 'smart-login' ),
-			'resend_body'              => __( "Hi {user},\n\nHere is your new verification code: {code}\nThis code expires in {expiry_minutes} minutes.\n\nOr click the link below to verify instantly:\n{link}\n\n— {site_name}", 'smart-login' ),
+			'resend_body'              => __( "Hi {user},\n\nHere is your new verification code. It expires in {expiry_minutes} minutes.\n\n{code}\n\nOr verify instantly with the button below.\n\n{link}", 'smart-login' ),
 			'welcome_subject'          => __( 'Welcome to {site_name}', 'smart-login' ),
-			'welcome_body'             => __( "Hi {user},\n\nYour email has been verified and your account is now active.\n\n— {site_name}", 'smart-login' ),
+			'welcome_body'             => __( 'Hi {user},\n\nYour email has been verified and your account is now active.', 'smart-login' ),
 
 			// WooCommerce (only relevant if WooCommerce is active).
 			'wc_replace_login'         => 0,

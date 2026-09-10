@@ -26,6 +26,12 @@ class SML_Admin_Page extends APX_Admin_Page {
 
 		$nav = array(
 			array(
+				'group' => __( 'Overview', 'smart-login' ),
+				'items' => array(
+					array( 'key' => 'dashboard', 'label' => __( 'Dashboard', 'smart-login' ), 'icon' => 'gauge' ),
+				),
+			),
+			array(
 				'group' => __( 'Setup', 'smart-login' ),
 				'items' => array(
 					array( 'key' => 'general', 'label' => __( 'General', 'smart-login' ), 'icon' => 'gear' ),
@@ -37,12 +43,13 @@ class SML_Admin_Page extends APX_Admin_Page {
 		);
 
 		if ( $wc_active ) {
-			$nav[0]['items'][] = array( 'key' => 'woocommerce', 'label' => __( 'WooCommerce', 'smart-login' ), 'icon' => 'ext' );
+			$nav[1]['items'][] = array( 'key' => 'woocommerce', 'label' => __( 'WooCommerce', 'smart-login' ), 'icon' => 'ext' );
 		}
 
-		$nav[0]['items'][] = array( 'key' => 'advanced', 'label' => __( 'Advanced', 'smart-login' ), 'icon' => 'wrench' );
+		$nav[1]['items'][] = array( 'key' => 'advanced', 'label' => __( 'Advanced', 'smart-login' ), 'icon' => 'wrench' );
 
 		$panels = array(
+			'dashboard'    => $this->panel_dashboard(),
 			'general'      => $this->panel_general(),
 			'verification' => $this->panel_verification(),
 			'security'     => $this->panel_security(),
@@ -81,6 +88,39 @@ class SML_Admin_Page extends APX_Admin_Page {
 
 	/* ── panel definitions ───────────────────────────────────────────── */
 
+	/**
+	 * The 'html' value here is deliberately left empty and filled in only
+	 * inside render() — this whole config array is built unconditionally
+	 * in the constructor (SML_Admin_Page is now constructed on every
+	 * request, admin or not, so its REST route is always registered; see
+	 * SML_Loader), so computing the dashboard's DB queries here would run
+	 * them on every single front-end page load site-wide instead of only
+	 * when this admin screen is actually being viewed.
+	 */
+	protected function panel_dashboard() {
+		return array(
+			'title'    => __( 'Dashboard', 'smart-login' ),
+			'desc'     => __( 'Sign-ups, verification, and recent activity at a glance.', 'smart-login' ),
+			'sections' => array(
+				array(
+					'fields' => array(
+						array( 'type' => 'html', 'html' => '' ),
+					),
+				),
+			),
+		);
+	}
+
+	/**
+	 * render() only ever runs from the actual admin_menu page callback, so
+	 * this is the right (and only) place to compute the dashboard's
+	 * queries — see the note on panel_dashboard().
+	 */
+	public function render() {
+		$this->cfg['panels']['dashboard']['sections'][0]['fields'][0]['html'] = $this->dashboard_html();
+		parent::render();
+	}
+
 	protected function panel_general() {
 		return array(
 			'title'    => __( 'General', 'smart-login' ),
@@ -107,6 +147,14 @@ class SML_Admin_Page extends APX_Admin_Page {
 							'label'   => __( 'Default role for new users', 'smart-login' ),
 							'options' => $this->role_options(),
 						),
+					),
+				),
+				array(
+					'heading' => __( 'Button appearance', 'smart-login' ),
+					'desc'    => __( 'Colors for the primary button (Log In, Create Account, Verify). Secondary buttons and links are unaffected.', 'smart-login' ),
+					'fields'  => array(
+						array( 'type' => 'color', 'name' => 'button_bg_color', 'label' => __( 'Button background color', 'smart-login' ) ),
+						array( 'type' => 'color', 'name' => 'button_text_color', 'label' => __( 'Button text color', 'smart-login' ) ),
 					),
 				),
 				array(
@@ -295,6 +343,206 @@ class SML_Admin_Page extends APX_Admin_Page {
 		return $roles;
 	}
 
+	/* ── dashboard ───────────────────────────────────────────────────── */
+
+	/**
+	 * Builds the whole dashboard panel body as one HTML block (KPI cards,
+	 * sign-up chart, recent-logins table) — rendered as a single 'html'
+	 * field since the kit's schema-driven panels don't otherwise support
+	 * fully custom layouts.
+	 *
+	 * @return string
+	 */
+	protected function dashboard_html() {
+		$counts        = count_users();
+		$total_users   = (int) $counts['total_users'];
+		$verified      = $this->count_verified_users();
+		$chart_data    = $this->signups_last_6_months();
+		$recent_logins = $this->recent_logins( 10 );
+
+		ob_start();
+		?>
+		<div class="apx-kpi-strip" style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:28px;">
+			<div class="apx-metric" style="flex:1;min-width:160px;padding:18px 20px;border:1px solid #e6e6ea;border-radius:8px;">
+				<div style="font-size:12.5px;font-weight:600;color:#7a7a85;text-transform:uppercase;letter-spacing:.04em;"><?php esc_html_e( 'All Users', 'smart-login' ); ?></div>
+				<div style="font-size:30px;font-weight:700;color:#111114;margin-top:4px;"><?php echo esc_html( number_format_i18n( $total_users ) ); ?></div>
+			</div>
+			<div class="apx-metric" style="flex:1;min-width:160px;padding:18px 20px;border:1px solid #e6e6ea;border-radius:8px;">
+				<div style="font-size:12.5px;font-weight:600;color:#7a7a85;text-transform:uppercase;letter-spacing:.04em;"><?php esc_html_e( 'Verified Email', 'smart-login' ); ?></div>
+				<div style="font-size:30px;font-weight:700;color:#12805c;margin-top:4px;">
+					<?php echo esc_html( number_format_i18n( $verified ) ); ?>
+					<span style="font-size:14px;font-weight:500;color:#7a7a85;">
+						<?php echo esc_html( $total_users > 0 ? sprintf( '(%d%%)', round( $verified / $total_users * 100 ) ) : '' ); ?>
+					</span>
+				</div>
+			</div>
+		</div>
+
+		<h2 class="apx-section-h"><?php esc_html_e( 'Sign-ups — last 6 months', 'smart-login' ); ?></h2>
+		<?php echo $this->render_signup_chart( $chart_data ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+
+		<h2 class="apx-section-h" style="margin-top:28px;"><?php esc_html_e( 'Recent logins', 'smart-login' ); ?></h2>
+		<div class="apx-table-scroll">
+			<table class="widefat striped">
+				<thead>
+					<tr>
+						<th><?php esc_html_e( 'User', 'smart-login' ); ?></th>
+						<th><?php esc_html_e( 'Email', 'smart-login' ); ?></th>
+						<th><?php esc_html_e( 'Verified', 'smart-login' ); ?></th>
+						<th><?php esc_html_e( 'Last Login', 'smart-login' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php if ( ! $recent_logins ) : ?>
+						<tr><td colspan="4"><?php esc_html_e( 'No login activity recorded yet.', 'smart-login' ); ?></td></tr>
+					<?php endif; ?>
+					<?php foreach ( $recent_logins as $row ) : ?>
+						<tr>
+							<td><?php echo esc_html( $row['name'] ); ?></td>
+							<td><?php echo esc_html( $row['email'] ); ?></td>
+							<td>
+								<?php if ( $row['verified'] ) : ?>
+									<span style="color:#12805c;">● <?php esc_html_e( 'Verified', 'smart-login' ); ?></span>
+								<?php else : ?>
+									<span style="color:#d92d20;">● <?php esc_html_e( 'Not verified', 'smart-login' ); ?></span>
+								<?php endif; ?>
+							</td>
+							<td><?php echo esc_html( $row['last_login'] ); ?></td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+		</div>
+		<?php
+		return ob_get_clean();
+	}
+
+	/**
+	 * @return int Number of users with sml_email_verified = 1.
+	 */
+	protected function count_verified_users() {
+		global $wpdb;
+		return (int) $wpdb->get_var(
+			"SELECT COUNT(*) FROM {$wpdb->usermeta} WHERE meta_key = 'sml_email_verified' AND meta_value = '1'" // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		);
+	}
+
+	/**
+	 * @return array<string,int> Month label (e.g. "Apr") => sign-up count, oldest first, 6 entries.
+	 */
+	protected function signups_last_6_months() {
+		global $wpdb;
+
+		$rows = $wpdb->get_results(
+			"SELECT DATE_FORMAT(user_registered, '%Y-%m') AS ym, COUNT(*) AS c
+			 FROM {$wpdb->users}
+			 WHERE user_registered >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+			 GROUP BY ym", // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			OBJECT_K
+		);
+
+		$data = array();
+		for ( $i = 5; $i >= 0; $i-- ) {
+			$ts    = strtotime( "-{$i} months" );
+			$key   = gmdate( 'Y-m', $ts );
+			$label = date_i18n( 'M', $ts );
+
+			$data[ $label ] = isset( $rows[ $key ] ) ? (int) $rows[ $key ]->c : 0;
+		}
+
+		return $data;
+	}
+
+	/**
+	 * @param int $limit
+	 * @return array<int,array{name:string,email:string,verified:bool,last_login:string}>
+	 */
+	protected function recent_logins( $limit = 10 ) {
+		global $wpdb;
+
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT user_id, meta_value FROM {$wpdb->usermeta} WHERE meta_key = 'sml_last_login' ORDER BY (meta_value + 0) DESC LIMIT %d", // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				$limit
+			)
+		);
+
+		$out = array();
+		foreach ( $rows as $row ) {
+			$user = get_userdata( (int) $row->user_id );
+			if ( ! $user ) {
+				continue;
+			}
+
+			$out[] = array(
+				'name'       => $user->display_name,
+				'email'      => $user->user_email,
+				'verified'   => SML_Verification::is_verified( $user->ID ),
+				/* translators: %s: human-readable time difference, e.g. "3 hours" */
+				'last_login' => sprintf( __( '%s ago', 'smart-login' ), human_time_diff( (int) $row->meta_value, time() ) ),
+			);
+		}
+
+		return $out;
+	}
+
+	/**
+	 * A dependency-free inline SVG bar chart — no charting library needed
+	 * for six bars, and it keeps the plugin free of external/bundled JS
+	 * assets for something this simple.
+	 *
+	 * @param array<string,int> $data
+	 * @return string
+	 */
+	protected function render_signup_chart( array $data ) {
+		$max      = max( 1, max( $data ) );
+		$bar_w    = 56;
+		$gap      = 28;
+		$chart_h  = 130;
+		$n        = count( $data );
+		$width    = max( 1, $n * ( $bar_w + $gap ) );
+		$height   = $chart_h + 34;
+
+		$svg = sprintf(
+			'<svg viewBox="0 0 %1$d %2$d" preserveAspectRatio="xMinYMid meet" style="width:100%%;max-width:520px;height:auto;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;">',
+			$width,
+			$height
+		);
+
+		$x = 0;
+		foreach ( $data as $label => $count ) {
+			$bar_h = $count > 0 ? max( 4, ( $count / $max ) * $chart_h ) : 2;
+			$bar_y = $chart_h - $bar_h;
+			$cx    = $x + ( $bar_w / 2 );
+
+			$svg .= sprintf(
+				'<rect x="%1$d" y="%2$.1f" width="%3$d" height="%4$.1f" rx="4" fill="#111114"></rect>',
+				$x,
+				$bar_y,
+				$bar_w,
+				$bar_h
+			);
+			$svg .= sprintf(
+				'<text x="%1$.1f" y="%2$d" text-anchor="middle" font-size="12" font-weight="700" fill="#111114">%3$s</text>',
+				$cx,
+				max( 12, $bar_y - 6 ),
+				esc_html( $count )
+			);
+			$svg .= sprintf(
+				'<text x="%1$.1f" y="%2$d" text-anchor="middle" font-size="11" fill="#7a7a85">%3$s</text>',
+				$cx,
+				$chart_h + 20,
+				esc_html( $label )
+			);
+
+			$x += $bar_w + $gap;
+		}
+
+		$svg .= '</svg>';
+
+		return $svg;
+	}
+
 	/**
 	 * A self-contained "does mail even work on this site" button. It calls
 	 * wp_mail() the same way every other email in the plugin does (same
@@ -445,6 +693,24 @@ class SML_Admin_Page extends APX_Admin_Page {
 			return;
 		}
 
+		if ( 'color' === $f['type'] ) {
+			$name = $f['name'];
+			$val  = isset( $s[ $name ] ) && sanitize_hex_color( $s[ $name ] ) ? $s[ $name ] : '#000000';
+			echo '<div class="apx-row">';
+			printf( '<label for="%1$s">%2$s</label>', esc_attr( $name ), esc_html( $f['label'] ) );
+			printf(
+				'<input type="color" id="%1$s" name="%1$s" value="%2$s" style="width:60px;height:36px;padding:2px;cursor:pointer" data-apx-field oninput="document.getElementById(\'%1$s-hex\').textContent=this.value">',
+				esc_attr( $name ),
+				esc_attr( $val )
+			);
+			printf( ' <code id="%1$s-hex">%2$s</code>', esc_attr( $name ), esc_html( $val ) );
+			if ( $f['desc'] ) {
+				echo '<p class="description">' . wp_kses_post( $f['desc'] ) . '</p>'; // phpcs:ignore
+			}
+			echo '</div>';
+			return;
+		}
+
 		if ( 'countries' === $f['type'] ) {
 			$name    = $f['name'];
 			$current = isset( $s[ $name ] ) ? (string) $s[ $name ] : '';
@@ -505,6 +771,11 @@ class SML_Admin_Page extends APX_Admin_Page {
 	}
 
 	protected function sanitize( $value, array $field ) {
+		if ( 'color' === $field['type'] ) {
+			$hex = sanitize_hex_color( (string) $value );
+			return $hex ? $hex : SML_Settings::defaults()[ $field['name'] ];
+		}
+
 		if ( 'countries' === $field['type'] ) {
 			$ids   = array_filter( array_map( 'trim', explode( ',', (string) $value ) ) );
 			$known = array_keys( SML_Countries::all() );
