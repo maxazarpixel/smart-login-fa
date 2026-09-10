@@ -448,60 +448,124 @@ class SML_Admin_Page extends APX_Admin_Page {
 	 * @return string
 	 */
 	protected function dashboard_html() {
-		$counts        = count_users();
-		$total_users   = (int) $counts['total_users'];
-		$verified      = $this->count_verified_users();
-		$chart_data    = $this->signups_last_6_months();
-		$recent_logins = $this->recent_logins( 10 );
+		$s = $this->dash_stats();
 
 		ob_start();
 		?>
-		<div class="apx-kpi-strip" style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:28px;">
-			<div class="apx-metric" style="flex:1;min-width:160px;padding:18px 20px;border:1px solid #e6e6ea;border-radius:8px;">
-				<div style="font-size:12.5px;font-weight:600;color:#7a7a85;text-transform:uppercase;letter-spacing:.04em;"><?php esc_html_e( 'All Users', 'smart-login' ); ?></div>
-				<div style="font-size:30px;font-weight:700;color:#111114;margin-top:4px;"><?php echo esc_html( number_format_i18n( $total_users ) ); ?></div>
-			</div>
-			<div class="apx-metric" style="flex:1;min-width:160px;padding:18px 20px;border:1px solid #e6e6ea;border-radius:8px;">
-				<div style="font-size:12.5px;font-weight:600;color:#7a7a85;text-transform:uppercase;letter-spacing:.04em;"><?php esc_html_e( 'Verified Email', 'smart-login' ); ?></div>
-				<div style="font-size:30px;font-weight:700;color:#12805c;margin-top:4px;">
-					<?php echo esc_html( number_format_i18n( $verified ) ); ?>
-					<span style="font-size:14px;font-weight:500;color:#7a7a85;">
-						<?php echo esc_html( $total_users > 0 ? sprintf( '(%d%%)', round( $verified / $total_users * 100 ) ) : '' ); ?>
-					</span>
-				</div>
-			</div>
+		<div class="apx-kpi-strip" style="display:flex;flex-wrap:wrap;gap:14px;margin-bottom:16px;">
+			<?php
+			echo $this->metric_card( __( 'All users', 'smart-login' ), number_format_i18n( $s['total'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo $this->metric_card( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				__( 'Verified', 'smart-login' ),
+				number_format_i18n( $s['verified'] ),
+				'#12805c',
+				$s['total'] > 0 ? sprintf( '%d%%', round( $s['verified'] / $s['total'] * 100 ) ) : ''
+			);
+			echo $this->metric_card( __( 'Pending verification', 'smart-login' ), number_format_i18n( $s['pending'] ), '#92590a' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo $this->metric_card( __( 'Legacy accounts', 'smart-login' ), number_format_i18n( $s['legacy'] ), '#7a7a85' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			?>
 		</div>
 
-		<h2 class="apx-section-h"><?php esc_html_e( 'Sign-ups — last 6 months', 'smart-login' ); ?></h2>
-		<?php echo $this->render_signup_chart( $chart_data ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+		<div class="apx-kpi-strip" style="display:flex;flex-wrap:wrap;gap:14px;margin-bottom:28px;">
+			<div class="apx-metric" style="flex:2;min-width:280px;padding:16px 20px;border:1px solid #e6e6ea;border-radius:8px;">
+				<div style="font-size:12px;font-weight:600;color:#7a7a85;text-transform:uppercase;letter-spacing:.04em;"><?php esc_html_e( 'New sign-ups', 'smart-login' ); ?></div>
+				<div style="display:flex;gap:28px;margin-top:8px;">
+					<div><div style="font-size:24px;font-weight:700;color:#111114;"><?php echo esc_html( number_format_i18n( $s['new_24h'] ) ); ?></div><div style="font-size:11px;color:#7a7a85;"><?php esc_html_e( 'last 24h', 'smart-login' ); ?></div></div>
+					<div><div style="font-size:24px;font-weight:700;color:#111114;"><?php echo esc_html( number_format_i18n( $s['new_7d'] ) ); ?></div><div style="font-size:11px;color:#7a7a85;"><?php esc_html_e( 'last 7 days', 'smart-login' ); ?></div></div>
+					<div><div style="font-size:24px;font-weight:700;color:#111114;"><?php echo esc_html( number_format_i18n( $s['new_30d'] ) ); ?></div><div style="font-size:11px;color:#7a7a85;"><?php esc_html_e( 'last 30 days', 'smart-login' ); ?></div></div>
+				</div>
+			</div>
+			<?php echo $this->metric_card( __( 'Logins (24h)', 'smart-login' ), number_format_i18n( $s['logins_24h'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+		</div>
 
-		<h2 class="apx-section-h" style="margin-top:28px;"><?php esc_html_e( 'Recent logins', 'smart-login' ); ?></h2>
+		<h2 class="apx-section-h">
+			<?php esc_html_e( 'Sign-ups — last 6 months', 'smart-login' ); ?>
+			<span style="font-weight:400;color:#7a7a85;font-size:13px;">
+				<?php
+				$chart_total = array_sum( $s['chart'] );
+				/* translators: %s: number of sign-ups */
+				echo esc_html( '(' . sprintf( _n( '%s total', '%s total', $chart_total, 'smart-login' ), number_format_i18n( $chart_total ) ) . ')' );
+				?>
+			</span>
+		</h2>
+		<?php echo $this->render_signup_chart( $s['chart'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+
+		<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:26px;margin-top:28px;">
+			<div>
+				<h2 class="apx-section-h"><?php esc_html_e( 'Recent sign-ups', 'smart-login' ); ?></h2>
+				<?php echo $this->activity_table( $s['recent_signups'], __( 'Registered', 'smart-login' ), 'registered' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			</div>
+			<div>
+				<h2 class="apx-section-h"><?php esc_html_e( 'Recent logins', 'smart-login' ); ?></h2>
+				<?php echo $this->activity_table( $s['recent_logins'], __( 'Last login', 'smart-login' ), 'when' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			</div>
+		</div>
+		<?php
+		return ob_get_clean();
+	}
+
+	/**
+	 * One KPI card. $suffix is a small dimmed figure after the value
+	 * (e.g. a percentage).
+	 *
+	 * @param string $label
+	 * @param string $value
+	 * @param string $color
+	 * @param string $suffix
+	 * @return string
+	 */
+	protected function metric_card( $label, $value, $color = '#111114', $suffix = '' ) {
+		return sprintf(
+			'<div class="apx-metric" style="flex:1;min-width:150px;padding:16px 20px;border:1px solid #e6e6ea;border-radius:8px;">'
+				. '<div style="font-size:12px;font-weight:600;color:#7a7a85;text-transform:uppercase;letter-spacing:.04em;">%1$s</div>'
+				. '<div style="font-size:28px;font-weight:700;color:%2$s;margin-top:4px;">%3$s%4$s</div>'
+				. '</div>',
+			esc_html( $label ),
+			esc_attr( $color ),
+			esc_html( $value ),
+			'' !== $suffix ? ' <span style="font-size:13px;font-weight:500;color:#7a7a85;">' . esc_html( $suffix ) . '</span>' : ''
+		);
+	}
+
+	/**
+	 * A compact activity table: User / Email / Phone / <time column> / Status.
+	 *
+	 * @param array  $rows       Each: name, email, phone, status, plus the $time_key value.
+	 * @param string $time_label Header for the time column.
+	 * @param string $time_key   Row key holding the pre-formatted time string.
+	 * @return string
+	 */
+	protected function activity_table( array $rows, $time_label, $time_key ) {
+		ob_start();
+		?>
 		<div class="apx-table-scroll">
 			<table class="widefat striped">
-				<thead>
-					<tr>
-						<th><?php esc_html_e( 'User', 'smart-login' ); ?></th>
-						<th><?php esc_html_e( 'Email', 'smart-login' ); ?></th>
-						<th><?php esc_html_e( 'Verified', 'smart-login' ); ?></th>
-						<th><?php esc_html_e( 'Last Login', 'smart-login' ); ?></th>
-					</tr>
-				</thead>
+				<thead><tr>
+					<th><?php esc_html_e( 'User', 'smart-login' ); ?></th>
+					<th><?php esc_html_e( 'Email', 'smart-login' ); ?></th>
+					<th><?php esc_html_e( 'Phone', 'smart-login' ); ?></th>
+					<th><?php echo esc_html( $time_label ); ?></th>
+					<th><?php esc_html_e( 'Status', 'smart-login' ); ?></th>
+				</tr></thead>
 				<tbody>
-					<?php if ( ! $recent_logins ) : ?>
-						<tr><td colspan="4"><?php esc_html_e( 'No login activity recorded yet.', 'smart-login' ); ?></td></tr>
+					<?php if ( ! $rows ) : ?>
+						<tr><td colspan="5"><?php esc_html_e( 'Nothing recorded yet.', 'smart-login' ); ?></td></tr>
 					<?php endif; ?>
-					<?php foreach ( $recent_logins as $row ) : ?>
+					<?php foreach ( $rows as $row ) : ?>
 						<tr>
 							<td><?php echo esc_html( $row['name'] ); ?></td>
 							<td><?php echo esc_html( $row['email'] ); ?></td>
+							<td><?php echo esc_html( $row['phone'] ); ?></td>
+							<td><?php echo esc_html( isset( $row[ $time_key ] ) ? $row[ $time_key ] : '' ); ?></td>
 							<td>
-								<?php if ( $row['verified'] ) : ?>
+								<?php if ( 'verified' === $row['status'] ) : ?>
 									<span style="color:#12805c;">● <?php esc_html_e( 'Verified', 'smart-login' ); ?></span>
+								<?php elseif ( 'pending' === $row['status'] ) : ?>
+									<span style="color:#92590a;">● <?php esc_html_e( 'Pending', 'smart-login' ); ?></span>
 								<?php else : ?>
-									<span style="color:#d92d20;">● <?php esc_html_e( 'Not verified', 'smart-login' ); ?></span>
+									<span style="color:#9a9aa2;">— <?php esc_html_e( 'Legacy', 'smart-login' ); ?></span>
 								<?php endif; ?>
 							</td>
-							<td><?php echo esc_html( $row['last_login'] ); ?></td>
 						</tr>
 					<?php endforeach; ?>
 				</tbody>
@@ -509,6 +573,103 @@ class SML_Admin_Page extends APX_Admin_Page {
 		</div>
 		<?php
 		return ob_get_clean();
+	}
+
+	/**
+	 * Everything the dashboard shows, gathered in one place. Only ever
+	 * called from render() — see the note on panel_dashboard().
+	 *
+	 * @return array<string,mixed>
+	 */
+	protected function dash_stats() {
+		global $wpdb;
+
+		$total    = (int) count_users()['total_users'];
+		$verified = $this->count_verified_users();
+		$pending  = (int) $wpdb->get_var(
+			"SELECT COUNT(*) FROM {$wpdb->usermeta} WHERE meta_key = 'sml_email_verified' AND meta_value = '0'" // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		);
+		$legacy = max( 0, $total - $verified - $pending );
+
+		$since = function ( $sql_interval ) use ( $wpdb ) {
+			return (int) $wpdb->get_var(
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				"SELECT COUNT(*) FROM {$wpdb->users} WHERE user_registered >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL {$sql_interval})"
+			);
+		};
+
+		$logins_24h = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->usermeta} WHERE meta_key = 'sml_last_login' AND (meta_value + 0) >= %d", // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				time() - DAY_IN_SECONDS
+			)
+		);
+
+		return array(
+			'total'          => $total,
+			'verified'       => $verified,
+			'pending'        => $pending,
+			'legacy'         => $legacy,
+			'new_24h'        => $since( '1 DAY' ),
+			'new_7d'         => $since( '7 DAY' ),
+			'new_30d'        => $since( '30 DAY' ),
+			'logins_24h'     => $logins_24h,
+			'chart'          => $this->signups_last_6_months(),
+			'recent_signups' => $this->recent_signups( 8 ),
+			'recent_logins'  => $this->recent_logins( 8 ),
+		);
+	}
+
+	/**
+	 * @param int $limit
+	 * @return array<int,array{name:string,email:string,phone:string,registered:string,status:string}>
+	 */
+	protected function recent_signups( $limit = 8 ) {
+		$q = new WP_User_Query( array(
+			'number'  => $limit,
+			'orderby' => 'registered',
+			'order'   => 'DESC',
+			'fields'  => 'ID',
+		) );
+
+		$ids = array_map( 'intval', (array) $q->get_results() );
+		if ( $ids ) {
+			cache_users( $ids );
+		}
+
+		$out = array();
+		foreach ( $ids as $id ) {
+			$user = get_userdata( $id );
+			if ( ! $user ) {
+				continue;
+			}
+			$out[] = array(
+				'name'       => $user->display_name ? $user->display_name : trim( $user->first_name . ' ' . $user->last_name ),
+				'email'      => $user->user_email,
+				'phone'      => $this->user_phone( $id ),
+				'registered' => $user->user_registered
+					/* translators: %s: human-readable time difference, e.g. "3 hours" */
+					? sprintf( __( '%s ago', 'smart-login' ), human_time_diff( strtotime( $user->user_registered . ' UTC' ), time() ) )
+					: '',
+				'status'     => $this->user_status( $id ),
+			);
+		}
+
+		return $out;
+	}
+
+	/** sml_phone, falling back to the WooCommerce billing phone. */
+	protected function user_phone( $user_id ) {
+		$phone = (string) get_user_meta( $user_id, 'sml_phone', true );
+		return '' !== $phone ? $phone : (string) get_user_meta( $user_id, 'billing_phone', true );
+	}
+
+	/** 'verified' | 'pending' | 'legacy'. */
+	protected function user_status( $user_id ) {
+		if ( SML_Verification::is_verified( $user_id ) ) {
+			return 'verified';
+		}
+		return SML_Verification::has_verification_record( $user_id ) ? 'pending' : 'legacy';
 	}
 
 	/* ── Users panel ─────────────────────────────────────────────────── */
@@ -638,9 +799,9 @@ class SML_Admin_Page extends APX_Admin_Page {
 
 	/**
 	 * @param int $limit
-	 * @return array<int,array{name:string,email:string,verified:bool,last_login:string}>
+	 * @return array<int,array{name:string,email:string,phone:string,when:string,status:string}>
 	 */
-	protected function recent_logins( $limit = 10 ) {
+	protected function recent_logins( $limit = 8 ) {
 		global $wpdb;
 
 		$rows = $wpdb->get_results(
@@ -650,6 +811,13 @@ class SML_Admin_Page extends APX_Admin_Page {
 			)
 		);
 
+		$ids = array_map( function ( $r ) {
+			return (int) $r->user_id;
+		}, (array) $rows );
+		if ( $ids ) {
+			cache_users( $ids );
+		}
+
 		$out = array();
 		foreach ( $rows as $row ) {
 			$user = get_userdata( (int) $row->user_id );
@@ -658,11 +826,12 @@ class SML_Admin_Page extends APX_Admin_Page {
 			}
 
 			$out[] = array(
-				'name'       => $user->display_name,
-				'email'      => $user->user_email,
-				'verified'   => SML_Verification::is_verified( $user->ID ),
+				'name'   => $user->display_name ? $user->display_name : trim( $user->first_name . ' ' . $user->last_name ),
+				'email'  => $user->user_email,
+				'phone'  => $this->user_phone( (int) $row->user_id ),
 				/* translators: %s: human-readable time difference, e.g. "3 hours" */
-				'last_login' => sprintf( __( '%s ago', 'smart-login' ), human_time_diff( (int) $row->meta_value, time() ) ),
+				'when'   => sprintf( __( '%s ago', 'smart-login' ), human_time_diff( (int) $row->meta_value, time() ) ),
+				'status' => $this->user_status( (int) $row->user_id ),
 			);
 		}
 

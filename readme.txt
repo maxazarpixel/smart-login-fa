@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.16.0
+Stable tag: 1.17.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,9 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.17.0 =
+* Expanded the Dashboard tab: verification breakdown cards (Verified / Pending / Legacy with percentages), a "New sign-ups" panel with 24-hour / 7-day / 30-day counts, a "Logins (24h)" figure, a total on the 6-month sign-up chart, and side-by-side "Recent sign-ups" and "Recent logins" tables that now also show phone and a three-state status.
 
 = 1.16.0 =
 * Added a "Users" tab (Settings → Users). Paged, searchable list of every account showing name, email, phone, WooCommerce billing address, sign-up date, last login, and verification status (Verified / Pending / Legacy). Search matches name, email, address and phone.
