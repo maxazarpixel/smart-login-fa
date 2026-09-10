@@ -391,6 +391,12 @@ class SML_Admin_Page extends APX_Admin_Page {
 						),
 					),
 				),
+				array(
+					'heading' => __( 'Import / export settings', 'smart-login' ),
+					'fields'  => array(
+						array( 'type' => 'html', 'html' => $this->import_export_html() ),
+					),
+				),
 			),
 		);
 	}
@@ -706,6 +712,181 @@ class SML_Admin_Page extends APX_Admin_Page {
 		);
 	}
 
+	/**
+	 * "Import / export settings" panel: download the current settings as a
+	 * JSON file, or paste/upload one back. Secret-typed fields are never
+	 * written into the export (they carry the same placeholder the save path
+	 * treats as "unchanged"), so an export is safe to share for review.
+	 */
+	protected function import_export_html() {
+		$rest = 'window.APX_UI.restUrl.replace(/\/$/, "")';
+
+		return '<div class="apx-row">'
+			. '<label>' . esc_html__( 'Export', 'smart-login' ) . '</label>'
+			. '<button type="button" class="button button-secondary" id="sml-export-btn">' . esc_html__( 'Download settings JSON', 'smart-login' ) . '</button> '
+			. '<span id="sml-export-status" style="font-size:13px;"></span>'
+			. '<p class="description">' . esc_html__( 'Downloads every setting as a JSON file. Bot-protection secret keys are left out, so the file is safe to send for review.', 'smart-login' ) . '</p>'
+			. '</div>'
+			. '<div class="apx-field-row">'
+			. '<label><strong>' . esc_html__( 'Import', 'smart-login' ) . '</strong></label>'
+			. '<p class="description">' . esc_html__( 'Paste an exported JSON below (or choose a file), then Import. Unknown keys are ignored; secret keys already stored are kept.', 'smart-login' ) . '</p>'
+			. '<input type="file" accept="application/json,.json" id="sml-import-file" style="margin:6px 0;">'
+			. '<textarea id="sml-import-json" rows="7" spellcheck="false" style="width:100%;max-width:640px;font-family:monospace;font-size:12px;" placeholder="{ &quot;settings&quot;: { ... } }"></textarea>'
+			. '<div style="margin-top:8px;"><button type="button" class="button button-primary" id="sml-import-btn">' . esc_html__( 'Import', 'smart-login' ) . '</button> '
+			. '<span id="sml-import-status" style="font-size:13px;"></span></div>'
+			. '</div>'
+			. '<script>(function(){
+				var R = ' . $rest . ';
+				var N = window.APX_UI.restNonce;
+				var exBtn = document.getElementById("sml-export-btn");
+				var exStatus = document.getElementById("sml-export-status");
+				if (exBtn) {
+					exBtn.addEventListener("click", function(){
+						exBtn.disabled = true; exStatus.textContent = "";
+						fetch(R + "/export", { method:"POST", credentials:"same-origin", headers:{ "X-WP-Nonce": N } })
+							.then(function(r){ return r.json(); })
+							.then(function(d){
+								if (!d || !d.json) { throw 0; }
+								var blob = new Blob([d.json], { type:"application/json" });
+								var a = document.createElement("a");
+								a.href = URL.createObjectURL(blob);
+								a.download = d.filename || "smart-login-settings.json";
+								document.body.appendChild(a); a.click(); a.remove();
+								setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+								exStatus.style.color = "#12805c";
+								exStatus.textContent = "' . esc_js( __( 'Downloaded.', 'smart-login' ) ) . '";
+							})
+							.catch(function(){ exStatus.style.color = "#d92d20"; exStatus.textContent = "' . esc_js( __( 'Export failed.', 'smart-login' ) ) . '"; })
+							.then(function(){ exBtn.disabled = false; });
+					});
+				}
+				var file = document.getElementById("sml-import-file");
+				var ta = document.getElementById("sml-import-json");
+				if (file && ta) {
+					file.addEventListener("change", function(){
+						var f = file.files && file.files[0];
+						if (!f) { return; }
+						var rd = new FileReader();
+						rd.onload = function(){ ta.value = String(rd.result || ""); };
+						rd.readAsText(f);
+					});
+				}
+				var imBtn = document.getElementById("sml-import-btn");
+				var imStatus = document.getElementById("sml-import-status");
+				if (imBtn && ta) {
+					imBtn.addEventListener("click", function(){
+						imBtn.disabled = true; imStatus.style.color = ""; imStatus.textContent = "' . esc_js( __( 'Importing…', 'smart-login' ) ) . '";
+						fetch(R + "/import", {
+							method:"POST", credentials:"same-origin",
+							headers:{ "X-WP-Nonce": N, "Content-Type":"application/json" },
+							body: JSON.stringify({ json: ta.value })
+						}).then(function(r){ return r.json(); }).then(function(d){
+							imStatus.style.color = d && d.ok ? "#12805c" : "#d92d20";
+							imStatus.textContent = (d && d.message) || "' . esc_js( __( 'Import failed.', 'smart-login' ) ) . '";
+							if (d && d.ok) { setTimeout(function(){ window.location.reload(); }, 900); }
+						}).catch(function(){
+							imStatus.style.color = "#d92d20";
+							imStatus.textContent = "' . esc_js( __( 'Request failed.', 'smart-login' ) ) . '";
+						}).then(function(){ imBtn.disabled = false; });
+					});
+				}
+			})();</script>';
+	}
+
+	/**
+	 * Builds the shareable export payload: metadata + every setting except
+	 * secret-typed fields (those become the "unchanged" placeholder).
+	 *
+	 * @param WP_REST_Request $req
+	 * @return WP_REST_Response
+	 */
+	public function rest_export_settings( WP_REST_Request $req ) {
+		$all    = $this->get_all();
+		$schema = $this->field_index();
+
+		foreach ( $schema as $name => $field ) {
+			if ( 'password' === $field['type'] && ! empty( $field['secret'] ) && isset( $all[ $name ] ) && '' !== (string) $all[ $name ] ) {
+				$all[ $name ] = self::SECRET_PLACEHOLDER;
+			}
+		}
+
+		$payload = array(
+			'_plugin'      => 'smart-login',
+			'_version'     => defined( 'SML_VERSION' ) ? SML_VERSION : '',
+			'_exported_at' => gmdate( 'c' ),
+			'_site'        => home_url( '/' ),
+			'settings'     => $all,
+		);
+
+		$slug = sanitize_title( wp_parse_url( home_url(), PHP_URL_HOST ) );
+
+		return rest_ensure_response(
+			array(
+				'filename' => 'smart-login-settings-' . ( $slug ? $slug . '-' : '' ) . gmdate( 'Ymd-His' ) . '.json',
+				'json'     => wp_json_encode( $payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ),
+			)
+		);
+	}
+
+	/**
+	 * Applies a pasted/uploaded export. Only keys present in the field
+	 * schema are accepted; each is sanitised exactly as a normal save; a
+	 * secret field left as the placeholder keeps its stored value.
+	 *
+	 * @param WP_REST_Request $req
+	 * @return WP_REST_Response
+	 */
+	public function rest_import_settings( WP_REST_Request $req ) {
+		$body = (array) $req->get_json_params();
+		$raw  = isset( $body['json'] ) ? (string) $body['json'] : '';
+
+		$decoded = json_decode( $raw, true );
+		if ( ! is_array( $decoded ) ) {
+			return rest_ensure_response( array( 'ok' => false, 'message' => __( 'That is not valid JSON.', 'smart-login' ) ) );
+		}
+
+		// Accept both the wrapped export ({ "_plugin": …, "settings": {…} })
+		// and a bare settings object.
+		$incoming = ( isset( $decoded['settings'] ) && is_array( $decoded['settings'] ) ) ? $decoded['settings'] : $decoded;
+
+		if ( isset( $decoded['_plugin'] ) && 'smart-login' !== $decoded['_plugin'] ) {
+			return rest_ensure_response( array( 'ok' => false, 'message' => __( 'This file is an export from a different plugin.', 'smart-login' ) ) );
+		}
+
+		$schema  = $this->field_index();
+		$all     = $this->get_all();
+		$applied = 0;
+
+		foreach ( $incoming as $name => $value ) {
+			if ( ! isset( $schema[ $name ] ) ) {
+				continue;
+			}
+			$field = $schema[ $name ];
+
+			if ( 'password' === $field['type'] && ! empty( $field['secret'] ) && (string) $value === self::SECRET_PLACEHOLDER ) {
+				continue;
+			}
+
+			$all[ $name ] = $this->sanitize( $value, $field );
+			$applied++;
+		}
+
+		if ( 0 === $applied ) {
+			return rest_ensure_response( array( 'ok' => false, 'message' => __( 'No recognised settings found in that file.', 'smart-login' ) ) );
+		}
+
+		update_option( $this->cfg['option_name'], $all );
+		do_action( 'apx_settings_saved', $all, array_keys( $incoming ), $this->cfg['slug'] );
+
+		return rest_ensure_response(
+			array(
+				'ok'      => true,
+				/* translators: %d: number of settings applied */
+				'message' => sprintf( __( 'Imported %d settings. Reloading…', 'smart-login' ), $applied ),
+			)
+		);
+	}
+
 	public function register_rest() {
 		parent::register_rest();
 
@@ -715,6 +896,26 @@ class SML_Admin_Page extends APX_Admin_Page {
 			array(
 				'methods'             => 'POST',
 				'callback'            => array( $this, 'rest_test_email' ),
+				'permission_callback' => array( $this, 'rest_permission' ),
+			)
+		);
+
+		register_rest_route(
+			$this->cfg['rest_ns'],
+			'/export',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'rest_export_settings' ),
+				'permission_callback' => array( $this, 'rest_permission' ),
+			)
+		);
+
+		register_rest_route(
+			$this->cfg['rest_ns'],
+			'/import',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'rest_import_settings' ),
 				'permission_callback' => array( $this, 'rest_permission' ),
 			)
 		);
