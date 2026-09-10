@@ -255,7 +255,7 @@ class SML_Admin_Page extends APX_Admin_Page {
 				array(
 					'heading' => __( 'Bot protection', 'smart-login' ),
 					'fields'  => array(
-						array( 'type' => 'toggle', 'name' => 'enable_honeypot', 'label' => __( 'Enable honeypot field', 'smart-login' ), 'desc' => __( 'Adds a hidden field and a time-trap; submissions filled or submitted too fast are rejected as bots.', 'smart-login' ) ),
+						array( 'type' => 'toggle', 'name' => 'enable_honeypot', 'label' => __( 'Enable honeypot field', 'smart-login' ), 'desc' => __( 'Adds a hidden field and a time-trap; submissions filled or submitted too fast are rejected as bots. This is a minor speed bump — the time-trap is a client-supplied value a scripted attacker can back-date. For real coverage on a public site, also select a bot-protection provider below.', 'smart-login' ) ),
 						array(
 							'type'    => 'select',
 							'name'    => 'bot_protection_provider',
@@ -376,10 +376,26 @@ class SML_Admin_Page extends APX_Admin_Page {
 		);
 	}
 
+	/**
+	 * Roles offered as the "default role for new users". Roles that can
+	 * administer the site (manage_options / edit_users) are excluded — a
+	 * self-registration default of Administrator is a privilege-escalation
+	 * footgun, and SML_Settings::safe_default_role() enforces the same rule
+	 * server-side regardless of what is stored.
+	 *
+	 * @return array<string,string>
+	 */
 	protected function role_options() {
 		$roles = array();
 		foreach ( wp_roles()->roles as $key => $role ) {
+			$caps = isset( $role['capabilities'] ) ? (array) $role['capabilities'] : array();
+			if ( ! empty( $caps['manage_options'] ) || ! empty( $caps['edit_users'] ) ) {
+				continue;
+			}
 			$roles[ $key ] = translate_user_role( $role['name'] );
+		}
+		if ( ! $roles ) {
+			$roles['subscriber'] = translate_user_role( 'Subscriber' );
 		}
 		return $roles;
 	}
@@ -1071,6 +1087,27 @@ class SML_Admin_Page extends APX_Admin_Page {
 		}
 
 		return parent::sanitize( $value, $field );
+	}
+
+	/**
+	 * Overridden so a secret-typed field is never sent back to the browser
+	 * in plaintext. The settings screen only needs to know whether a secret
+	 * is set, not its value; any saved secret is replaced with the same
+	 * placeholder the save path already recognises as "unchanged", so an
+	 * untouched round-trip leaves the stored value alone.
+	 */
+	public function rest_get() {
+		$all    = $this->get_all();
+		$schema = $this->field_index();
+
+		foreach ( $schema as $name => $field ) {
+			if ( 'password' === $field['type'] && ! empty( $field['secret'] )
+				&& isset( $all[ $name ] ) && '' !== (string) $all[ $name ] ) {
+				$all[ $name ] = self::SECRET_PLACEHOLDER;
+			}
+		}
+
+		return rest_ensure_response( $all );
 	}
 
 	/**

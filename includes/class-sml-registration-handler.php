@@ -16,6 +16,14 @@ class SML_Registration_Handler {
 	/** Minimum seconds between form render and submit — anything faster is treated as a bot. */
 	const HONEYPOT_MIN_SECONDS = 3;
 
+	/**
+	 * IP-scoped ceiling on verification-email resends, on top of the
+	 * per-account cooldown. Stops one client from cycling through user IDs
+	 * to email-bomb arbitrary inboxes every cooldown window.
+	 */
+	const RESEND_IP_LIMIT  = 5;
+	const RESEND_IP_WINDOW = 600; // 10 minutes.
+
 	public static function init() {
 		add_action( 'wp_ajax_nopriv_sml_register', array( __CLASS__, 'ajax_register' ) );
 		add_action( 'wp_ajax_nopriv_sml_verify_code', array( __CLASS__, 'ajax_verify_code' ) );
@@ -44,6 +52,17 @@ class SML_Registration_Handler {
 
 		if ( ! $first_name || ! $last_name || ! $email || ! $phone_number || ! $password ) {
 			wp_send_json_error( array( 'message' => __( 'Please fill in all fields.', 'smart-login' ) ) );
+		}
+
+		// Same minimum the password-reset flow enforces — a form that gates
+		// Cart and Checkout must not accept a one-character password.
+		if ( strlen( $password ) < SML_Password_Reset_Handler::MIN_PASSWORD_LENGTH ) {
+			wp_send_json_error(
+				array(
+					/* translators: %d: minimum password length */
+					'message' => sprintf( __( 'Password must be at least %d characters.', 'smart-login' ), SML_Password_Reset_Handler::MIN_PASSWORD_LENGTH ),
+				)
+			);
 		}
 
 		if ( ! is_email( $email ) ) {
@@ -90,7 +109,7 @@ class SML_Registration_Handler {
 				'first_name'  => $first_name,
 				'last_name'   => $last_name,
 				'display_name' => trim( $first_name . ' ' . $last_name ),
-				'role'        => SML_Settings::get( 'default_role', 'subscriber' ),
+				'role'        => SML_Settings::safe_default_role(),
 			)
 		);
 		remove_filter( 'pre_wp_mail', '__return_true' );
@@ -137,10 +156,22 @@ class SML_Registration_Handler {
 		$user = get_user_by( 'id', $user_id );
 		SML_Email::send_welcome( $user );
 
+		$redirect_to = SML_Page_Guard::validate_redirect( isset( $_POST['redirect_to'] ) ? wp_unslash( $_POST['redirect_to'] ) : '' );
+
+		// "Roles allowed to log in" must gate every path that opens a
+		// session, not just ajax_login() — the email is now verified, but a
+		// disallowed role is not signed in through this form.
+		if ( ! SML_Login_Handler::role_allowed( $user ) ) {
+			wp_send_json_error(
+				array(
+					'message'  => __( 'Your email has been verified, but your account type is not permitted to sign in through this form.', 'smart-login' ),
+					'redirect' => $redirect_to ?: wp_login_url(),
+				)
+			);
+		}
+
 		wp_set_current_user( $user_id );
 		wp_set_auth_cookie( $user_id );
-
-		$redirect_to = SML_Page_Guard::validate_redirect( isset( $_POST['redirect_to'] ) ? wp_unslash( $_POST['redirect_to'] ) : '' );
 
 		wp_send_json_success(
 			array(
@@ -153,41 +184,50 @@ class SML_Registration_Handler {
 	public static function ajax_resend() {
 		check_ajax_referer( self::NONCE_ACTION, 'nonce' );
 
-		$user_id = isset( $_POST['user_id'] ) ? absint( $_POST['user_id'] ) : 0;
-		if ( ! $user_id ) {
-			wp_send_json_error( array( 'message' => __( 'Missing user.', 'smart-login' ) ) );
-		}
+		$user_id          = isset( $_POST['user_id'] ) ? absint( $_POST['user_id'] ) : 0;
+		$cooldown_seconds = (int) SML_Settings::get( 'resend_cooldown_seconds', 120 );
+		$code_expiry      = (int) SML_Settings::get( 'code_expiry_minutes', 10 );
 
-		$user = get_user_by( 'id', $user_id );
-		if ( ! $user ) {
-			wp_send_json_error( array( 'message' => __( 'Account not found.', 'smart-login' ) ) );
-		}
-
-		if ( SML_Verification::is_verified( $user_id ) ) {
-			wp_send_json_error( array( 'message' => __( 'This account is already verified.', 'smart-login' ) ) );
-		}
-
-		$cooldown_check = SML_Verification::check_resend_cooldown( $user_id );
-		if ( is_wp_error( $cooldown_check ) ) {
-			wp_send_json_error(
-				array(
-					'message'   => $cooldown_check->get_error_message(),
-					'remaining' => $cooldown_check->get_error_data()['remaining'],
-				)
-			);
-		}
-
-		$redirect_to = SML_Page_Guard::validate_redirect( isset( $_POST['redirect_to'] ) ? wp_unslash( $_POST['redirect_to'] ) : '' );
-
-		$issued = SML_Verification::issue( $user_id );
-		SML_Email::send_verification( $user, $issued['code'], $issued['token'], true, $redirect_to );
-
-		wp_send_json_success(
-			array(
-				'code_expires_at'  => $issued['code_expires_at'] * 1000,
-				'resend_available' => ( time() + (int) SML_Settings::get( 'resend_cooldown_seconds', 60 ) ) * 1000,
-			)
+		// Default payload for every non-issuing outcome — a missing account,
+		// an already-verified account, and a genuine resend all return the
+		// same shape so the endpoint can't be used to probe account state
+		// (the forgot-password flow is enumeration-safe the same way).
+		$response = array(
+			'code_expires_at'  => ( time() + $code_expiry * MINUTE_IN_SECONDS ) * 1000,
+			'resend_available' => ( time() + $cooldown_seconds ) * 1000,
 		);
+
+		// IP-scoped throttle, independent of the per-account cooldown below.
+		$rate_check = SML_Rate_Limit::check( 'resend', self::RESEND_IP_LIMIT, self::RESEND_IP_WINDOW );
+		if ( is_wp_error( $rate_check ) ) {
+			wp_send_json_error( array( 'message' => $rate_check->get_error_message() ) );
+		}
+		SML_Rate_Limit::record( 'resend', self::RESEND_IP_WINDOW );
+
+		$user = $user_id ? get_user_by( 'id', $user_id ) : false;
+
+		// Only a real, still-unverified account actually gets another email.
+		if ( $user && ! SML_Verification::is_verified( $user_id ) ) {
+			$cooldown_check = SML_Verification::check_resend_cooldown( $user_id );
+			if ( is_wp_error( $cooldown_check ) ) {
+				wp_send_json_error(
+					array(
+						'message'   => $cooldown_check->get_error_message(),
+						'remaining' => $cooldown_check->get_error_data()['remaining'],
+					)
+				);
+			}
+
+			$redirect_to = SML_Page_Guard::validate_redirect( isset( $_POST['redirect_to'] ) ? wp_unslash( $_POST['redirect_to'] ) : '' );
+
+			$issued = SML_Verification::issue( $user_id );
+			SML_Email::send_verification( $user, $issued['code'], $issued['token'], true, $redirect_to );
+
+			$response['code_expires_at']  = $issued['code_expires_at'] * 1000;
+			$response['resend_available'] = ( time() + $cooldown_seconds ) * 1000;
+		}
+
+		wp_send_json_success( $response );
 	}
 
 	/**

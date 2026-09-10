@@ -20,6 +20,14 @@ class SML_Password_Reset_Handler {
 	/** @var int Minimum length for a new password. */
 	const MIN_PASSWORD_LENGTH = 8;
 
+	/**
+	 * IP-scoped ceiling on reset-link requests. WordPress core does not
+	 * meaningfully throttle get_password_reset_key(); the enumeration-safe
+	 * response defends against discovery, not against volume abuse.
+	 */
+	const FORGOT_IP_LIMIT  = 5;
+	const FORGOT_IP_WINDOW = 900; // 15 minutes.
+
 	public static function init() {
 		add_action( 'wp_ajax_nopriv_sml_forgot_password', array( __CLASS__, 'ajax_forgot_password' ) );
 		add_action( 'wp_ajax_nopriv_sml_reset_password', array( __CLASS__, 'ajax_reset_password' ) );
@@ -33,6 +41,12 @@ class SML_Password_Reset_Handler {
 		if ( ! $login ) {
 			wp_send_json_error( array( 'message' => __( 'Please enter your email address.', 'smart-login' ) ) );
 		}
+
+		$rate_check = SML_Rate_Limit::check( 'forgot', self::FORGOT_IP_LIMIT, self::FORGOT_IP_WINDOW );
+		if ( is_wp_error( $rate_check ) ) {
+			wp_send_json_error( array( 'message' => $rate_check->get_error_message() ) );
+		}
+		SML_Rate_Limit::record( 'forgot', self::FORGOT_IP_WINDOW );
 
 		$user        = is_email( $login ) ? get_user_by( 'email', $login ) : get_user_by( 'login', $login );
 		$redirect_to = SML_Page_Guard::validate_redirect( isset( $_POST['redirect_to'] ) ? wp_unslash( $_POST['redirect_to'] ) : '' );
@@ -104,10 +118,22 @@ class SML_Password_Reset_Handler {
 			update_user_meta( $user->ID, 'sml_email_verified', 1 );
 		}
 
+		$redirect_to = SML_Page_Guard::validate_redirect( isset( $_POST['redirect_to'] ) ? wp_unslash( $_POST['redirect_to'] ) : '' );
+
+		// Mirror ajax_login()/ajax_verify_code(): the password change stands,
+		// but a role excluded by "Roles allowed to log in" is not signed in
+		// through this form.
+		if ( ! SML_Login_Handler::role_allowed( $user ) ) {
+			wp_send_json_error(
+				array(
+					'message'  => __( 'Your password has been reset, but your account type is not permitted to sign in through this form.', 'smart-login' ),
+					'redirect' => $redirect_to ?: wp_login_url(),
+				)
+			);
+		}
+
 		wp_set_current_user( $user->ID );
 		wp_set_auth_cookie( $user->ID );
-
-		$redirect_to = SML_Page_Guard::validate_redirect( isset( $_POST['redirect_to'] ) ? wp_unslash( $_POST['redirect_to'] ) : '' );
 
 		wp_send_json_success(
 			array(

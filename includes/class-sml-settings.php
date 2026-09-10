@@ -92,4 +92,25 @@ class SML_Settings {
 		$all = self::all();
 		return array_key_exists( $key, $all ) ? $all[ $key ] : $fallback;
 	}
+
+	/**
+	 * The configured default role for self-registered users, but never one
+	 * that can administer the site. A mis-set `default_role` (misconfig, or
+	 * a tampered option row) would otherwise turn open registration into
+	 * instant privilege escalation, so the admin dropdown hides privileged
+	 * roles and this getter is the matching enforcement at point of use.
+	 * Falls back to 'subscriber'.
+	 *
+	 * @return string
+	 */
+	public static function safe_default_role() {
+		$role_key = (string) self::get( 'default_role', 'subscriber' );
+		$role     = get_role( $role_key );
+
+		if ( ! $role || $role->has_cap( 'manage_options' ) || $role->has_cap( 'edit_users' ) ) {
+			return 'subscriber';
+		}
+
+		return $role_key;
+	}
 }

@@ -138,10 +138,14 @@ class SML_Login_Handler {
 	 * Login form. An empty setting means no restriction — every role is
 	 * allowed — so an unconfigured site never locks anyone out by accident.
 	 *
+	 * Shared with the verification and password-reset handlers so the
+	 * restriction covers every code path that opens a session, not only
+	 * this one.
+	 *
 	 * @param WP_User $user
 	 * @return bool
 	 */
-	protected static function role_allowed( WP_User $user ) {
+	public static function role_allowed( WP_User $user ) {
 		$allowed = array_filter( array_map( 'trim', explode( ',', (string) SML_Settings::get( 'allowed_login_roles', '' ) ) ) );
 		if ( ! $allowed ) {
 			return true;

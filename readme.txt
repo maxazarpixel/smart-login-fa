@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.9.1
+Stable tag: 1.10.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -30,6 +30,13 @@ Highlights:
 * PHP 8.0+
 * WooCommerce is optional and soft-detected.
 
+= Security notes =
+
+* Registration enforces an 8-character minimum password length, matching the password-reset flow.
+* Login lockout and the resend / reset rate limits are keyed on `REMOTE_ADDR`. Behind a reverse proxy or CDN, configure your server so `REMOTE_ADDR` is the real client IP (e.g. Apache `mod_remoteip`, nginx `real_ip`, or your platform's trusted-proxy setting). Smart Login never reads `X-Forwarded-For` directly, because a client can spoof it.
+* The honeypot time-trap filters only unsophisticated bots. For a public site, also enable a bot-protection provider (reCAPTCHA v3 or Turnstile) under Settings → Security.
+* Distributed, IP-rotating credential stuffing against a single account is best mitigated at the edge (WAF, Cloudflare, fail2ban). The built-in lockout is per (IP, username) by design, so a targeted lock-out-the-victim attack is not possible through it.
+
 == Installation ==
 
 1. Upload the `smart-login` folder to `/wp-content/plugins/`.
@@ -38,6 +45,16 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.10.0 =
+* Security: registration now enforces the same 8-character minimum password length that the reset flow already required — the form gates Cart and Checkout, so a one-character password there was a real account-takeover path.
+* Security: the bot-protection secret key is no longer returned in plaintext by the settings REST endpoint. The read path now returns the same "unchanged" placeholder the save path already used, so an untouched round-trip still leaves the stored value alone.
+* Security: added IP-scoped rate limiting on top of the existing per-account cooldowns — 5 verification-email resends per 10 minutes, and 5 password-reset-link requests per 15 minutes, per client IP. Blunts email-bombing and reset-link volume abuse aimed at arbitrary accounts.
+* Security: the "Resend verification email" endpoint is now enumeration-safe. A missing account, an already-verified account, and a genuine resend all return the same response; only a real, still-unverified account triggers another email.
+* Security: "Roles allowed to log in" is now enforced on the email-verification and password-reset sign-in paths too, not only the login form. The verification or password change still completes; the session is just not established for a disallowed role.
+* Security: the "Default role for new users" setting no longer lists roles that can administer the site (manage_options / edit_users), and registration falls back to Subscriber if a privileged role is somehow still stored — closing a self-registration privilege-escalation footgun.
+* Docs: clarified that the honeypot time-trap is a minor deterrent only (recommend a bot-protection provider for public sites), and that lockout / rate limiting depend on REMOTE_ADDR being the real client IP behind a proxy or CDN. X-Forwarded-For is deliberately not trusted.
+* Note: distributed (IP-rotating) credential stuffing against a single username is still best handled at the edge (WAF / Cloudflare / fail2ban); an IP-independent per-username lockout was considered but not added, since it would let an attacker lock a known user out on purpose.
 
 = 1.7.1 =
 * A login attempt with correct credentials but an unverified email now drops the user straight onto the verify-code screen (with a fresh code just sent) instead of showing an error and leaving them on the login form. Removed the now-unused inline "Resend verification email" prompt this replaces.

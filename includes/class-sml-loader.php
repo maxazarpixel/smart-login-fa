@@ -63,6 +63,7 @@ class SML_Loader {
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-verification.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-email.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-lockout.php';
+		require_once SML_PLUGIN_DIR . 'includes/class-sml-rate-limit.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-login-handler.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-registration-handler.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-password-reset-handler.php';
