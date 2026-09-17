@@ -70,6 +70,22 @@ class SML_Email {
 	}
 
 	/**
+	 * Sent once, when a Google identity is first linked to an existing
+	 * account. Linking means that account can from then on be signed into
+	 * without its WordPress password, so the owner is told it happened —
+	 * this is the only signal they would otherwise get.
+	 *
+	 * @param WP_User $user
+	 * @return bool
+	 */
+	public static function send_google_linked( WP_User $user ) {
+		$subject = self::substitute( SML_Settings::get( 'google_linked_subject' ), $user );
+		$body    = self::substitute( SML_Settings::get( 'google_linked_body' ), $user );
+
+		return self::send( $user->user_email, $subject, $body );
+	}
+
+	/**
 	 * @param WP_User $user
 	 * @param string  $reset_url
 	 * @return bool
@@ -214,16 +230,17 @@ class SML_Email {
 	 * the admin "Preview" button. Optional 'subject' / 'body' overrides let
 	 * the preview reflect unsaved edits in the settings form.
 	 *
-	 * @param string $type       verify|resend|welcome|reset
+	 * @param string $type       verify|resend|welcome|reset|google_linked
 	 * @param array  $overrides  Optional 'subject', 'body'.
 	 * @return string Full HTML document.
 	 */
 	public static function render_preview( $type, array $overrides = array() ) {
 		$map = array(
-			'verify'  => array( 'verify_subject', 'verify_body', true, true ),
-			'resend'  => array( 'resend_subject', 'resend_body', true, true ),
-			'welcome' => array( 'welcome_subject', 'welcome_body', false, false ),
-			'reset'   => array( 'reset_subject', 'reset_body', false, true ),
+			'verify'        => array( 'verify_subject', 'verify_body', true, true ),
+			'resend'        => array( 'resend_subject', 'resend_body', true, true ),
+			'welcome'       => array( 'welcome_subject', 'welcome_body', false, false ),
+			'reset'         => array( 'reset_subject', 'reset_body', false, true ),
+			'google_linked' => array( 'google_linked_subject', 'google_linked_body', false, false ),
 		);
 		if ( ! isset( $map[ $type ] ) ) {
 			$type = 'verify';

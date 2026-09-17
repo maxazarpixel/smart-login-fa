@@ -161,6 +161,9 @@ class SML_Loader {
 		update_user_meta( $user->ID, 'sml_last_login', time() );
 	}
 
+	/** Rotate once the log passes this size; one previous file is kept. */
+	const LOG_MAX_BYTES = 2097152; // 2 MB.
+
 	/**
 	 * Writes to a dedicated log file under wp-content/uploads/smart-login-logs/
 	 * — never to PHP's error_log directly, and never with secrets/codes in
@@ -169,16 +172,88 @@ class SML_Loader {
 	 * @param string $message
 	 */
 	public static function log( $message ) {
-		$upload_dir = wp_upload_dir();
-		$log_dir    = trailingslashit( $upload_dir['basedir'] ) . 'smart-login-logs';
+		$log_dir = self::log_dir();
+		if ( ! $log_dir ) {
+			return;
+		}
 
-		if ( ! file_exists( $log_dir ) ) {
-			wp_mkdir_p( $log_dir );
-			file_put_contents( $log_dir . '/.htaccess', 'deny from all' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+		$file = trailingslashit( $log_dir ) . self::log_filename();
+
+		self::maybe_rotate( $file );
+
+		$line = sprintf( '[%s] %s' . PHP_EOL, gmdate( 'Y-m-d H:i:s' ), $message );
+		file_put_contents( $file, $line, FILE_APPEND | LOCK_EX ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+	}
+
+	/**
+	 * The log directory, created on first use with deny rules for both
+	 * Apache (.htaccess) and IIS (web.config).
+	 *
+	 * @return string Absolute path, or '' when it could not be created.
+	 */
+	protected static function log_dir() {
+		$upload_dir = wp_upload_dir();
+		if ( ! empty( $upload_dir['error'] ) ) {
+			return '';
+		}
+
+		$log_dir = trailingslashit( $upload_dir['basedir'] ) . 'smart-login-logs';
+
+		if ( ! file_exists( $log_dir ) && ! wp_mkdir_p( $log_dir ) ) {
+			return '';
+		}
+
+		if ( ! file_exists( $log_dir . '/.htaccess' ) ) {
+			file_put_contents( $log_dir . '/.htaccess', "Order deny,allow\nDeny from all" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+		}
+		// nginx ignores .htaccess entirely and IIS needs its own rule, which
+		// is why the filename below is unguessable rather than trusting any
+		// single server's deny directive to be honoured.
+		if ( ! file_exists( $log_dir . '/web.config' ) ) {
+			file_put_contents( // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+				$log_dir . '/web.config',
+				'<?xml version="1.0" encoding="UTF-8"?><configuration><system.webServer><authorization>'
+					. '<deny users="*" /></authorization></system.webServer></configuration>'
+			);
+		}
+		if ( ! file_exists( $log_dir . '/index.php' ) ) {
 			file_put_contents( $log_dir . '/index.php', '<?php // Silence is golden.' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
 		}
 
-		$line = sprintf( '[%s] %s' . PHP_EOL, gmdate( 'Y-m-d H:i:s' ), $message );
-		file_put_contents( $log_dir . '/debug.log', $line, FILE_APPEND | LOCK_EX ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+		return $log_dir;
+	}
+
+	/**
+	 * Log filename carrying a per-site random suffix, so the file is not
+	 * guessable from the outside even on a server that serves it happily.
+	 * The suffix is generated once and stored alongside the settings.
+	 *
+	 * @return string
+	 */
+	protected static function log_filename() {
+		$key = get_option( 'sml_log_key' );
+
+		if ( ! $key || ! is_string( $key ) ) {
+			$key = wp_generate_password( 20, false, false );
+			update_option( 'sml_log_key', $key, false );
+		}
+
+		return 'debug-' . sanitize_key( $key ) . '.log';
+	}
+
+	/**
+	 * @param string $file
+	 */
+	protected static function maybe_rotate( $file ) {
+		if ( ! file_exists( $file ) || filesize( $file ) < self::LOG_MAX_BYTES ) {
+			return;
+		}
+
+		$previous = $file . '.1';
+		if ( file_exists( $previous ) ) {
+			wp_delete_file( $previous );
+		}
+
+		@rename( $file, $previous ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 	}
 }

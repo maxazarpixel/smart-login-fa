@@ -209,13 +209,17 @@ class SML_Registration_Handler {
 		// Only a real, still-unverified account actually gets another email.
 		if ( $user && ! SML_Verification::is_verified( $user_id ) ) {
 			$cooldown_check = SML_Verification::check_resend_cooldown( $user_id );
+
 			if ( is_wp_error( $cooldown_check ) ) {
-				wp_send_json_error(
-					array(
-						'message'   => $cooldown_check->get_error_message(),
-						'remaining' => $cooldown_check->get_error_data()['remaining'],
-					)
-				);
+				// Still inside the per-account cooldown: no email goes out,
+				// and the answer is the untouched generic payload. Returning
+				// either a "wait N seconds" error or the true remaining time
+				// would confirm that this user ID exists and is unverified —
+				// exactly the probe the uniform response exists to prevent.
+				// The cost is that a real user mid-cooldown sees a countdown
+				// up to one full cooldown long rather than the exact
+				// remainder; the resend still works the moment it elapses.
+				wp_send_json_success( $response );
 			}
 
 			$redirect_to = SML_Page_Guard::validate_redirect( isset( $_POST['redirect_to'] ) ? wp_unslash( $_POST['redirect_to'] ) : '' );

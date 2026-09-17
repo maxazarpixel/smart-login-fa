@@ -36,6 +36,9 @@ class SML_Settings {
 			'enable_google_login'      => 0,
 			'google_client_id'         => '',
 			'google_client_secret'     => '',
+			'google_link_existing'     => 1,
+			'google_allow_admin_roles' => 0,
+			'google_remember_session'  => 1,
 
 			// Verification.
 			'code_length'              => 6,
@@ -68,6 +71,8 @@ class SML_Settings {
 			'welcome_body'             => __( 'Hi {user},\n\nYour email has been verified and your account is now active.', 'smart-login' ),
 			'reset_subject'            => __( 'Reset your password for {site_name}', 'smart-login' ),
 			'reset_body'               => __( "Hi {user},\n\nWe received a request to reset your password. This link can only be used once and expires soon.\n\n{link}\n\nIf you didn't request this, you can safely ignore this email — your password won't be changed.", 'smart-login' ),
+			'google_linked_subject'    => __( 'Google sign-in was added to your {site_name} account', 'smart-login' ),
+			'google_linked_body'       => __( "Hi {user},\n\nYour Google account was just linked to your {site_name} account, so you can now sign in with Google as well as with your password.\n\nIf this wasn't you, reset your password straight away and contact us.", 'smart-login' ),
 			'email_footer_name'        => '',
 			'email_footer_text'        => '',
 

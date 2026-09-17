@@ -255,6 +255,30 @@ class SML_Admin_Page extends APX_Admin_Page {
 						array( 'type' => 'password', 'name' => 'google_client_secret', 'label' => __( 'Client secret', 'smart-login' ), 'secret' => true, 'desc' => __( 'Stored with autoload disabled and never rendered back in plaintext. Leave blank to keep the current value.', 'smart-login' ) ),
 					),
 				),
+				array(
+					'heading' => __( 'Access &amp; account linking', 'smart-login' ),
+					'desc'    => __( 'Google sign-in does not go through the normal WordPress login, so plugins that add two-factor authentication there do not run on it. These settings decide how far that shortcut is allowed to reach.', 'smart-login' ),
+					'fields'  => array(
+						array(
+							'type'  => 'toggle',
+							'name'  => 'google_link_existing',
+							'label' => __( 'Link Google to existing accounts', 'smart-login' ),
+							'desc'  => __( 'When someone signs in with a Google address that already has an account here, connect the two. Google confirms the address belongs to them first. Turning this off means those visitors must use their password instead. The account owner is emailed the first time a link is made.', 'smart-login' ),
+						),
+						array(
+							'type'  => 'toggle',
+							'name'  => 'google_allow_admin_roles',
+							'label' => __( 'Allow Google sign-in for site administrators', 'smart-login' ),
+							'desc'  => __( 'Off by default, and best left off: with it on, anyone who controls an administrator\'s Google mailbox can sign in as that administrator without the WordPress password and without any second factor.', 'smart-login' ),
+						),
+						array(
+							'type'  => 'toggle',
+							'name'  => 'google_remember_session',
+							'label' => __( 'Keep Google sign-ins signed in', 'smart-login' ),
+							'desc'  => __( 'Stay signed in for 14 days after a Google sign-in. Turn off for shared or public computers, so the session ends when the browser closes.', 'smart-login' ),
+						),
+					),
+				),
 			),
 		);
 	}
@@ -458,6 +482,15 @@ class SML_Admin_Page extends APX_Admin_Page {
 						array( 'type' => 'text', 'name' => 'reset_subject', 'label' => __( 'Subject', 'smart-login' ) ),
 						array( 'type' => 'textarea', 'name' => 'reset_body', 'label' => __( 'Body', 'smart-login' ) ),
 						array( 'type' => 'html', 'html' => $this->email_preview_button( 'reset' ) ),
+					),
+				),
+				array(
+					'heading' => __( 'Google linked email', 'smart-login' ),
+					'desc'    => __( 'Sent once, the first time a Google account is linked to an existing account — that account can be signed into without its password from then on, so its owner is told.', 'smart-login' ),
+					'fields'  => array(
+						array( 'type' => 'text', 'name' => 'google_linked_subject', 'label' => __( 'Subject', 'smart-login' ) ),
+						array( 'type' => 'textarea', 'name' => 'google_linked_body', 'label' => __( 'Body', 'smart-login' ) ),
+						array( 'type' => 'html', 'html' => $this->email_preview_button( 'google_linked' ) ),
 					),
 				),
 			),

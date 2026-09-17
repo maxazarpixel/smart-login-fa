@@ -30,6 +30,15 @@ class SML_Google_Auth {
 	/** How long a start->callback round trip has to complete. */
 	const STATE_TTL = 10 * MINUTE_IN_SECONDS;
 
+	/**
+	 * Holds the same state token the transient is keyed on. The transient
+	 * alone only proves the state was issued by this site — not that it was
+	 * issued to *this browser*. Without that second half an attacker could
+	 * run the flow themselves, then hand their own state + code to a victim
+	 * and silently sign the victim's browser into the attacker's account.
+	 */
+	const STATE_COOKIE = 'sml_google_state';
+
 	public static function init() {
 		add_action( 'init', array( __CLASS__, 'handle_request' ) );
 	}
@@ -128,18 +137,35 @@ class SML_Google_Auth {
 			isset( $_GET['redirect_to'] ) ? wp_unslash( $_GET['redirect_to'] ) : '' // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		);
 
-		$state = wp_generate_password( 32, false, false );
-		set_transient( 'sml_google_state_' . $state, array( 'redirect_to' => $redirect_to ), self::STATE_TTL );
+		$state    = wp_generate_password( 32, false, false );
+		$verifier = self::pkce_verifier();
+
+		set_transient(
+			'sml_google_state_' . $state,
+			array(
+				'redirect_to' => $redirect_to,
+				'verifier'    => $verifier,
+			),
+			self::STATE_TTL
+		);
+
+		self::set_state_cookie( $state );
 
 		$url = add_query_arg(
 			array(
-				'client_id'     => rawurlencode( (string) SML_Settings::get( 'google_client_id' ) ),
-				'redirect_uri'  => rawurlencode( self::callback_url() ),
-				'response_type' => 'code',
-				'scope'         => rawurlencode( 'openid email profile' ),
-				'state'         => $state,
-				'access_type'   => 'online',
-				'prompt'        => 'select_account',
+				'client_id'             => rawurlencode( (string) SML_Settings::get( 'google_client_id' ) ),
+				'redirect_uri'          => rawurlencode( self::callback_url() ),
+				'response_type'         => 'code',
+				'scope'                 => rawurlencode( 'openid email profile' ),
+				'state'                 => $state,
+				'access_type'           => 'online',
+				'prompt'                => 'select_account',
+				// PKCE. Not strictly required for a confidential client that
+				// exchanges the code with its secret, but it is the OAuth 2.1
+				// baseline and costs one hash: a stolen code is useless
+				// without the verifier, which never leaves this server.
+				'code_challenge'        => self::pkce_challenge( $verifier ),
+				'code_challenge_method' => 'S256',
 			),
 			self::AUTH_ENDPOINT
 		);
@@ -153,11 +179,14 @@ class SML_Google_Auth {
 	 * user, sign them in, and land on the original destination.
 	 */
 	protected static function callback() {
-		$state_key = isset( $_GET['state'] ) ? sanitize_text_field( wp_unslash( $_GET['state'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$stashed   = $state_key ? get_transient( 'sml_google_state_' . $state_key ) : false;
+		$state_key    = isset( $_GET['state'] ) ? sanitize_text_field( wp_unslash( $_GET['state'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$cookie_state = isset( $_COOKIE[ self::STATE_COOKIE ] ) ? sanitize_text_field( wp_unslash( $_COOKIE[ self::STATE_COOKIE ] ) ) : '';
+		$stashed      = $state_key ? get_transient( 'sml_google_state_' . $state_key ) : false;
+
 		if ( $state_key ) {
 			delete_transient( 'sml_google_state_' . $state_key ); // one-time use either way
 		}
+		self::clear_state_cookie();
 
 		$redirect_to = ( is_array( $stashed ) && ! empty( $stashed['redirect_to'] ) ) ? $stashed['redirect_to'] : '';
 		$landing     = $redirect_to ? $redirect_to : ( SML_Settings::post_login_redirect_url() ?: home_url( '/' ) );
@@ -169,12 +198,19 @@ class SML_Google_Auth {
 			self::fail( $landing, 'state' );
 		}
 
+		// Both halves of the state must agree: the server-side transient says
+		// this site issued it, the cookie says it was issued to this browser.
+		// A state replayed into someone else's browser fails here.
+		if ( ! $cookie_state || ! hash_equals( $cookie_state, $state_key ) ) {
+			self::fail( $landing, 'state' );
+		}
+
 		$code = isset( $_GET['code'] ) ? sanitize_text_field( wp_unslash( $_GET['code'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( ! $code ) {
 			self::fail( $landing, 'state' );
 		}
 
-		$token = self::exchange_code( $code );
+		$token = self::exchange_code( $code, isset( $stashed['verifier'] ) ? (string) $stashed['verifier'] : '' );
 		if ( is_wp_error( $token ) ) {
 			SML_Loader::log( 'Google OAuth: ' . $token->get_error_message() );
 			self::fail( $landing, 'token' );
@@ -195,8 +231,12 @@ class SML_Google_Auth {
 			self::fail( $landing, 'role' );
 		}
 
+		if ( ! self::login_permitted( $user ) ) {
+			self::fail( $landing, 'sml_google_blocked' );
+		}
+
 		wp_set_current_user( $user->ID );
-		wp_set_auth_cookie( $user->ID, true );
+		wp_set_auth_cookie( $user->ID, (bool) SML_Settings::get( 'google_remember_session', 1 ) );
 		// Not fired automatically by wp_set_auth_cookie() — other plugins
 		// (WooCommerce cart merge, this plugin's own "recent logins") hook
 		// wp_login, same as every other sign-in path in this plugin.
@@ -219,20 +259,27 @@ class SML_Google_Auth {
 
 	/**
 	 * @param string $code
+	 * @param string $verifier PKCE code verifier issued alongside the state.
 	 * @return array|WP_Error Decoded token response, or an error.
 	 */
-	protected static function exchange_code( $code ) {
+	protected static function exchange_code( $code, $verifier = '' ) {
+		$body = array(
+			'code'          => $code,
+			'client_id'     => (string) SML_Settings::get( 'google_client_id' ),
+			'client_secret' => (string) SML_Settings::get( 'google_client_secret' ),
+			'redirect_uri'  => self::callback_url(),
+			'grant_type'    => 'authorization_code',
+		);
+
+		if ( '' !== $verifier ) {
+			$body['code_verifier'] = $verifier;
+		}
+
 		$response = wp_remote_post(
 			self::TOKEN_ENDPOINT,
 			array(
 				'timeout' => 15,
-				'body'    => array(
-					'code'          => $code,
-					'client_id'     => (string) SML_Settings::get( 'google_client_id' ),
-					'client_secret' => (string) SML_Settings::get( 'google_client_secret' ),
-					'redirect_uri'  => self::callback_url(),
-					'grant_type'    => 'authorization_code',
-				),
+				'body'    => $body,
 			)
 		);
 
@@ -243,10 +290,108 @@ class SML_Google_Auth {
 		$body = json_decode( (string) wp_remote_retrieve_body( $response ), true );
 
 		if ( 200 !== (int) wp_remote_retrieve_response_code( $response ) || empty( $body['access_token'] ) ) {
-			return new WP_Error( 'sml_google_token', 'Token exchange failed: ' . wp_remote_retrieve_body( $response ) );
+			// Only Google's own error code is surfaced, never the whole
+			// response body — this string ends up in the debug log.
+			$reason = is_array( $body ) && ! empty( $body['error'] )
+				? (string) $body['error']
+				: 'unexpected response';
+
+			return new WP_Error( 'sml_google_token', 'Token exchange failed: ' . $reason );
 		}
 
 		return $body;
+	}
+
+	/* ── state cookie + PKCE ─────────────────────────────────────────── */
+
+	/**
+	 * @param string $state
+	 */
+	protected static function set_state_cookie( $state ) {
+		setcookie( self::STATE_COOKIE, $state, self::cookie_options( time() + self::STATE_TTL ) );
+	}
+
+	protected static function clear_state_cookie() {
+		setcookie( self::STATE_COOKIE, '', self::cookie_options( time() - YEAR_IN_SECONDS ) );
+	}
+
+	/**
+	 * @param int $expires
+	 * @return array setcookie() options.
+	 */
+	protected static function cookie_options( $expires ) {
+		return array(
+			'expires'  => $expires,
+			'path'     => COOKIEPATH ? COOKIEPATH : '/',
+			// COOKIE_DOMAIN is false on a single-site install; setcookie()
+			// wants a string.
+			'domain'   => COOKIE_DOMAIN ? COOKIE_DOMAIN : '',
+			'secure'   => is_ssl(),
+			'httponly' => true,
+			// Lax, not Strict: Google's return trip is a top-level GET
+			// navigation from an external origin, which Strict would strip the
+			// cookie from — breaking every sign-in.
+			'samesite' => 'Lax',
+		);
+	}
+
+	/**
+	 * @return string RFC 7636 code verifier (43-128 chars, URL-safe).
+	 */
+	protected static function pkce_verifier() {
+		return self::base64url( random_bytes( 48 ) );
+	}
+
+	/**
+	 * @param string $verifier
+	 * @return string S256 challenge for the given verifier.
+	 */
+	protected static function pkce_challenge( $verifier ) {
+		return self::base64url( hash( 'sha256', $verifier, true ) );
+	}
+
+	/**
+	 * @param string $raw
+	 * @return string
+	 */
+	protected static function base64url( $raw ) {
+		return rtrim( strtr( base64_encode( $raw ), '+/', '-_' ), '=' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+	}
+
+	/* ── access control ──────────────────────────────────────────────── */
+
+	/**
+	 * Whether this resolved Google identity may actually open a session.
+	 *
+	 * Google sign-in never passes through wp_signon()/wp_authenticate(), so
+	 * nothing on the `authenticate` filter chain — a 2FA plugin included —
+	 * gets a say by default. Two guards make up for that: an account that can
+	 * administer the site is excluded unless an admin explicitly opts in
+	 * (a password plus a second factor should not collapse into "whoever
+	 * controls the mailbox"), and `sml_google_allow_login` hands other
+	 * plugins the veto they would normally have had.
+	 *
+	 * @param WP_User $user
+	 * @return bool
+	 */
+	public static function login_permitted( WP_User $user ) {
+		$allowed = ! ( self::is_privileged( $user ) && ! SML_Settings::get( 'google_allow_admin_roles' ) );
+
+		/**
+		 * Filters whether a Google-authenticated user may be signed in.
+		 *
+		 * @param bool    $allowed
+		 * @param WP_User $user
+		 */
+		return (bool) apply_filters( 'sml_google_allow_login', $allowed, $user );
+	}
+
+	/**
+	 * @param WP_User $user
+	 * @return bool Whether this account can administer the site.
+	 */
+	protected static function is_privileged( WP_User $user ) {
+		return user_can( $user, 'manage_options' ) || user_can( $user, 'edit_users' );
 	}
 
 	/**
@@ -287,7 +432,11 @@ class SML_Google_Auth {
 	 * @return WP_User|WP_Error
 	 */
 	protected static function find_or_create_user( array $profile ) {
-		if ( empty( $profile['email_verified'] ) ) {
+		// Strict, not just truthy: this single field is what licenses the
+		// email-match linking below, so a string "false" from any future or
+		// proxied response must never read as verified.
+		$verified = isset( $profile['email_verified'] ) ? $profile['email_verified'] : null;
+		if ( true !== $verified && 1 !== $verified && 'true' !== $verified && '1' !== $verified ) {
 			return new WP_Error( 'sml_google_unverified', __( "Your Google account's email is not verified.", 'smart-login' ) );
 		}
 
@@ -307,15 +456,36 @@ class SML_Google_Auth {
 			)
 		);
 		if ( $linked ) {
-			return get_userdata( (int) $linked[0] );
+			$user = get_userdata( (int) $linked[0] );
+			if ( $user ) {
+				return $user;
+			}
+			// Meta outlived the account it pointed at; fall through and treat
+			// this as a fresh sign-in rather than handing back `false`.
 		}
 
 		$existing = get_user_by( 'email', $email );
 		if ( $existing ) {
+			// Linking makes the WordPress password optional for this account
+			// from here on, so it is a deliberate choice, not a default, and
+			// never silent.
+			if ( ! SML_Settings::get( 'google_link_existing' ) ) {
+				return new WP_Error( 'sml_google_link_disabled', __( 'An account with that email already exists. Please sign in with your password instead.', 'smart-login' ) );
+			}
+
+			if ( ! self::login_permitted( $existing ) ) {
+				return new WP_Error( 'sml_google_blocked', __( 'This account cannot be accessed with Google sign-in.', 'smart-login' ) );
+			}
+
 			update_user_meta( $existing->ID, 'sml_google_sub', $sub );
 			if ( ! SML_Verification::is_verified( $existing->ID ) ) {
 				SML_Verification::complete( $existing->ID );
 			}
+
+			// First link only — this branch is unreachable once the account
+			// carries a matching `sml_google_sub`.
+			SML_Email::send_google_linked( $existing );
+
 			return $existing;
 		}
 

@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.23.0
+Stable tag: 1.24.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -37,6 +37,8 @@ Highlights:
 * Login lockout and the resend / reset rate limits are keyed on `REMOTE_ADDR`. Behind a reverse proxy or CDN, configure your server so `REMOTE_ADDR` is the real client IP (e.g. Apache `mod_remoteip`, nginx `real_ip`, or your platform's trusted-proxy setting). Smart Login never reads `X-Forwarded-For` directly, because a client can spoof it.
 * The honeypot time-trap filters only unsophisticated bots. For a public site, also enable a bot-protection provider (reCAPTCHA v3 or Turnstile) under Settings → Security.
 * Distributed, IP-rotating credential stuffing against a single account is best mitigated at the edge (WAF, Cloudflare, fail2ban). The built-in lockout is per (IP, username) by design, so a targeted lock-out-the-victim attack is not possible through it.
+* Google sign-in does not pass through WordPress's own login stack, so plugins that add two-factor authentication on the `authenticate` filter do not run on it. Administrator-capable accounts are therefore excluded from Google sign-in unless you turn on "Allow Google sign-in for site administrators", and the `sml_google_allow_login` filter lets a security plugin refuse any Google sign-in.
+* The debug log lives at `wp-content/uploads/smart-login-logs/` under a per-site random filename, with `.htaccess` and `web.config` deny rules. It never contains verification codes or secrets, but it does record recipient addresses of plugin emails — if your host serves that directory, delete the folder after troubleshooting.
 
 == Installation ==
 
@@ -46,6 +48,16 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.24.0 =
+* Security: the Google sign-in state token is now tied to the browser that started the flow, via a short-lived HttpOnly / SameSite=Lax cookie that must match the stored token. Previously the token was only held server-side, so an attacker could start a sign-in, hand their own link to someone else, and silently sign that person's browser into the attacker's account.
+* Security: accounts that can administer the site (manage_options / edit_users) can no longer sign in with Google unless an admin explicitly turns on the new "Allow Google sign-in for site administrators" setting. Google sign-in does not run WordPress's normal login checks, so any two-factor plugin hooked there is skipped — this stops that shortcut reaching an administrator account by default.
+* Security: added the `sml_google_allow_login` filter so security plugins can refuse a Google sign-in, restoring the veto they would normally get from the standard login flow.
+* Security: linking Google to an existing account is now a setting ("Link Google to existing accounts", on by default), and the account owner is emailed the first time it happens — linking means that account can be signed into without its WordPress password, so it is no longer silent. The new message is editable under Settings → Emails → "Google linked email".
+* Security: added PKCE (S256) to the Google OAuth flow, and made the `email_verified` check strict rather than merely truthy — that one field is what licenses matching a Google identity to an existing account by email.
+* Security: the debug log now uses an unguessable per-site filename and ships a `web.config` alongside its `.htaccess`. The previous fixed `debug.log` name was protected only by `.htaccess`, which nginx and IIS ignore — leaving recipient email addresses and diagnostics downloadable on those servers. The log also rotates at 2 MB instead of growing without limit, and Google token errors now log only Google's error code, never the whole response body.
+* Security: the "Resend verification email" endpoint no longer answers differently while an account is inside its cooldown. That difference let the endpoint be used to confirm which user IDs exist and are unverified, which the uniform response was meant to prevent; the countdown the caller sees is unchanged.
+* Added a "Keep Google sign-ins signed in" setting — Google sign-in previously always issued a 14-day persistent session, with no way to shorten it for shared or public computers.
 
 = 1.23.0 =
 * Added "Continue with Google" sign-in / sign-up (Settings → Social Login), off by default. A self-contained OAuth 2.0 module (`SML_Google_Auth`) with its own on/off toggle, Client ID / Secret fields, a one-click JSON-upload that reads a downloaded Google Cloud OAuth client file locally in the browser and fills both fields, and a copyable "Redirect URI" to register in the Google Cloud Console. Matches an existing account by verified email (linking it), or creates a new one — both are marked verified immediately, since Google already proved the email. Respects "Roles allowed to log in" and the registration/disposable-email settings for new accounts.

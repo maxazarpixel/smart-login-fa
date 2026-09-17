@@ -115,6 +115,8 @@ class SML_Shortcode {
 			'sml_google_email'                  => __( 'Google did not return a usable email address.', 'smart-login' ),
 			'sml_google_registration_disabled'  => __( 'New account registration is currently disabled.', 'smart-login' ),
 			'sml_google_disposable'             => __( 'Temporary or disposable email addresses are not allowed.', 'smart-login' ),
+			'sml_google_link_disabled'          => __( 'An account with that email already exists. Please sign in with your password instead.', 'smart-login' ),
+			'sml_google_blocked'                => __( 'This account cannot be accessed with Google sign-in. Please sign in with your password.', 'smart-login' ),
 		);
 
 		return isset( $messages[ $code ] ) ? $messages[ $code ] : __( 'Google sign-in failed. Please try again.', 'smart-login' );
