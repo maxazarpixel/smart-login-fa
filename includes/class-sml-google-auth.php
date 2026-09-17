@@ -39,6 +39,16 @@ class SML_Google_Auth {
 	 */
 	const STATE_COOKIE = 'sml_google_state';
 
+	/**
+	 * Which account email this sign-in owes: '' | 'welcome' | 'linked'.
+	 * Set while resolving the user, sent only after the auth cookie is on
+	 * the response — mail must never sit between account creation and the
+	 * session that account was created for.
+	 *
+	 * @var string
+	 */
+	protected static $pending_mail = '';
+
 	public static function init() {
 		add_action( 'init', array( __CLASS__, 'handle_request' ) );
 	}
@@ -242,8 +252,32 @@ class SML_Google_Auth {
 		// wp_login, same as every other sign-in path in this plugin.
 		do_action( 'wp_login', $user->user_login, $user );
 
+		// Only now, with the session cookie already on the response. Sending
+		// mail first meant a slow or failing SMTP hop could stall or kill the
+		// request before the cookie was ever set — which is why a brand-new
+		// Google account got created but not signed in, while every later
+		// sign-in (no email to send) worked.
+		self::send_pending_mail( $user );
+
 		wp_safe_redirect( $landing );
 		exit;
+	}
+
+	/**
+	 * Sends whichever account email this sign-in owes, once the session is
+	 * already established. See the call site for why the order matters.
+	 *
+	 * @param WP_User $user
+	 */
+	protected static function send_pending_mail( WP_User $user ) {
+		$pending            = self::$pending_mail;
+		self::$pending_mail = '';
+
+		if ( 'welcome' === $pending ) {
+			SML_Email::send_welcome( $user );
+		} elseif ( 'linked' === $pending ) {
+			SML_Email::send_google_linked( $user );
+		}
 	}
 
 	/**
@@ -483,8 +517,9 @@ class SML_Google_Auth {
 			}
 
 			// First link only — this branch is unreachable once the account
-			// carries a matching `sml_google_sub`.
-			SML_Email::send_google_linked( $existing );
+			// carries a matching `sml_google_sub`. Queued, not sent: see
+			// send_pending_mail().
+			self::$pending_mail = 'linked';
 
 			return $existing;
 		}
@@ -501,6 +536,13 @@ class SML_Google_Auth {
 		$last_name  = isset( $profile['family_name'] ) ? sanitize_text_field( (string) $profile['family_name'] ) : '';
 		$full_name  = isset( $profile['name'] ) ? sanitize_text_field( (string) $profile['name'] ) : trim( $first_name . ' ' . $last_name );
 
+		// WooCommerce (and some themes) hook `user_register` to fire their own
+		// "welcome to the site" email synchronously inside wp_insert_user().
+		// That is a blocking SMTP round trip sitting between creating the
+		// account and signing it in, and this plugin sends its own welcome
+		// email anyway — so it is suppressed here exactly as the password
+		// registration flow does it.
+		add_filter( 'pre_wp_mail', '__return_true' );
 		$user_id = wp_insert_user(
 			array(
 				'user_login'   => self::generate_username( $first_name, $last_name, $email ),
@@ -512,6 +554,7 @@ class SML_Google_Auth {
 				'role'         => SML_Settings::safe_default_role(),
 			)
 		);
+		remove_filter( 'pre_wp_mail', '__return_true' );
 
 		if ( is_wp_error( $user_id ) ) {
 			return $user_id;
@@ -520,10 +563,10 @@ class SML_Google_Auth {
 		update_user_meta( $user_id, 'sml_google_sub', $sub );
 		update_user_meta( $user_id, 'sml_email_verified', 1 );
 
-		$user = get_userdata( $user_id );
-		SML_Email::send_welcome( $user );
+		// Queued, not sent: see send_pending_mail().
+		self::$pending_mail = 'welcome';
 
-		return $user;
+		return get_userdata( $user_id );
 	}
 
 	/**

@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.24.0
+Stable tag: 1.24.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,9 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.24.1 =
+* Fixed: signing up with Google for the first time created the account but did not sign the visitor in — they had to click "Continue with Google" a second time. The welcome email (and WooCommerce's own new-account email, fired during account creation) were sent before the login cookie was issued, so a slow or failing SMTP hop could stall or end the request in between. The session is now established first and the email sent afterwards, and third-party mail is suppressed during account creation exactly as the password registration flow already does it.
 
 = 1.24.0 =
 * Security: the Google sign-in state token is now tied to the browser that started the flow, via a short-lived HttpOnly / SameSite=Lax cookie that must match the stored token. Previously the token was only held server-side, so an attacker could start a sign-in, hand their own link to someone else, and silently sign that person's browser into the attacker's account.
