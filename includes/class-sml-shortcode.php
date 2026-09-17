@@ -96,6 +96,30 @@ class SML_Shortcode {
 		}
 	}
 
+	/**
+	 * User-facing text for a `?sml_google_error=` code from
+	 * SML_Google_Auth. Any unrecognised code falls back to a generic
+	 * message rather than leaking implementation detail.
+	 *
+	 * @param string $code
+	 * @return string
+	 */
+	protected static function google_error_message( $code ) {
+		$messages = array(
+			'denied'                            => __( 'Google sign-in was cancelled.', 'smart-login' ),
+			'state'                             => __( 'That Google sign-in link has expired. Please try again.', 'smart-login' ),
+			'token'                             => __( 'Could not complete Google sign-in. Please try again.', 'smart-login' ),
+			'profile'                           => __( 'Could not read your Google profile. Please try again.', 'smart-login' ),
+			'role'                              => __( 'Your account type is not permitted to log in through this form.', 'smart-login' ),
+			'sml_google_unverified'             => __( "Your Google account's email is not verified.", 'smart-login' ),
+			'sml_google_email'                  => __( 'Google did not return a usable email address.', 'smart-login' ),
+			'sml_google_registration_disabled'  => __( 'New account registration is currently disabled.', 'smart-login' ),
+			'sml_google_disposable'             => __( 'Temporary or disposable email addresses are not allowed.', 'smart-login' ),
+		);
+
+		return isset( $messages[ $code ] ) ? $messages[ $code ] : __( 'Google sign-in failed. Please try again.', 'smart-login' );
+	}
+
 	public static function render( $atts ) {
 		self::enqueue_assets();
 
@@ -107,6 +131,7 @@ class SML_Shortcode {
 		}
 
 		$verified_status = isset( $_GET['sml_verified'] ) ? sanitize_text_field( wp_unslash( $_GET['sml_verified'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$google_error    = SML_Google_Auth::error_from_request();
 
 		// Where to send the visitor once they're logged in/verified — set
 		// by SML_Page_Guard when a protected page (e.g. Cart, Checkout)
@@ -185,6 +210,10 @@ class SML_Shortcode {
 				<?php endif; ?>
 			<?php endif; ?>
 
+			<?php if ( $google_error ) : ?>
+				<div class="sml-notice sml-notice--error"><?php echo esc_html( self::google_error_message( $google_error ) ); ?></div>
+			<?php endif; ?>
+
 			<div class="sml-message" data-sml-message hidden></div>
 
 			<div class="sml-panel" data-sml-panel="login"<?php echo 'login' === $initial_panel ? '' : ' hidden'; ?>>
@@ -192,6 +221,7 @@ class SML_Shortcode {
 					<div class="sml-heading-line1"><?php esc_html_e( 'Log In', 'smart-login' ); ?></div>
 					<div class="sml-heading-line2"><?php esc_html_e( 'to your account', 'smart-login' ); ?></div>
 				</div>
+				<?php echo SML_Google_Auth::button_html( $redirect_to ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 				<form data-sml-form="login" novalidate>
 					<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>">
 					<div class="sml-field-boxed">
@@ -222,6 +252,7 @@ class SML_Shortcode {
 						<div class="sml-heading-line1"><?php esc_html_e( 'Create Your', 'smart-login' ); ?></div>
 						<div class="sml-heading-line2"><?php esc_html_e( 'Account', 'smart-login' ); ?></div>
 					</div>
+					<?php echo SML_Google_Auth::button_html( $redirect_to ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 					<form data-sml-form="register" novalidate>
 						<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>">
 						<div class="sml-field sml-hp-field" aria-hidden="true">

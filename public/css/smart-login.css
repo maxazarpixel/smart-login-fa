@@ -561,6 +561,45 @@
 	cursor: default;
 }
 
+.sml-btn--google {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	margin-bottom: 16px;
+	background: var(--sml-bg);
+	color: var(--sml-fg);
+	border-color: var(--sml-border);
+}
+
+.sml-btn--google svg {
+	flex: 0 0 auto;
+}
+
+.sml-btn--google:hover {
+	background: var(--sml-surface);
+}
+
+.sml-divider {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 0 0 16px;
+	height: 1px;
+	background: var(--sml-border);
+}
+
+.sml-divider span {
+	position: relative;
+	padding: 0 10px;
+	background: var(--sml-bg);
+	color: var(--sml-muted);
+	font-size: 11.5px;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
 .sml-link-btn {
 	background: none;
 	border: none;

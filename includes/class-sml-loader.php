@@ -58,6 +58,7 @@ class SML_Loader {
 		SML_Password_Reset_Handler::init();
 		SML_Page_Guard::init();
 		SML_Shortcode::init();
+		SML_Google_Auth::init();
 
 		if ( class_exists( 'WooCommerce' ) ) {
 			SML_WooCommerce::init();
@@ -106,6 +107,7 @@ class SML_Loader {
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-page-guard.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-shortcode.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-users-list.php';
+		require_once SML_PLUGIN_DIR . 'includes/class-sml-google-auth.php';
 
 		require_once SML_PLUGIN_DIR . 'includes/providers/interface-sml-bot-protection-provider.php';
 		require_once SML_PLUGIN_DIR . 'includes/providers/class-sml-recaptcha-provider.php';

@@ -32,6 +32,11 @@ class SML_Settings {
 			'disposable_email_domains' => implode( "\n", SML_Disposable_Email::default_domains() ),
 			'allowed_login_roles'      => '',
 
+			// Google login.
+			'enable_google_login'      => 0,
+			'google_client_id'         => '',
+			'google_client_secret'     => '',
+
 			// Verification.
 			'code_length'              => 6,
 			'code_expiry_minutes'      => 10,

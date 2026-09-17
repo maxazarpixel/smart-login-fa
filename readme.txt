@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.22.0
+Stable tag: 1.23.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -17,6 +17,7 @@ Smart Login provides a single-shortcode login and registration form, `[smart_log
 Highlights:
 
 * Shortcode-only front end — no wp-login.php replacement, no forced WooCommerce override.
+* Optional "Continue with Google" sign-in / sign-up, off by default.
 * Email verification via code and link, either of which completes verification.
 * Configurable policy for whether unverified users can log in.
 * Honeypot and optional Google reCAPTCHA v3 / Cloudflare Turnstile bot protection.
@@ -45,6 +46,9 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.23.0 =
+* Added "Continue with Google" sign-in / sign-up (Settings → Social Login), off by default. A self-contained OAuth 2.0 module (`SML_Google_Auth`) with its own on/off toggle, Client ID / Secret fields, a one-click JSON-upload that reads a downloaded Google Cloud OAuth client file locally in the browser and fills both fields, and a copyable "Redirect URI" to register in the Google Cloud Console. Matches an existing account by verified email (linking it), or creates a new one — both are marked verified immediately, since Google already proved the email. Respects "Roles allowed to log in" and the registration/disposable-email settings for new accounts.
 
 = 1.22.0 =
 * Each email under Settings → Emails now has a "Preview email" button that renders that message exactly as a customer receives it — the full branded HTML with header, card, styled code/button and footer — using sample data, and including whatever you have typed in the body field before saving.

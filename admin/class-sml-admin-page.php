@@ -36,6 +36,7 @@ class SML_Admin_Page extends APX_Admin_Page {
 				'group' => __( 'Setup', 'smart-login' ),
 				'items' => array(
 					array( 'key' => 'general', 'label' => __( 'General', 'smart-login' ), 'icon' => 'gear' ),
+					array( 'key' => 'social', 'label' => __( 'Social Login', 'smart-login' ), 'icon' => 'key' ),
 					array( 'key' => 'verification', 'label' => __( 'Verification', 'smart-login' ), 'icon' => 'check' ),
 					array( 'key' => 'security', 'label' => __( 'Security', 'smart-login' ), 'icon' => 'lock' ),
 					array( 'key' => 'emails', 'label' => __( 'Emails', 'smart-login' ), 'icon' => 'cloud' ),
@@ -53,6 +54,7 @@ class SML_Admin_Page extends APX_Admin_Page {
 			'dashboard'    => $this->panel_dashboard(),
 			'users'        => $this->panel_users(),
 			'general'      => $this->panel_general(),
+			'social'       => $this->panel_social(),
 			'verification' => $this->panel_verification(),
 			'security'     => $this->panel_security(),
 			'emails'       => $this->panel_emails(),
@@ -213,6 +215,106 @@ class SML_Admin_Page extends APX_Admin_Page {
 				),
 			),
 		);
+	}
+
+	/**
+	 * "Continue with Google" settings — its own tab because setup (a
+	 * Google Cloud OAuth client, an exact redirect URI) is a self-contained
+	 * chunk of configuration, not something that belongs mixed into
+	 * General or Security.
+	 */
+	protected function panel_social() {
+		return array(
+			'title'    => __( 'Social Login', 'smart-login' ),
+			'desc'     => __( 'Let visitors sign in or register with their Google account. Independent of the email/password flow — off by default.', 'smart-login' ),
+			'sections' => array(
+				array(
+					'heading' => __( 'Google', 'smart-login' ),
+					'fields'  => array(
+						array(
+							'type'  => 'toggle',
+							'name'  => 'enable_google_login',
+							'label' => __( 'Enable "Continue with Google"', 'smart-login' ),
+							'desc'  => __( 'Adds a Google button above the Log In and Create Account forms. Requires a Client ID and Secret below.', 'smart-login' ),
+						),
+					),
+				),
+				array(
+					'heading' => __( 'Redirect URI', 'smart-login' ),
+					'desc'    => __( 'Add this exact URL to the OAuth client\'s "Authorized redirect URIs" in the Google Cloud Console — Google will refuse to sign in otherwise.', 'smart-login' ),
+					'fields'  => array(
+						array( 'type' => 'html', 'html' => $this->google_redirect_uri_html() ),
+					),
+				),
+				array(
+					'heading' => __( 'Credentials', 'smart-login' ),
+					'desc'    => __( 'From an OAuth 2.0 "Web application" client in Google Cloud Console → APIs & Services → Credentials. Upload the downloaded client JSON to fill both fields, or paste them in by hand.', 'smart-login' ),
+					'fields'  => array(
+						array( 'type' => 'html', 'html' => $this->google_json_upload_html() ),
+						array( 'type' => 'text', 'name' => 'google_client_id', 'label' => __( 'Client ID', 'smart-login' ) ),
+						array( 'type' => 'password', 'name' => 'google_client_secret', 'label' => __( 'Client secret', 'smart-login' ), 'secret' => true, 'desc' => __( 'Stored with autoload disabled and never rendered back in plaintext. Leave blank to keep the current value.', 'smart-login' ) ),
+					),
+				),
+			),
+		);
+	}
+
+	/** Read-only "Authorized redirect URI" box with a copy button. */
+	protected function google_redirect_uri_html() {
+		$url = SML_Google_Auth::callback_url();
+
+		return '<div class="apx-row">'
+			. '<label>' . esc_html__( 'Redirect URI', 'smart-login' ) . '</label>'
+			. '<code style="padding:6px 10px;border:1px solid var(--apx-border,#ddd);border-radius:6px;word-break:break-all;">' . esc_html( $url ) . '</code> '
+			. '<button type="button" class="button button-secondary" onclick="navigator.clipboard.writeText(\'' . esc_js( $url ) . '\');this.textContent=\'' . esc_js( __( 'Copied!', 'smart-login' ) ) . '\';">' . esc_html__( 'Copy', 'smart-login' ) . '</button>'
+			. '</div>';
+	}
+
+	/**
+	 * A file input that reads a Google OAuth client JSON on the client
+	 * side (FileReader, never uploaded anywhere) and fills the Client
+	 * ID / Secret fields below, dispatching real input events so the kit's
+	 * unsaved-changes tracking picks them up.
+	 */
+	protected function google_json_upload_html() {
+		return '<div class="apx-field-row">'
+			. '<label><strong>' . esc_html__( 'Upload client JSON', 'smart-login' ) . '</strong></label>'
+			. '<p class="description">' . esc_html__( 'The file Google Cloud Console offers to download for this OAuth client. Read locally in your browser — it is never uploaded to this server as a file.', 'smart-login' ) . '</p>'
+			. '<input type="file" id="sml-google-json" accept="application/json,.json" style="margin:6px 0;">'
+			. ' <span id="sml-google-json-status" style="font-size:13px;"></span>'
+			. '</div>'
+			. '<script>( function () {
+				var input = document.getElementById( "sml-google-json" );
+				var status = document.getElementById( "sml-google-json-status" );
+				if ( ! input ) { return; }
+				function fill( name, value ) {
+					var el = document.querySelector( "[name=\\"" + name + "\\"]" );
+					if ( ! el ) { return; }
+					el.value = value;
+					el.dispatchEvent( new Event( "input", { bubbles: true } ) );
+					el.dispatchEvent( new Event( "change", { bubbles: true } ) );
+				}
+				input.addEventListener( "change", function () {
+					var file = input.files && input.files[ 0 ];
+					if ( ! file ) { return; }
+					var reader = new FileReader();
+					reader.onload = function () {
+						var data;
+						try { data = JSON.parse( String( reader.result || "" ) ); } catch ( e ) { data = null; }
+						var block = data ? ( data.web || data.installed ) : null;
+						if ( ! block || ! block.client_id || ! block.client_secret ) {
+							status.style.color = "#d92d20";
+							status.textContent = "' . esc_js( __( 'That does not look like a Google OAuth client JSON.', 'smart-login' ) ) . '";
+							return;
+						}
+						fill( "google_client_id", block.client_id );
+						fill( "google_client_secret", block.client_secret );
+						status.style.color = "#12805c";
+						status.textContent = "' . esc_js( __( 'Filled in below — review and Save.', 'smart-login' ) ) . '";
+					};
+					reader.readAsText( file );
+				} );
+			} )();</script>';
 	}
 
 	protected function panel_verification() {
