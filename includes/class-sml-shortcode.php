@@ -145,6 +145,19 @@ class SML_Shortcode {
 			isset( $_GET['redirect_to'] ) ? wp_unslash( $_GET['redirect_to'] ) : '' // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		);
 
+		// No explicit redirect_to, but this form isn't on its own dedicated
+		// login page either — WooCommerce is rendering it inline, in place of
+		// myaccount/form-login.php, on My Account itself or (critically) on
+		// a Pay for Order page for an order that needs an account. That
+		// second case never goes through SML_Page_Guard's redirect at all:
+		// WooCommerce swaps the login form into the same URL rather than
+		// redirecting, so there is no redirect_to to read. Falling back to
+		// the current URL means "log in, then continue right here" — the
+		// same order-pay link — instead of the site home.
+		if ( ! $redirect_to && function_exists( 'is_checkout' ) && ( is_checkout() || is_account_page() ) ) {
+			$redirect_to = SML_Page_Guard::validate_redirect( SML_Page_Guard::current_url() );
+		}
+
 		$action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 		// This render is specific to the current visit — most importantly,

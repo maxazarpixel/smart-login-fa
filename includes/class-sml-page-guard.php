@@ -83,11 +83,23 @@ class SML_Page_Guard {
 		// else entirely.
 		SML_Loader::bypass_page_cache();
 
-		$current_url = ( is_ssl() ? 'https://' : 'http://' ) . ( isset( $_SERVER['HTTP_HOST'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) ) : '' ) . ( isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '' );
-		$target      = add_query_arg( 'redirect_to', rawurlencode( $current_url ), $login_url );
+		$target = add_query_arg( 'redirect_to', rawurlencode( self::current_url() ), $login_url );
 
 		wp_safe_redirect( $target );
 		exit;
+	}
+
+	/**
+	 * The current request's full URL, reconstructed from $_SERVER rather
+	 * than a WordPress conditional — needed on pages (order-pay, any custom
+	 * endpoint) that don't have a single canonical permalink of their own.
+	 *
+	 * @return string
+	 */
+	public static function current_url() {
+		return ( is_ssl() ? 'https://' : 'http://' )
+			. ( isset( $_SERVER['HTTP_HOST'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) ) : '' )
+			. ( isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '' );
 	}
 
 	/**

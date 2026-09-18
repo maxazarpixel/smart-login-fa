@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.24.2
+Stable tag: 1.25.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -60,6 +60,9 @@ After changing any caching configuration, purge the cache and test in a private/
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.25.0 =
+* Fixed: a customer sent to a "Pay for Order" link (e.g. `/checkout/order-pay/123/?pay_for_order=true&key=...`) for an order tied to an account, while logged out, landed on the site home after logging in instead of back on that payment page. WooCommerce renders the login form directly on that same order-pay page rather than redirecting to it, so there was never a `redirect_to` for the form to carry — it now falls back to the current page's own URL whenever it's shown this way (on Pay for Order or on My Account visited directly), for both the password and the Google sign-in path.
 
 = 1.24.2 =
 * Fixed: on a site with page caching, a visitor sent from Cart/Checkout to the login page (or through the "Continue with Google" round trip, or a password-reset/verification link) could see a stale response — a `redirect_to` destination baked into a cached page from an earlier, unrelated visit, or a page that doesn't yet reflect a sign-in that just happened. These requests now send `DONOTCACHEPAGE` and no-cache headers, which WP Rocket, LiteSpeed Cache, W3 Total Cache, WP Super Cache, Breeze, Cache Enabler and most host-level caches all honour.
