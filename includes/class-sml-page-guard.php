@@ -75,6 +75,14 @@ class SML_Page_Guard {
 			return;
 		}
 
+		// This decision — send this specific visitor to the login page with
+		// this specific `redirect_to` — must never be cached. A page cache
+		// that stored it would either send an unrelated later visitor who is
+		// already logged in back through the login page, or bake one
+		// visitor's Checkout destination into a response served to someone
+		// else entirely.
+		SML_Loader::bypass_page_cache();
+
 		$current_url = ( is_ssl() ? 'https://' : 'http://' ) . ( isset( $_SERVER['HTTP_HOST'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) ) : '' ) . ( isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '' );
 		$target      = add_query_arg( 'redirect_to', rawurlencode( $current_url ), $login_url );
 

@@ -143,6 +143,8 @@ class SML_Google_Auth {
 	 * a one-time state token, then 302s to Google's consent screen.
 	 */
 	protected static function start() {
+		SML_Loader::bypass_page_cache();
+
 		$redirect_to = SML_Page_Guard::validate_redirect(
 			isset( $_GET['redirect_to'] ) ? wp_unslash( $_GET['redirect_to'] ) : '' // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		);
@@ -189,6 +191,8 @@ class SML_Google_Auth {
 	 * user, sign them in, and land on the original destination.
 	 */
 	protected static function callback() {
+		SML_Loader::bypass_page_cache();
+
 		$state_key    = isset( $_GET['state'] ) ? sanitize_text_field( wp_unslash( $_GET['state'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$cookie_state = isset( $_COOKIE[ self::STATE_COOKIE ] ) ? sanitize_text_field( wp_unslash( $_COOKIE[ self::STATE_COOKIE ] ) ) : '';
 		$stashed      = $state_key ? get_transient( 'sml_google_state_' . $state_key ) : false;

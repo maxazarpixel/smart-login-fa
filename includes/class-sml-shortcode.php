@@ -26,6 +26,8 @@ class SML_Shortcode {
 			return;
 		}
 
+		SML_Loader::bypass_page_cache();
+
 		$token  = sanitize_text_field( wp_unslash( $_GET['sml_verify'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$result = SML_Verification::verify_link( $token );
 
@@ -143,7 +145,17 @@ class SML_Shortcode {
 			isset( $_GET['redirect_to'] ) ? wp_unslash( $_GET['redirect_to'] ) : '' // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		);
 
-		$action        = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		// This render is specific to the current visit — most importantly,
+		// $redirect_to above gets baked into a hidden field on every form
+		// below. A page cache that stored this response would serve that
+		// same destination (e.g. one visitor's Checkout) to every later
+		// visitor who loads this page with no query string at all, and
+		// would keep serving it even after this visitor is signed in.
+		if ( $redirect_to || $action || $verified_status || $google_error || isset( $_GET['sml_reset'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			SML_Loader::bypass_page_cache();
+		}
 		$register_url  = esc_url( add_query_arg( 'action', 'register' ) );
 		$forgot_url    = esc_url( add_query_arg( 'action', 'forgot' ) );
 		$login_url     = esc_url( remove_query_arg( 'action' ) );

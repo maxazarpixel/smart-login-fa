@@ -65,6 +65,34 @@ class SML_Loader {
 		}
 	}
 
+	/**
+	 * Tells page-cache plugins and, where the response headers reach it, a
+	 * reverse proxy/CDN in front of the site not to cache the current
+	 * response. Call this before any output on a request whose result is
+	 * specific to the visitor or the moment — a login/registration redirect,
+	 * the OAuth callback, or a page rendering `[smart_login_form]` with a
+	 * `redirect_to`/reset/verify query string baked into hidden fields.
+	 *
+	 * A full-page cache that serves a stale HTML response here doesn't just
+	 * show outdated content: it can replay someone else's `redirect_to`
+	 * destination, or serve an anonymous view of a page load that actually
+	 * just logged the visitor in — the auth cookie reached the browser fine,
+	 * but the next page they see was generated before it existed. Every
+	 * major caching plugin (WP Rocket, LiteSpeed Cache, W3 Total Cache, WP
+	 * Super Cache, Breeze, Cache Enabler, SiteGround/WP Engine/Kinsta's own)
+	 * honours the DONOTCACHEPAGE convention this sets.
+	 */
+	public static function bypass_page_cache() {
+		if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+			define( 'DONOTCACHEPAGE', true );
+		}
+
+		if ( ! headers_sent() ) {
+			nocache_headers();
+			header( 'Cache-Control: no-cache, no-store, must-revalidate, max-age=0' );
+		}
+	}
+
 	public static function load_textdomain() {
 		load_plugin_textdomain( 'smart-login', false, dirname( SML_PLUGIN_BASENAME ) . '/languages' );
 	}

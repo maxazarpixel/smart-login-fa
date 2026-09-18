@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.24.1
+Stable tag: 1.24.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -40,6 +40,18 @@ Highlights:
 * Google sign-in does not pass through WordPress's own login stack, so plugins that add two-factor authentication on the `authenticate` filter do not run on it. Administrator-capable accounts are therefore excluded from Google sign-in unless you turn on "Allow Google sign-in for site administrators", and the `sml_google_allow_login` filter lets a security plugin refuse any Google sign-in.
 * The debug log lives at `wp-content/uploads/smart-login-logs/` under a per-site random filename, with `.htaccess` and `web.config` deny rules. It never contains verification codes or secrets, but it does record recipient addresses of plugin emails — if your host serves that directory, delete the folder after troubleshooting.
 
+= Caching =
+
+The page carrying `[smart_login_form]` is dynamic — the same URL renders differently per visitor (a `redirect_to` from Cart/Checkout, a password-reset or verification link, an OAuth round trip) and its result changes whether the visitor ends up logged in. On any request carrying that kind of state, Smart Login sets `DONOTCACHEPAGE` and no-cache headers, which every major WordPress caching plugin (WP Rocket, LiteSpeed Cache, W3 Total Cache, WP Super Cache, Breeze, Cache Enabler) and most managed-hosting caches (WP Engine, Kinsta, SiteGround) respect.
+
+That signal only reaches a cache that WordPress itself is running behind. A CDN or reverse proxy in front of WordPress (Cloudflare's "Cache Everything", Varnish, an Nginx `fastcgi_cache` rule) can serve a cached response for a URL without ever reaching PHP, so it never sees these headers at all. If you use one of these:
+
+* Exclude the page containing `[smart_login_form]` from full-page caching entirely, or
+* Bypass cache whenever the request carries a `wordpress_logged_in_*` cookie (most caching plugins already do this; a raw CDN page rule usually needs it configured explicitly), and
+* Bypass cache for any request whose query string contains `redirect_to`, `action`, `sml_verify`, `sml_reset`, `sml_google`, or `sml_google_error`.
+
+After changing any caching configuration, purge the cache and test in a private/incognito window.
+
 == Installation ==
 
 1. Upload the `smart-login` folder to `/wp-content/plugins/`.
@@ -48,6 +60,10 @@ Highlights:
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.24.2 =
+* Fixed: on a site with page caching, a visitor sent from Cart/Checkout to the login page (or through the "Continue with Google" round trip, or a password-reset/verification link) could see a stale response — a `redirect_to` destination baked into a cached page from an earlier, unrelated visit, or a page that doesn't yet reflect a sign-in that just happened. These requests now send `DONOTCACHEPAGE` and no-cache headers, which WP Rocket, LiteSpeed Cache, W3 Total Cache, WP Super Cache, Breeze, Cache Enabler and most host-level caches all honour.
+* This does not cover a CDN or reverse proxy (e.g. Cloudflare, Varnish) caching by URL ahead of WordPress, without regard to cookies or query string — see "Caching" in this readme.
 
 = 1.24.1 =
 * Fixed: signing up with Google for the first time created the account but did not sign the visitor in — they had to click "Continue with Google" a second time. The welcome email (and WooCommerce's own new-account email, fired during account creation) were sent before the login cookie was issued, so a slow or failing SMTP hop could stall or end the request in between. The session is now established first and the email sent afterwards, and third-party mail is suppressed during account creation exactly as the password registration flow already does it.
