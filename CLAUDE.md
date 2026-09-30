@@ -12,7 +12,9 @@ Repo: `github.com/maxazarpixel/smart-login` (private). This repo is the plugin r
 - **All project content is English** — code, comments, docblocks, commit messages,
   `readme.txt`, this file. Never write Persian in the repo.
 - The user often writes to Claude in Persian for convenience; reply language may
-  follow the user, but nothing Persian goes into a committed file.
+  follow the user, but nothing Persian goes into a committed file — **except** the
+  translation catalogues in `languages/` (`*.po`), whose whole purpose is holding
+  Spanish and Persian text. The English source strings stay the single source of truth.
 
 ## Git workflow — two Claude Code instances share this repo
 
@@ -29,6 +31,18 @@ Two machines/sessions work on this project. To stay in sync:
    surface it**. Never `git push --force` to get past a conflict.
 5. Never run both Claude Code instances editing this working tree at the same time.
    Finish and push from one before starting the other.
+
+## Translations (i18n)
+
+- Shipped locales: `es_ES`, `fa_IR` (RTL). Source language is English, text domain `smart-login`.
+- All user-facing strings must go through `__()` / `esc_html__()` etc. with the
+  `smart-login` domain — including the vendored UI kit under `admin/ui-kit`.
+- After adding or changing any string: `python bin/i18n.py pot`, then
+  `python bin/i18n.py update`, translate the new empty `msgstr`s in
+  `languages/smart-login-es_ES.po` and `-fa_IR.po`, run `python bin/i18n.py check`,
+  then `python bin/i18n.py mo`. Commit the `.pot`, `.po` and `.mo` files together.
+- RTL: front-end rules live at the end of `public/css/smart-login.css`, admin rules at
+  the end of `admin/ui-kit/assets/admin-ui.css`. Prefer direction-neutral CSS.
 
 ## Versioning
 

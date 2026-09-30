@@ -15,7 +15,10 @@ class SML_Loader {
 	public static function init() {
 		self::load_files();
 
-		add_action( 'init', array( __CLASS__, 'load_textdomain' ) );
+		// Translations must be ready before the admin page config is built
+		// (its constructor runs on this same hook and calls __() directly).
+		add_filter( 'load_textdomain_mofile', array( __CLASS__, 'locale_fallback_mofile' ), 10, 2 );
+		self::load_textdomain();
 		add_action( 'sml_cleanup_expired_verifications', array( 'SML_Verification', 'cleanup_expired' ) );
 
 		// "Settings" link on the Plugins screen row.
@@ -95,6 +98,37 @@ class SML_Loader {
 
 	public static function load_textdomain() {
 		load_plugin_textdomain( 'smart-login', false, dirname( SML_PLUGIN_BASENAME ) . '/languages' );
+	}
+
+	/**
+	 * Regional variants without a file of their own borrow the closest
+	 * shipped translation (es_MX / es_AR / … -> es_ES, fa_AF -> fa_IR).
+	 *
+	 * @param string $mofile
+	 * @param string $domain
+	 * @return string
+	 */
+	public static function locale_fallback_mofile( $mofile, $domain ) {
+		if ( 'smart-login' !== $domain || file_exists( $mofile ) ) {
+			return $mofile;
+		}
+
+		$fallbacks = array(
+			'es_' => 'es_ES',
+			'fa_' => 'fa_IR',
+		);
+		$locale    = determine_locale();
+
+		foreach ( $fallbacks as $prefix => $target ) {
+			if ( 0 === strpos( $locale, $prefix ) ) {
+				$candidate = SML_PLUGIN_DIR . 'languages/smart-login-' . $target . '.mo';
+				if ( file_exists( $candidate ) ) {
+					return $candidate;
+				}
+			}
+		}
+
+		return $mofile;
 	}
 
 	public static function flush_form_page_cache() {

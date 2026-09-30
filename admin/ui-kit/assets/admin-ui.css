@@ -1836,3 +1836,36 @@
 @media (max-width: 600px) {
     .apx-wiz__preflight { padding: 12px; }
 }
+
+/* ---------------------------------------------------------------
+ * Right-to-left admin (WordPress adds .rtl to <body> and dir="rtl"
+ * to <html> for RTL locales). Mirrors the physical-direction rules
+ * above; everything else is direction-neutral flex/grid.
+ * ------------------------------------------------------------- */
+.rtl #wpcontent { padding-left: 0 !important; padding-right: 20px !important; }
+.rtl .apx-sidebar { border-right: 0; border-left: 1px solid var(--apx-line); }
+.rtl .apx-wrap .apx-tab.apx-nav__item { text-align: right; }
+.rtl .apx-wrap .apx-tab.apx-nav__item.active::after { margin-left: 0; margin-right: auto; }
+.rtl .apx-empty-state,
+.rtl .apx-wrap #apx_db_snapshots_list table thead th,
+.rtl .apx-collapsible__toggle { text-align: right; }
+
+.rtl .apx-wrap .apx-panel input[type="checkbox"]::after,
+.rtl .apx-switch > span::after { left: auto; right: 2px; }
+.rtl .apx-wrap .apx-panel input[type="checkbox"]:checked::after { left: auto; right: 18px; }
+.rtl .apx-wrap .apx-field-row > label > input[type="checkbox"]:checked::after,
+.rtl .apx-switch input:checked + span::after,
+.rtl .apx-wrap .apx-db-row label > input[type="checkbox"]:checked::after { left: auto; right: 16px; }
+
+.rtl .apx-wrap .apx-db-row .description { margin-left: 0 !important; margin-right: 42px !important; }
+.rtl .apx-wrap .apx-db-count { margin-left: 0; margin-right: 14px; }
+.rtl .apx-wrap .apx-snap-delete { margin-right: 0; margin-left: 4px; }
+.rtl .apx-collapsible__body ul { padding-left: 0; padding-right: 20px; }
+.rtl .apx-dep-warning__link { margin-left: 0; margin-right: 4px; }
+
+.rtl .apx-wrap input[type="email"],
+.rtl .apx-wrap input[type="url"],
+.rtl .apx-wrap input[type="password"],
+.rtl .apx-wrap input[type="number"],
+.rtl .apx-wrap code,
+.rtl .apx-wrap .apx-popup-textarea { direction: ltr; text-align: left; }

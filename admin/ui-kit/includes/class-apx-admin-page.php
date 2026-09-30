@@ -118,6 +118,18 @@ class APX_Admin_Page {
 			'slug'      => $this->cfg['slug'],
 			'restUrl'   => esc_url_raw( rest_url( $this->cfg['rest_ns'] ) ),
 			'restNonce' => wp_create_nonce( 'wp_rest' ),
+			'i18n'      => array(
+				'unsavedOne'  => __( 'You have 1 unsaved change.', 'smart-login' ),
+				/* translators: %d: number of unsaved changes */
+				'unsavedMany' => __( 'You have %d unsaved changes.', 'smart-login' ),
+				'saved'       => __( 'Settings saved.', 'smart-login' ),
+				'saveFailed'  => __( 'Could not save — please try again.', 'smart-login' ),
+				'discarded'   => __( 'Changes discarded.', 'smart-login' ),
+				'editList'    => __( 'Edit list', 'smart-login' ),
+				/* translators: %d: number of entries in the list */
+				'editListOne' => __( 'Edit list (1 entry)', 'smart-login' ),
+				'editListMany' => __( 'Edit list (%d entries)', 'smart-login' ),
+			),
 		) ) . ';', 'before' );
 	}
 
@@ -250,7 +262,7 @@ class APX_Admin_Page {
 
 					<?php if ( $this->cfg['help_html'] ) : ?>
 						<div class="apx-sidebar__help">
-							<div class="apx-help__title"><?php esc_html_e( 'Need help?', 'apx' ); ?></div>
+							<div class="apx-help__title"><?php esc_html_e( 'Need help?', 'smart-login' ); ?></div>
 							<div class="apx-help__body"><?php echo wp_kses_post( $this->cfg['help_html'] ); ?></div>
 						</div>
 					<?php endif; ?>
@@ -299,10 +311,9 @@ class APX_Admin_Page {
 
 		<div class="apx-savebar" role="region" aria-live="polite" aria-hidden="true">
 			<span class="apx-savebar__dot" aria-hidden="true"></span>
-			<span class="apx-savebar__label"><?php esc_html_e( 'You have', 'apx' ); ?>
-				<strong class="apx-savebar__count">0 unsaved changes</strong>.</span>
-			<button type="button" class="apx-savebar__discard"><?php esc_html_e( 'Discard', 'apx' ); ?></button>
-			<button type="button" class="apx-savebar__save"><?php esc_html_e( 'Save changes', 'apx' ); ?></button>
+			<span class="apx-savebar__label"><strong class="apx-savebar__count"></strong></span>
+			<button type="button" class="apx-savebar__discard"><?php esc_html_e( 'Discard', 'smart-login' ); ?></button>
+			<button type="button" class="apx-savebar__save"><?php esc_html_e( 'Save changes', 'smart-login' ); ?></button>
 		</div>
 
 		<div class="apx-toast" role="status" aria-live="polite"></div>
@@ -311,15 +322,15 @@ class APX_Admin_Page {
 			<div class="apx-popup" role="dialog" aria-modal="true">
 				<div class="apx-popup-header">
 					<span class="apx-popup-title"></span>
-					<button type="button" class="apx-popup-close" aria-label="Close"><?php echo APX_Icons::icon( 'x', 'apx-icon apx-icon--sm' ); // phpcs:ignore ?></button>
+					<button type="button" class="apx-popup-close" aria-label="<?php echo esc_attr__( 'Close', 'smart-login' ); ?>"><?php echo APX_Icons::icon( 'x', 'apx-icon apx-icon--sm' ); // phpcs:ignore ?></button>
 				</div>
 				<div class="apx-popup-body">
 					<p class="apx-popup-help"></p>
 					<textarea class="apx-popup-textarea" rows="12" spellcheck="false"></textarea>
 				</div>
 				<div class="apx-popup-footer">
-					<button type="button" class="apx-popup-cancel"><?php esc_html_e( 'Cancel', 'apx' ); ?></button>
-					<button type="button" class="apx-popup-save"><?php esc_html_e( 'Save', 'apx' ); ?></button>
+					<button type="button" class="apx-popup-cancel"><?php esc_html_e( 'Cancel', 'smart-login' ); ?></button>
+					<button type="button" class="apx-popup-save"><?php esc_html_e( 'Save', 'smart-login' ); ?></button>
 				</div>
 			</div>
 		</div>
@@ -389,14 +400,15 @@ class APX_Admin_Page {
 					'<div class="apx-popup-field">
 						<button type="button" class="apx-popup-open" data-apx-popup="%1$s"
 						        data-apx-popup-title="%2$s" data-apx-popup-help="%3$s"
-						        data-apx-popup-placeholder="%4$s">Edit list</button>
+						        data-apx-popup-placeholder="%4$s">%6$s</button>
 						<textarea name="%1$s" hidden data-apx-field>%5$s</textarea>
 					</div>',
 					esc_attr( $name ),
 					esc_attr( $f['label'] ),
 					esc_attr( isset( $f['help'] ) ? $f['help'] : '' ),
 					esc_attr( isset( $f['placeholder'] ) ? $f['placeholder'] : '' ),
-					esc_textarea( $val )
+					esc_textarea( $val ),
+					esc_html__( 'Edit list', 'smart-login' )
 				);
 				echo '</div>';
 				break;

@@ -341,7 +341,10 @@ class SML_Email {
 				. '</p>';
 		}
 
-		return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+		$dir   = is_rtl() ? 'rtl' : 'ltr';
+		$align = is_rtl() ? 'right' : 'left';
+
+		return '<!doctype html><html dir="' . $dir . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
 			. '<title>' . $site_name . '</title></head>'
 			. '<body style="margin:0;padding:0;background:#f5f5f5;">'
 			. '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 16px;font-family:' . $font . ';">'
@@ -350,7 +353,7 @@ class SML_Email {
 			. '<tr><td style="padding:26px 32px 18px;text-align:center;border-bottom:1px solid #f0f0f1;">'
 			. '<span style="font-family:' . $font . ';font-size:16px;font-weight:700;color:#111114;">' . $site_name . '</span>'
 			. '</td></tr>'
-			. '<tr><td style="padding:28px 32px 6px;font-family:' . $font . ';font-size:14.5px;line-height:1.6;color:#33333a;">'
+			. '<tr><td style="padding:28px 32px 6px;font-family:' . $font . ';font-size:14.5px;line-height:1.6;color:#33333a;text-align:' . $align . ';">'
 			. $inner_html // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			. '</td></tr>'
 			. '<tr><td style="padding:18px 32px 28px;">'

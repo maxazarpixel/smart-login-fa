@@ -31,6 +31,11 @@
     var STORE_KEY = 'apx-ui:' + (CFG.slug || 'default') + ':tab';
 
     /* ── helpers ─────────────────────────────────────────────────────── */
+    var TXT = CFG.i18n || {};
+    function t(key, fallback, n) {
+        var str = TXT[key] || fallback;
+        return n === undefined ? str : str.replace('%d', n);
+    }
     function $(sel, ctx) { return (ctx || document).querySelector(sel); }
     function $$(sel, ctx) { return Array.prototype.slice.call((ctx || document).querySelectorAll(sel)); }
 
@@ -133,7 +138,7 @@
         savebar.classList.toggle('apx-savebar--visible', n > 0);
         savebar.setAttribute('aria-hidden', n === 0 ? 'true' : 'false');
         var count = $('.apx-savebar__count', savebar);
-        if (count) { count.textContent = n + ' unsaved ' + (n === 1 ? 'change' : 'changes'); }
+        if (count) { count.textContent = n === 1 ? t('unsavedOne', 'You have 1 unsaved change.') : t('unsavedMany', 'You have %d unsaved changes.', n); }
     }
 
     function markDirty(el) {
@@ -181,8 +186,8 @@
             btn.disabled = true;
             btn.classList.add('apx-savebar__save--busy');
             CFG.save(dirty)
-                .then(function () { snapshot(); toast('Settings saved.', 'ok'); })
-                .catch(function () { toast('Could not save — please try again.', 'error'); })
+                .then(function () { snapshot(); toast(t('saved', 'Settings saved.'), 'ok'); })
+                .catch(function () { toast(t('saveFailed', 'Could not save — please try again.'), 'error'); })
                 .then(function () {
                     btn.disabled = false;
                     btn.classList.remove('apx-savebar__save--busy');
@@ -199,7 +204,7 @@
             renderSavebar();
             syncDeps();
             refreshPopupLabels();
-            toast('Changes discarded.', 'muted');
+            toast(t('discarded', 'Changes discarded.'), 'muted');
         });
     }
 
@@ -221,7 +226,7 @@
             var ta = $('[name="' + btn.getAttribute('data-apx-popup') + '"]');
             if (!ta) { return; }
             var n = countEntries(ta.value);
-            btn.textContent = 'Edit list (' + n + (n === 1 ? ' entry)' : ' entries)');
+            btn.textContent = n === 1 ? t('editListOne', 'Edit list (1 entry)') : t('editListMany', 'Edit list (%d entries)', n);
         });
     }
 
@@ -235,7 +240,7 @@
             var open = e.target.closest('[data-apx-popup]');
             if (open) {
                 activeTextarea = $('[name="' + open.getAttribute('data-apx-popup') + '"]');
-                $('.apx-popup-title', overlay).textContent = open.getAttribute('data-apx-popup-title') || 'Edit list';
+                $('.apx-popup-title', overlay).textContent = open.getAttribute('data-apx-popup-title') || t('editList', 'Edit list');
                 var help = $('.apx-popup-help', overlay);
                 help.textContent = open.getAttribute('data-apx-popup-help') || '';
                 help.hidden = !help.textContent;

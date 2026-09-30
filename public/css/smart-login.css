@@ -663,3 +663,36 @@
 .sml-countdown span {
 	font-variant-numeric: tabular-nums;
 }
+
+/* ---------------------------------------------------------------
+ * Right-to-left languages (Persian). WordPress sets dir="rtl" on
+ * <html> for RTL locales. Text flows right-to-left, but values that
+ * are inherently left-to-right (email, phone, codes, passwords) keep
+ * their LTR direction and align to the start edge.
+ * ------------------------------------------------------------- */
+[dir="rtl"] .sml-card {
+	text-align: right;
+}
+
+[dir="rtl"] .sml-card input[type="email"],
+[dir="rtl"] .sml-card input[type="tel"],
+[dir="rtl"] .sml-card input[type="password"],
+[dir="rtl"] .sml-card input[name="username"],
+[dir="rtl"] .sml-card input[name="email"] {
+	direction: ltr;
+	text-align: right;
+}
+
+[dir="rtl"] .sml-card .sml-phone-group,
+[dir="rtl"] .sml-card .sml-otp {
+	direction: ltr;
+}
+
+[dir="rtl"] .sml-card .sml-password-group input {
+	padding: 0 0 0 40px !important;
+}
+
+[dir="rtl"] .sml-card .sml-password-toggle {
+	right: auto !important;
+	left: 0 !important;
+}

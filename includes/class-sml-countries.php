@@ -226,6 +226,40 @@ class SML_Countries {
 	}
 
 	/**
+	 * Country name in the current locale. Uses the PHP intl extension's CLDR
+	 * data when available and falls back to the English name otherwise, so
+	 * no ~200-entry list has to be translated by hand.
+	 *
+	 * @param string $id Registry id (lower-case ISO 3166-1 alpha-2).
+	 * @return string
+	 */
+	public static function name( $id ) {
+		static $cache = array();
+
+		$all = self::all();
+		if ( ! isset( $all[ $id ] ) ) {
+			return '';
+		}
+
+		$locale = determine_locale();
+		$key    = $locale . '|' . $id;
+		if ( isset( $cache[ $key ] ) ) {
+			return $cache[ $key ];
+		}
+
+		$name = $all[ $id ]['name'];
+		if ( class_exists( 'Locale' ) && 0 !== strpos( $locale, 'en_' ) ) {
+			$local = Locale::getDisplayRegion( 'und_' . strtoupper( $id ), $locale );
+			if ( is_string( $local ) && '' !== $local && strtoupper( $id ) !== $local ) {
+				$name = $local;
+			}
+		}
+
+		$cache[ $key ] = $name;
+		return $name;
+	}
+
+	/**
 	 * @return string[] Country ids enabled out of the box.
 	 */
 	public static function default_allowed_ids() {

@@ -8,3 +8,6 @@
 
 # Normalise line endings so archives are consistent across machines
 * text=auto eol=lf
+
+# Compiled translation catalogues are binary
+*.mo binary

@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.25.0
+Stable tag: 1.26.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -24,6 +24,7 @@ Highlights:
 * Login lockout after repeated failed attempts.
 * Optional WooCommerce My Account login/register form replacement.
 * Settings UI built on the AzarPixel WP Admin UI Kit.
+* Translated into Spanish (es_ES) and Persian (fa_IR, with full right-to-left layout); English is the source language.
 
 = Requirements =
 
@@ -61,6 +62,16 @@ After changing any caching configuration, purge the cache and test in a private/
 
 == Changelog ==
 
+= 1.26.0 =
+* Added: Spanish (es_ES) and Persian (fa_IR) translations covering the whole plugin — the login/register form, every notice and error, the verification / reset / welcome / Google-linked email templates, and the entire settings screen. Regional variants (es_MX, es_AR, fa_AF, …) fall back to the closest shipped translation, and a translation pack from translate.wordpress.org still takes precedence over the bundled files.
+* Added: right-to-left layout for Persian on the front-end form, the settings screen and HTML emails. Email, phone, password and code fields stay left-to-right, as is standard.
+* Added: country names in the registration phone selector and in the Allowed countries setting now follow the site language (uses PHP's intl extension when it is installed, otherwise English).
+* Fixed: translations are now loaded before the settings screen is built, so its menu, tabs and field labels are translated on the first request instead of falling back to English.
+* Fixed: the settings screen's built-in strings (unsaved-changes bar, "Settings saved", list editor buttons, dialog buttons) now use the plugin's own text domain and are translatable; they were previously hard-coded English or on a separate, never-loaded domain.
+* Fixed: the default welcome email body contained literal `
+
+` sequences instead of line breaks.
+* Developer: `languages/smart-login.pot` is included, and `bin/i18n.py` (no gettext required) regenerates the template, merges new strings into each `.po`, and compiles `.mo` files.
 = 1.25.0 =
 * Fixed: a customer sent to a "Pay for Order" link (e.g. `/checkout/order-pay/123/?pay_for_order=true&key=...`) for an order tied to an account, while logged out, landed on the site home after logging in instead of back on that payment page. WooCommerce renders the login form directly on that same order-pay page rather than redirecting to it, so there was never a `redirect_to` for the form to carry — it now falls back to the current page's own URL whenever it's shown this way (on Pay for Order or on My Account visited directly), for both the password and the Google sign-in path.
 

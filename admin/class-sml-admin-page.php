@@ -2030,13 +2030,15 @@ class SML_Admin_Page extends APX_Admin_Page {
 			// Alphabetical by name so a ~195-country list is actually
 			// scannable — the underlying array is grouped default-first for
 			// readability of the source, not for display order here.
-			uasort( $all, function ( $a, $b ) {
-				return strcasecmp( $a['name'], $b['name'] );
-			} );
+			$names = array();
+			foreach ( $all as $id => $country ) {
+				$names[ $id ] = SML_Countries::name( $id );
+			}
+			asort( $names, SORT_LOCALE_STRING );
 
 			$options = array();
-			foreach ( $all as $id => $country ) {
-				$options[ $id ] = $country['name'] . ' (' . $country['dial'] . ')';
+			foreach ( $names as $id => $label ) {
+				$options[ $id ] = $label . ' (' . $all[ $id ]['dial'] . ')';
 			}
 
 			$this->render_searchable_multiselect(

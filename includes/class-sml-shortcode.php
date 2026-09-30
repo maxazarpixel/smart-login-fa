@@ -312,7 +312,7 @@ class SML_Shortcode {
 									<span class="sml-phone-flag" data-sml-flag-wrap><?php echo SML_Flags::icon( $sml_default_country ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
 									<select name="phone_country" id="sml-reg-phone-country" class="sml-input" aria-label="<?php esc_attr_e( 'Country code', 'smart-login' ); ?>" data-sml-flag-select>
 										<?php foreach ( $sml_allowed_countries as $id => $country ) : ?>
-											<option value="<?php echo esc_attr( $id ); ?>" data-max="<?php echo esc_attr( SML_Phone::max_length( $id ) ); ?>" data-flag="<?php echo esc_attr( base64_encode( SML_Flags::icon( $id ) ) ); ?>"<?php selected( $sml_default_country, $id ); ?>><?php echo esc_html( $country['dial'] . ' ' . $country['name'] ); ?></option>
+											<option value="<?php echo esc_attr( $id ); ?>" data-max="<?php echo esc_attr( SML_Phone::max_length( $id ) ); ?>" data-flag="<?php echo esc_attr( base64_encode( SML_Flags::icon( $id ) ) ); ?>"<?php selected( $sml_default_country, $id ); ?>><?php echo esc_html( $country['dial'] . ' ' . SML_Countries::name( $id ) ); ?></option>
 										<?php endforeach; ?>
 									</select>
 								</div>
