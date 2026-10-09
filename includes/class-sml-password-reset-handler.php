@@ -31,6 +31,161 @@ class SML_Password_Reset_Handler {
 	public static function init() {
 		add_action( 'wp_ajax_nopriv_sml_forgot_password', array( __CLASS__, 'ajax_forgot_password' ) );
 		add_action( 'wp_ajax_nopriv_sml_reset_password', array( __CLASS__, 'ajax_reset_password' ) );
+		add_action( 'wp_ajax_nopriv_sml_reset_with_code', array( __CLASS__, 'ajax_reset_with_code' ) );
+	}
+
+	const SMS_META          = 'sml_reset_sms';
+	const CODE_IP_LIMIT     = 10;
+	const CODE_IP_WINDOW    = 900; // 15 minutes.
+
+	protected static function code_hash( $code ) {
+		return hash_hmac( 'sha256', (string) $code, wp_salt( 'auth' ) );
+	}
+
+	/**
+	 * "Forgot password" for a mobile number: texts a one-time code. Like the
+	 * email path the answer never says whether the number belongs to an
+	 * account.
+	 *
+	 * @param string $e164
+	 */
+	protected static function forgot_by_sms( $e164 ) {
+		if ( ! SML_SMS::is_configured() ) {
+			wp_send_json_error( array( 'message' => __( 'Resetting by mobile number is not available. Please use your email address.', 'smart-login' ) ) );
+		}
+
+		$user = SML_Phone::primary_user_for( $e164 );
+
+		if ( $user ) {
+			$state    = get_user_meta( $user->ID, self::SMS_META, true );
+			$cooldown = (int) SML_Settings::get( 'resend_cooldown_seconds', 120 );
+			$recent   = is_array( $state ) && ! empty( $state['sent'] ) && ( time() - (int) $state['sent'] ) < $cooldown;
+
+			if ( ! $recent ) {
+				$length = max( 4, min( 8, (int) SML_Settings::get( 'code_length', 6 ) ) );
+				$code   = '';
+				for ( $i = 0; $i < $length; $i++ ) {
+					$code .= (string) random_int( 0, 9 );
+				}
+
+				update_user_meta(
+					$user->ID,
+					self::SMS_META,
+					array(
+						'hash'     => self::code_hash( $code ),
+						'expires'  => time() + (int) SML_Settings::get( 'code_expiry_minutes', 10 ) * MINUTE_IN_SECONDS,
+						'attempts' => 0,
+						'sent'     => time(),
+					)
+				);
+
+				// A failed send is logged by SML_SMS; the visitor still gets the
+				// uniform answer below so the response reveals nothing.
+				$sent = SML_SMS::send_code( $e164, $code, true, (string) SML_Settings::get( 'sms_reset_template' ) );
+				if ( is_wp_error( $sent ) ) {
+					delete_user_meta( $user->ID, self::SMS_META );
+				}
+
+				update_user_meta( $user->ID, 'sml_reset_requests', (int) get_user_meta( $user->ID, 'sml_reset_requests', true ) + 1 );
+				update_user_meta( $user->ID, 'sml_reset_requested_at', time() );
+			}
+		}
+
+		wp_send_json_success(
+			array(
+				'mode'    => 'sms',
+				'message' => __( "If an account exists for that mobile number, we've sent a code by SMS.", 'smart-login' ),
+			)
+		);
+	}
+
+	/**
+	 * Second step of the SMS reset: code + new password.
+	 */
+	public static function ajax_reset_with_code() {
+		check_ajax_referer( self::NONCE_ACTION, 'nonce' );
+
+		$login   = isset( $_POST['login'] ) ? sanitize_text_field( wp_unslash( $_POST['login'] ) ) : '';
+		$code    = isset( $_POST['code'] ) ? preg_replace( '/\D/', '', SML_Iran::to_latin_digits( wp_unslash( $_POST['code'] ) ) ) : '';
+		$pass    = isset( $_POST['password'] ) ? (string) wp_unslash( $_POST['password'] ) : '';
+		$confirm = isset( $_POST['password_confirm'] ) ? (string) wp_unslash( $_POST['password_confirm'] ) : '';
+
+		if ( ! $login || ! $code || ! $pass ) {
+			wp_send_json_error( array( 'message' => __( 'Missing reset information. Please request a new code.', 'smart-login' ) ) );
+		}
+
+		$bot_check = SML_Registration_Handler::check_bot_provider();
+		if ( is_wp_error( $bot_check ) ) {
+			wp_send_json_error( array( 'message' => $bot_check->get_error_message() ) );
+		}
+
+		$rate_check = SML_Rate_Limit::check( 'reset_code', self::CODE_IP_LIMIT, self::CODE_IP_WINDOW );
+		if ( is_wp_error( $rate_check ) ) {
+			wp_send_json_error( array( 'message' => $rate_check->get_error_message() ) );
+		}
+		SML_Rate_Limit::record( 'reset_code', self::CODE_IP_WINDOW );
+
+		if ( $pass !== $confirm ) {
+			wp_send_json_error( array( 'message' => __( 'Those passwords do not match.', 'smart-login' ) ) );
+		}
+
+		if ( strlen( $pass ) < self::MIN_PASSWORD_LENGTH ) {
+			wp_send_json_error(
+				array(
+					/* translators: %d: minimum password length */
+					'message' => sprintf( __( 'Password must be at least %d characters.', 'smart-login' ), self::MIN_PASSWORD_LENGTH ),
+				)
+			);
+		}
+
+		// One message for every failure (unknown number, no pending code,
+		// expired, too many tries, wrong code) so none of them can be told apart.
+		$generic = __( 'That code is incorrect or has expired. Please request a new one.', 'smart-login' );
+		$e164    = SML_Phone::parse_e164( $login );
+		$user    = '' !== $e164 ? SML_Phone::primary_user_for( $e164 ) : null;
+		$state   = $user ? get_user_meta( $user->ID, self::SMS_META, true ) : null;
+
+		if ( ! $user || ! is_array( $state ) || empty( $state['hash'] )
+			|| (int) $state['expires'] < time()
+			|| (int) $state['attempts'] >= (int) SML_Settings::get( 'max_code_attempts', 5 ) ) {
+			wp_send_json_error( array( 'message' => $generic ) );
+		}
+
+		if ( ! hash_equals( (string) $state['hash'], self::code_hash( $code ) ) ) {
+			$state['attempts'] = (int) $state['attempts'] + 1;
+			update_user_meta( $user->ID, self::SMS_META, $state );
+			wp_send_json_error( array( 'message' => $generic ) );
+		}
+
+		delete_user_meta( $user->ID, self::SMS_META );
+		reset_password( $user, $pass );
+
+		// Receiving the code proves the phone number. That only counts as
+		// verification when the site verifies by mobile.
+		if ( 'mobile' === SML_Verification::method() && ! SML_Verification::is_verified( $user->ID ) ) {
+			SML_Verification::complete( $user->ID );
+		}
+
+		$redirect_to = SML_Page_Guard::validate_redirect( isset( $_POST['redirect_to'] ) ? wp_unslash( $_POST['redirect_to'] ) : '' );
+
+		if ( ! SML_Login_Handler::role_allowed( $user ) ) {
+			wp_send_json_error(
+				array(
+					'message'  => __( 'Your password has been reset, but your account type is not permitted to sign in through this form.', 'smart-login' ),
+					'redirect' => $redirect_to ?: wp_login_url(),
+				)
+			);
+		}
+
+		wp_set_current_user( $user->ID );
+		wp_set_auth_cookie( $user->ID );
+
+		wp_send_json_success(
+			array(
+				'redirect' => $redirect_to ?: ( SML_Settings::post_login_redirect_url() ?: home_url( '/' ) ),
+				'message'  => __( 'Your password has been reset. You are now logged in.', 'smart-login' ),
+			)
+		);
 	}
 
 	public static function ajax_forgot_password() {
@@ -39,7 +194,7 @@ class SML_Password_Reset_Handler {
 		$login = isset( $_POST['login'] ) ? sanitize_text_field( wp_unslash( $_POST['login'] ) ) : '';
 
 		if ( ! $login ) {
-			wp_send_json_error( array( 'message' => __( 'Please enter your email address.', 'smart-login' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Please enter your email address or mobile number.', 'smart-login' ) ) );
 		}
 
 		$bot_check = SML_Registration_Handler::check_bot_provider();
@@ -52,6 +207,11 @@ class SML_Password_Reset_Handler {
 			wp_send_json_error( array( 'message' => $rate_check->get_error_message() ) );
 		}
 		SML_Rate_Limit::record( 'forgot', self::FORGOT_IP_WINDOW );
+
+		$e164 = SML_Phone::parse_e164( $login );
+		if ( '' !== $e164 ) {
+			self::forgot_by_sms( $e164 );
+		}
 
 		$user        = is_email( $login ) ? get_user_by( 'email', $login ) : get_user_by( 'login', $login );
 		$redirect_to = SML_Page_Guard::validate_redirect( isset( $_POST['redirect_to'] ) ? wp_unslash( $_POST['redirect_to'] ) : '' );

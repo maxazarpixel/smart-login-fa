@@ -252,8 +252,8 @@ class SML_Shortcode {
 				<form data-sml-form="login" novalidate>
 					<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>">
 					<div class="sml-field-boxed">
-						<input type="email" id="sml-login-user" class="sml-input" name="username" autocomplete="username" placeholder=" " required>
-						<label for="sml-login-user"><?php esc_html_e( 'Email', 'smart-login' ); ?></label>
+						<input type="text" id="sml-login-user" class="sml-input" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" dir="ltr" placeholder=" " required>
+						<label for="sml-login-user"><?php esc_html_e( 'Email or mobile number', 'smart-login' ); ?></label>
 					</div>
 					<div class="sml-field-boxed">
 						<div class="sml-password-group">
@@ -353,16 +353,62 @@ class SML_Shortcode {
 					<div class="sml-heading-line1"><?php esc_html_e( 'Reset Your', 'smart-login' ); ?></div>
 					<div class="sml-heading-line2"><?php esc_html_e( 'Password', 'smart-login' ); ?></div>
 				</div>
-				<p class="sml-verify-intro"><?php esc_html_e( 'Enter your email address and we\'ll send you a link to reset your password.', 'smart-login' ); ?></p>
+				<?php $sml_sms_reset = SML_SMS::is_configured(); ?>
+				<p class="sml-verify-intro">
+					<?php
+					if ( $sml_sms_reset ) {
+						esc_html_e( 'Enter your email address or mobile number and we\'ll send you a link or an SMS code to reset your password.', 'smart-login' );
+					} else {
+						esc_html_e( 'Enter your email address and we\'ll send you a link to reset your password.', 'smart-login' );
+					}
+					?>
+				</p>
 				<form data-sml-form="forgot" novalidate>
 					<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>">
 					<div class="sml-field-boxed">
-						<input type="email" id="sml-forgot-email" class="sml-input" name="login" autocomplete="email" placeholder=" " required>
-						<label for="sml-forgot-email"><?php esc_html_e( 'Email', 'smart-login' ); ?></label>
+						<input type="text" id="sml-forgot-email" class="sml-input" name="login" autocomplete="username" autocapitalize="none" spellcheck="false" dir="ltr" placeholder=" " required>
+						<label for="sml-forgot-email"><?php echo $sml_sms_reset ? esc_html__( 'Email or mobile number', 'smart-login' ) : esc_html__( 'Email', 'smart-login' ); ?></label>
 					</div>
 					<?php echo $sml_bot_fields; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 					<button type="submit" class="sml-btn sml-btn--primary"><?php esc_html_e( 'Send Reset Link', 'smart-login' ); ?></button>
 					<a class="sml-btn sml-btn--secondary" data-sml-tab="login" href="<?php echo $login_url; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"><?php esc_html_e( 'Back to Log In', 'smart-login' ); ?></a>
+				</form>
+			</div>
+
+			<div class="sml-panel" data-sml-panel="resetcode" hidden>
+				<div class="sml-heading">
+					<div class="sml-heading-line1"><?php esc_html_e( 'Set a New', 'smart-login' ); ?></div>
+					<div class="sml-heading-line2"><?php esc_html_e( 'Password', 'smart-login' ); ?></div>
+				</div>
+				<p class="sml-verify-intro"><?php esc_html_e( 'Enter the code we sent by SMS and choose a new password.', 'smart-login' ); ?></p>
+				<form data-sml-form="resetcode" novalidate>
+					<input type="hidden" name="login" value="">
+					<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>">
+					<div class="sml-field-boxed">
+						<input type="text" id="sml-resetcode-code" class="sml-input" name="code" inputmode="numeric" autocomplete="one-time-code" dir="ltr" maxlength="12" placeholder=" " required>
+						<label for="sml-resetcode-code"><?php esc_html_e( 'Verification code', 'smart-login' ); ?></label>
+					</div>
+					<div class="sml-field-boxed">
+						<div class="sml-password-group">
+							<input type="password" id="sml-resetcode-pass" class="sml-input" name="password" autocomplete="new-password" placeholder=" " required>
+							<button type="button" class="sml-password-toggle" data-sml-password-toggle aria-label="<?php esc_attr_e( 'Show password', 'smart-login' ); ?>">
+								<?php esc_html_e( 'Show', 'smart-login' ); ?>
+							</button>
+						</div>
+						<label for="sml-resetcode-pass"><?php esc_html_e( 'New password', 'smart-login' ); ?></label>
+					</div>
+					<div class="sml-field-boxed">
+						<div class="sml-password-group">
+							<input type="password" id="sml-resetcode-pass-confirm" class="sml-input" name="password_confirm" autocomplete="new-password" placeholder=" " required>
+							<button type="button" class="sml-password-toggle" data-sml-password-toggle aria-label="<?php esc_attr_e( 'Show password', 'smart-login' ); ?>">
+								<?php esc_html_e( 'Show', 'smart-login' ); ?>
+							</button>
+						</div>
+						<label for="sml-resetcode-pass-confirm"><?php esc_html_e( 'Confirm password', 'smart-login' ); ?></label>
+					</div>
+					<?php echo $sml_bot_fields; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					<button type="submit" class="sml-btn sml-btn--primary"><?php esc_html_e( 'Reset Password', 'smart-login' ); ?></button>
+					<a class="sml-btn sml-btn--secondary" data-sml-tab="forgot" href="<?php echo $forgot_url; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"><?php esc_html_e( 'Request a new link', 'smart-login' ); ?></a>
 				</form>
 			</div>
 

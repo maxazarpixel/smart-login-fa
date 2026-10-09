@@ -26,6 +26,88 @@ class SML_Phone {
 	const MAX_E164_DIGITS = 15;
 
 	/**
+	 * Reads a typed login / reset identifier as a phone number when it
+	 * looks like one: 09123456789 (Iran), or +<country code><number> /
+	 * 00<country code><number> for anything else. Persian and Arabic digits
+	 * are accepted. Email addresses and ordinary usernames never match.
+	 *
+	 * @param string $input
+	 * @return string E.164 (+989123456789) or '' when it is not a phone number.
+	 */
+	public static function parse_e164( $input ) {
+		$s = SML_Iran::to_latin_digits( trim( (string) $input ) );
+		$s = preg_replace( '/[\s\-().]/', '', $s );
+
+		if ( 1 === preg_match( '/^(?:\+|00)([1-9]\d{7,14})$/', $s, $m ) ) {
+			return '+' . $m[1];
+		}
+
+		if ( 1 === preg_match( '/^09\d{9}$/', $s ) ) {
+			return '+98' . substr( $s, 1 );
+		}
+
+		return '';
+	}
+
+	/**
+	 * Accounts registered with this number, verified ones first.
+	 *
+	 * @param string $e164
+	 * @return WP_User[]
+	 */
+	public static function users_for( $e164 ) {
+		$users = get_users(
+			array(
+				'meta_key'   => 'sml_phone_e164', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_value' => $e164, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'number'     => 10,
+				'orderby'    => 'ID',
+				'order'      => 'DESC',
+			)
+		);
+
+		usort(
+			$users,
+			function ( $a, $b ) {
+				return (int) SML_Verification::is_verified( $b->ID ) - (int) SML_Verification::is_verified( $a->ID );
+			}
+		);
+
+		return $users;
+	}
+
+	/**
+	 * The one account a number-based request (password reset) acts on.
+	 *
+	 * @param string $e164
+	 * @return WP_User|null
+	 */
+	public static function primary_user_for( $e164 ) {
+		$users = self::users_for( $e164 );
+
+		return $users ? $users[0] : null;
+	}
+
+	/**
+	 * Which account's password was typed for this number, so a login with a
+	 * phone number still lands on the right account when stale unverified
+	 * ones share it.
+	 *
+	 * @param string $e164
+	 * @param string $password
+	 * @return string user_login, or '' when none matches.
+	 */
+	public static function login_for( $e164, $password ) {
+		foreach ( self::users_for( $e164 ) as $user ) {
+			if ( wp_check_password( $password, $user->user_pass, $user->ID ) ) {
+				return $user->user_login;
+			}
+		}
+
+		return '';
+	}
+
+	/**
 	 * @param string $country_id
 	 * @return int
 	 */

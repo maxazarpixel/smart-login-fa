@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.28.0
+Stable tag: 1.29.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -24,6 +24,7 @@ Highlights:
 * Login lockout after repeated failed attempts.
 * Optional WooCommerce My Account login/register form replacement.
 * Choose how accounts are verified: by email (code + link) or by mobile number (SMS code through Kavenegar, FarazSMS, IPPanel or Melipayamak).
+* Log in, or reset a forgotten password, with a mobile number as well as an email address.
 * Optional Iranian registration: Iranian mobile-number validation and a national ID (کد ملی) field, both switchable in Settings → General.
 * Settings UI built on the AzarPixel WP Admin UI Kit.
 * Translated into Spanish (es_ES) and Persian (fa_IR, with full right-to-left layout); English is the source language.
@@ -64,6 +65,12 @@ After changing any caching configuration, purge the cache and test in a private/
 
 == Changelog ==
 
+= 1.29.0 =
+* Added: log in with a mobile number. The login field now accepts an email address, a username or a mobile number in any common form (09123456789, +989123456789, 00989123456789, with spaces or dashes, or typed with Persian digits). If several unverified accounts share a number, the one whose password was typed is used.
+* Added: password reset by SMS. Typing a mobile number in "Forgot password?" texts a one-time code; a new step takes the code and the new password and signs the user in. The answer is identical whether or not the number belongs to an account, the code is single use, expires with the verification code expiry, locks after the configured number of wrong attempts, and every failure shows one generic message. Requires a configured SMS gateway; an optional separate template for reset codes can be set under Settings → Verification → SMS gateway.
+* Changed: the failed-login lockout counts attempts per normalised mobile number, so changing the number's format (0912…, +98912…, Persian digits) does not give an attacker a fresh set of attempts.
+* Changed: receiving a reset code by SMS marks the account verified only when the site verifies by mobile.
+* Developer: new user meta `sml_reset_sms` (hashed code, expiry, attempts), removed on uninstall. `SML_SMS::send_code()` accepts an optional template override.
 = 1.28.0 =
 * Added: verification by mobile number. Settings → Verification → "Verification method" lets you choose between email (code and link, as before) and an SMS code. With SMS, the email field on the registration form becomes optional (an empty one gets an internal placeholder address that is never mailed), the verify screen reads accordingly, and unverified accounts that try to log in are sent a fresh code by SMS.
 * Added: SMS gateway settings for Kavenegar (verify lookup), FarazSMS (new API), IPPanel (legacy API) and Melipayamak (shared-template send), each used in template/pattern mode so the gateway owns the message text. A "Send test SMS" button checks the saved credentials and shows the gateway's own error. The API key is stored like the other secrets and is never rendered back. The `sml_sms_send` and `sml_sms_configured` filters let other code provide its own gateway.

@@ -50,6 +50,7 @@ class SML_Settings {
 			'sms_sender'               => '',
 			'sms_template'             => '',
 			'sms_code_variable'        => 'code',
+			'sms_reset_template'       => '',
 			'code_length'              => 6,
 			'code_expiry_minutes'      => 10,
 			'link_expiry_minutes'      => 30,

@@ -556,7 +556,22 @@
 						} )
 						.then( function ( res ) {
 							showMessage( root, ( res.data && res.data.message ) || SmartLogin.i18n.genericError, ! res.success );
-							if ( res.success ) { forgotForm.reset(); } else { resetTurnstile( 'forgot' ); }
+							if ( res.success ) {
+								// A mobile number was texted a code: move on to the
+								// code + new password step, carrying the number along.
+								var codeForm = qs( '[data-sml-form="resetcode"]', root );
+								if ( res.data && 'sms' === res.data.mode && codeForm ) {
+									qs( '[name="login"]', codeForm ).value = qs( '[name="login"]', forgotForm ).value;
+									forgotForm.reset();
+									showPanel( root, 'resetcode' );
+									var codeInput = qs( '[name="code"]', codeForm );
+									if ( codeInput ) { codeInput.focus(); }
+									return;
+								}
+								forgotForm.reset();
+							} else {
+								resetTurnstile( 'forgot' );
+							}
 						} )
 						.catch( function () {
 							resetTurnstile( 'forgot' );
@@ -604,6 +619,53 @@
 						} )
 						.finally( function () {
 							submitBtn.disabled = botGatePending( 'reset' );
+							submitBtn.textContent = submitBtn.dataset.originalText;
+						} );
+				} );
+			}
+
+			var resetCodeForm = qs( '[data-sml-form="resetcode"]', root );
+			if ( resetCodeForm ) {
+				var codeField = qs( '[name="code"]', resetCodeForm );
+				if ( codeField ) {
+					codeField.addEventListener( 'input', function () {
+						codeField.value = toLatinDigits( codeField.value ).replace( /\D/g, '' );
+					} );
+				}
+
+				resetCodeForm.addEventListener( 'submit', function ( e ) {
+					e.preventDefault();
+					if ( botGatePending( 'resetcode' ) ) { return; }
+					showMessage( root, '' );
+
+					var submitBtn = qs( 'button[type="submit"]', resetCodeForm );
+					submitBtn.disabled = true;
+					submitBtn.dataset.originalText = submitBtn.textContent;
+					submitBtn.textContent = SmartLogin.i18n.resetting;
+
+					getBotToken( resetCodeForm, 'resetcode' )
+						.then( function ( token ) {
+							var tokenField = qs( '[data-sml-bot-token]', resetCodeForm );
+							if ( tokenField ) { tokenField.value = token || ''; }
+							return post( 'sml_reset_with_code', SmartLogin.passwordResetNonce, formData( resetCodeForm ) );
+						} )
+						.then( function ( res ) {
+							if ( res.success ) {
+								showMessage( root, res.data.message, false );
+								setTimeout( function () {
+									window.location.href = res.data.redirect || window.location.href;
+								}, 1500 );
+							} else {
+								resetTurnstile( 'resetcode' );
+								showMessage( root, res.data.message || SmartLogin.i18n.genericError, true );
+							}
+						} )
+						.catch( function () {
+							resetTurnstile( 'resetcode' );
+							showMessage( root, SmartLogin.i18n.genericError, true );
+						} )
+						.finally( function () {
+							submitBtn.disabled = botGatePending( 'resetcode' );
 							submitBtn.textContent = submitBtn.dataset.originalText;
 						} );
 				} );

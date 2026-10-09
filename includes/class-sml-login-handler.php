@@ -33,7 +33,19 @@ class SML_Login_Handler {
 			wp_send_json_error( array( 'message' => $bot_check->get_error_message() ) );
 		}
 
-		$lock_check = SML_Lockout::check( $username );
+		// A mobile number can stand in for the username. Lockout counts by the
+		// normalised number, so 0912…, +98912… and Persian digits share one
+		// counter instead of each format getting its own attempts.
+		$e164     = SML_Phone::parse_e164( $username );
+		$lock_key = '' !== $e164 ? $e164 : $username;
+		if ( '' !== $e164 ) {
+			$matched = SML_Phone::login_for( $e164, $password );
+			if ( '' !== $matched ) {
+				$username = $matched;
+			}
+		}
+
+		$lock_check = SML_Lockout::check( $lock_key );
 		if ( is_wp_error( $lock_check ) ) {
 			wp_send_json_error( array( 'message' => $lock_check->get_error_message() ) );
 		}
@@ -48,11 +60,11 @@ class SML_Login_Handler {
 		);
 
 		if ( is_wp_error( $user ) ) {
-			SML_Lockout::register_failure( $username );
+			SML_Lockout::register_failure( $lock_key );
 			wp_send_json_error( array( 'message' => __( 'Incorrect username/email or password.', 'smart-login' ) ) );
 		}
 
-		SML_Lockout::clear( $username );
+		SML_Lockout::clear( $lock_key );
 
 		if ( ! self::role_allowed( $user ) ) {
 			wp_logout();

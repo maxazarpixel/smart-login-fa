@@ -118,10 +118,11 @@ class SML_SMS {
 	 * @param string $e164   Recipient, +989123456789.
 	 * @param string $code   Digits only.
 	 * @param bool   $throttle Apply the per-number budget (off for the admin test).
+	 * @param string $template Optional template / pattern code overriding the configured one.
 	 * @return true|WP_Error WP_Error code 'sml_sms_failed' carries the gateway's
 	 *                       reason in data['detail'] for the admin screen.
 	 */
-	public static function send_code( $e164, $code, $throttle = true ) {
+	public static function send_code( $e164, $code, $throttle = true, $template = '' ) {
 		$e164 = (string) $e164;
 		$code = preg_replace( '/\D/', '', (string) $code );
 
@@ -144,7 +145,7 @@ class SML_SMS {
 		} elseif ( ! self::is_configured() ) {
 			$result = new WP_Error( 'sml_sms_failed', self::generic_error(), array( 'detail' => __( 'SMS sending is not configured.', 'smart-login' ) ) );
 		} else {
-			$result = self::dispatch( self::provider(), $e164, $receptor, $code );
+			$result = self::dispatch( self::provider(), $e164, $receptor, $code, trim( (string) $template ) );
 		}
 
 		if ( $throttle ) {
@@ -203,9 +204,9 @@ class SML_SMS {
 	/**
 	 * @return true|WP_Error
 	 */
-	protected static function dispatch( $provider, $e164, $receptor, $code ) {
+	protected static function dispatch( $provider, $e164, $receptor, $code, $template_override = '' ) {
 		$api_key  = (string) SML_Settings::get( 'sms_api_key' );
-		$template = trim( (string) SML_Settings::get( 'sms_template' ) );
+		$template = '' !== $template_override ? $template_override : trim( (string) SML_Settings::get( 'sms_template' ) );
 		$sender   = trim( (string) SML_Settings::get( 'sms_sender' ) );
 		$var      = trim( (string) SML_Settings::get( 'sms_code_variable' ) );
 		$var      = '' !== $var ? $var : 'code';
