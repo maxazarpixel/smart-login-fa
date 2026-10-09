@@ -367,7 +367,7 @@ class SML_Admin_Page extends APX_Admin_Page {
 			'sections' => array(
 				array(
 					'heading' => __( 'Verification method', 'smart-login' ),
-					'desc'    => __( 'Choose what new accounts must prove they own. Mobile verification needs the SMS gateway below; until it is fully set up the site keeps verifying by email, so nobody is locked out of registering. Accounts created with Google sign-in are verified by Google and are never sent an SMS.', 'smart-login' ),
+					'desc'    => __( 'Choose what new accounts must prove they own — or nothing at all. Mobile verification needs the SMS gateway below; until it is fully set up the site keeps verifying by email, so nobody is locked out of registering. Accounts created with Google sign-in are verified by Google and are never sent an SMS.', 'smart-login' ),
 					'fields'  => array(
 						array(
 							'type'       => 'select',
@@ -375,10 +375,11 @@ class SML_Admin_Page extends APX_Admin_Page {
 							'label'      => __( 'Verify accounts by', 'smart-login' ),
 							'dep_master' => 'vmethod',
 							'options'    => array(
+								'none'   => __( 'No verification (signed in right away)', 'smart-login' ),
 								'email'  => __( 'Email (code and link)', 'smart-login' ),
 								'mobile' => __( 'Mobile number (SMS code)', 'smart-login' ),
 							),
-							'desc'       => __( 'With mobile verification the email field on the registration form becomes optional, and a password-reset link no longer counts as verification.', 'smart-login' ),
+							'desc'       => __( 'With no verification a new account is signed in as soon as it is created and nothing is sent. With mobile verification the email field on the registration form becomes optional, and a password-reset link no longer counts as verification.', 'smart-login' ),
 						),
 					),
 				),
@@ -1546,7 +1547,7 @@ class SML_Admin_Page extends APX_Admin_Page {
 		$height  = $top_pad + $chart_h + 26;
 		$baseline = $top_pad + $chart_h;
 
-		$font = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+		$font = 'inherit';
 
 		$svg = sprintf(
 			'<svg viewBox="0 0 %1$d %2$d" preserveAspectRatio="xMinYMid meet" role="img" style="width:100%%;max-width:560px;height:auto;font-family:%3$s;">',

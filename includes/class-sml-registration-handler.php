@@ -196,6 +196,40 @@ class SML_Registration_Handler {
 
 		$redirect_to = SML_Page_Guard::validate_redirect( isset( $_POST['redirect_to'] ) ? wp_unslash( $_POST['redirect_to'] ) : '' );
 
+		// Verification switched off: the account is active and signed in at once.
+		// It is recorded as verified (so changing the method later never locks
+		// these people out) together with how it got that way.
+		if ( 'none' === SML_Verification::method() ) {
+			update_user_meta( $user_id, 'sml_email_verified', 1 );
+			update_user_meta( $user_id, 'sml_verified_via', 'none' );
+
+			$new_user = get_user_by( 'id', $user_id );
+			$landing  = $redirect_to ?: ( SML_Settings::post_login_redirect_url() ?: home_url( '/' ) );
+
+			if ( ! SML_Login_Handler::role_allowed( $new_user ) ) {
+				wp_send_json_success(
+					array(
+						'channel'   => 'none',
+						'logged_in' => false,
+						'message'   => __( 'Your account has been created, but your account type is not permitted to log in through this form.', 'smart-login' ),
+						'redirect'  => $redirect_to ?: wp_login_url(),
+					)
+				);
+			}
+
+			wp_set_current_user( $user_id );
+			wp_set_auth_cookie( $user_id );
+
+			wp_send_json_success(
+				array(
+					'channel'   => 'none',
+					'logged_in' => true,
+					'message'   => __( 'Your account has been created. You are now logged in.', 'smart-login' ),
+					'redirect'  => $landing,
+				)
+			);
+		}
+
 		$issued = SML_Verification::issue( $user_id );
 		$user   = get_user_by( 'id', $user_id );
 		$sent   = SML_Verification::deliver( $user, $issued, false, $redirect_to );

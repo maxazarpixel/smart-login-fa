@@ -89,6 +89,9 @@ class SML_User_Profile {
 					<td>
 						<?php if ( $verified ) : ?>
 							<span style="color:#12805c;"><?php esc_html_e( 'Verified', 'smart-login' ); ?></span>
+							<?php if ( 'none' === get_user_meta( $user->ID, 'sml_verified_via', true ) ) : ?>
+								<p class="description"><?php esc_html_e( 'Signed up while verification was switched off, so this address and number were never confirmed.', 'smart-login' ); ?></p>
+							<?php endif; ?>
 						<?php else : ?>
 							<span style="color:#92590a;"><?php esc_html_e( 'Pending', 'smart-login' ); ?></span>
 						<?php endif; ?>

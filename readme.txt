@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.30.2
+Stable tag: 1.31.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,6 +23,7 @@ Highlights:
 * Honeypot and optional Google reCAPTCHA v3 / Cloudflare Turnstile bot protection.
 * Login lockout after repeated failed attempts.
 * Optional WooCommerce My Account login/register form replacement.
+* A login/logout button as a shortcode and as a menu item: `[smart_login_button]`.
 * Choose how accounts are verified: by email (code + link) or by mobile number (SMS code through Kavenegar, FarazSMS, IPPanel or Melipayamak).
 * Log in, or reset a forgotten password, with a mobile number as well as an email address.
 * Optional Iranian registration: Iranian mobile-number validation and a national ID (کد ملی) field, both switchable in Settings → General.
@@ -65,6 +66,11 @@ After changing any caching configuration, purge the cache and test in a private/
 
 == Changelog ==
 
+= 1.31.0 =
+* Added: `[smart_login_button]` — one button that reads "Log In" for visitors and "Log out" for signed-in users. Attributes: `login_text`, `logout_text`, `login_url`, `redirect` (current, home, none or a URL, applied after logging in), `logout_redirect` (home, current, none or a URL), `style` (button or link) and `class`. After logging in the visitor returns to the page they were on.
+* Added: the same button works in navigation menus, where shortcodes do not normally run. In a classic menu or in the block theme Navigation block add a Custom Link whose URL is `#sml-loginout` (its label becomes the login text), or whose label is the shortcode itself, for example `[smart_login_button login_text="Member login"]`. The link switches between login and logout by itself.
+* Added: a third verification mode, "No verification (signed in right away)", next to email and mobile. New accounts are created, signed in and sent to the redirect page immediately and nothing is emailed or texted. Such accounts are stored as verified (so changing the method later never locks them out) and are marked on the user edit screen as having signed up without verification. While this mode is on nobody is held back at login, including accounts that were still pending from an earlier mode.
+* Changed: the settings screens (Dashboard, Users and the rest) no longer ship their own font; they use the admin screen's body font like the rest of WordPress.
 = 1.30.2 =
 * Fixed: a visitor who was already signed in still saw the login form when they opened the page that holds it (for example /login/). Such a visitor is now sent on to where they were headed — an explicit `redirect_to`, else the "Redirect after login" page, else the site home — and, where a redirect cannot happen, the form is replaced by a short "You are already logged in" card with Continue and Log out buttons. Password-reset links, the verification-link landing and Google error messages are not redirected, so their messages still show, and the form stays visible in the editor, previews and the common page builders so it can still be designed.
 * Added: the `sml_logged_in_redirect` filter lets another plugin choose the destination per user, for example a different dashboard for each role.

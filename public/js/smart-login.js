@@ -493,7 +493,14 @@
 							return post( 'sml_register', SmartLogin.registrationNonce, formData( registerForm ) );
 						} )
 						.then( function ( res ) {
-							if ( res.success ) {
+							if ( res.success && res.data && 'none' === res.data.channel ) {
+								// Verification is switched off: the account exists and
+								// is already signed in — just move on.
+								showMessage( root, res.data.message, false );
+								setTimeout( function () {
+									window.location.href = res.data.redirect || window.location.href;
+								}, 1200 );
+							} else if ( res.success ) {
 								enterVerifyStep( root, res.data.user_id, res.data.resend_available );
 							} else {
 								resetTurnstile( 'register' );

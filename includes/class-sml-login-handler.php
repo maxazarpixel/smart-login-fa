@@ -98,7 +98,7 @@ class SML_Login_Handler {
 		$redirect_to = SML_Page_Guard::validate_redirect( isset( $_POST['redirect_to'] ) ? wp_unslash( $_POST['redirect_to'] ) : '' );
 		$notice      = '';
 
-		if ( ! SML_Verification::is_verified( $user->ID ) ) {
+		if ( 'none' !== SML_Verification::method() && ! SML_Verification::is_verified( $user->ID ) ) {
 			if ( SML_Verification::has_verification_record( $user->ID ) ) {
 				// A real Smart Login registration — the configured policy applies.
 				$branch = self::verification_branch( $user->ID );

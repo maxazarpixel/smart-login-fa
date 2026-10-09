@@ -45,14 +45,23 @@ class SML_Verification {
 	}
 
 	/**
-	 * How new accounts are verified right now. 'mobile' only takes effect
-	 * once an SMS gateway is fully configured, so choosing it before the
-	 * credentials are in can never leave visitors unable to register.
+	 * How new accounts are verified right now:
+	 *   'none'   — not at all; a new account is signed in straight away.
+	 *   'email'  — a code / link sent by email.
+	 *   'mobile' — an SMS code. Only takes effect once an SMS gateway is
+	 *              fully configured, so choosing it before the credentials
+	 *              are in can never leave visitors unable to register.
 	 *
-	 * @return string 'email'|'mobile'
+	 * @return string 'none'|'email'|'mobile'
 	 */
 	public static function method() {
-		return ( 'mobile' === SML_Settings::get( 'verification_method', 'email' ) && SML_SMS::is_configured() ) ? 'mobile' : 'email';
+		$chosen = SML_Settings::get( 'verification_method', 'email' );
+
+		if ( 'none' === $chosen ) {
+			return 'none';
+		}
+
+		return ( 'mobile' === $chosen && SML_SMS::is_configured() ) ? 'mobile' : 'email';
 	}
 
 	/**
