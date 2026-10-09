@@ -2,7 +2,7 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Smart Login 1.30.0\n"
+"Project-Id-Version: Smart Login 1.30.1\n"
 "Report-Msgid-Bugs-To: https://www.azarpixel.com\n"
 "POT-Creation-Date: 2026-01-01 00:00+0000\n"
 "MIME-Version: 1.0\n"
@@ -187,7 +187,7 @@ msgstr ""
 msgid "Shortcode & form page"
 msgstr ""
 
-#: admin/class-sml-admin-page.php:1766 includes/class-sml-phone.php:173 includes/class-sml-user-profile.php:122
+#: admin/class-sml-admin-page.php:1766 includes/class-sml-phone.php:174 includes/class-sml-user-profile.php:122
 msgid "Please enter a valid mobile number."
 msgstr ""
 
@@ -1175,31 +1175,31 @@ msgstr ""
 msgid "Too many failed login attempts. Please try again in %d minute(s)."
 msgstr ""
 
-#: includes/class-sml-login-handler.php:105
+#: includes/class-sml-login-handler.php:129
 msgid "Please verify your mobile number to continue. We just sent you a verification code by SMS."
 msgstr ""
 
-#: includes/class-sml-login-handler.php:106
+#: includes/class-sml-login-handler.php:130
 msgid "Please verify your email address to continue. We just sent you a verification code."
 msgstr ""
 
-#: includes/class-sml-login-handler.php:139 includes/class-sml-login-handler.php:155
+#: includes/class-sml-login-handler.php:163 includes/class-sml-login-handler.php:179
 msgid "Login successful."
 msgstr ""
 
-#: includes/class-sml-login-handler.php:146
+#: includes/class-sml-login-handler.php:170
 msgid "We noticed your email address isn't verified yet — we've sent you a verification email."
 msgstr ""
 
-#: includes/class-sml-login-handler.php:28
+#: includes/class-sml-login-handler.php:34
 msgid "Please enter your username/email and password."
 msgstr ""
 
-#: includes/class-sml-login-handler.php:64
+#: includes/class-sml-login-handler.php:88
 msgid "Incorrect username/email or password."
 msgstr ""
 
-#: includes/class-sml-login-handler.php:71 includes/class-sml-shortcode.php:115
+#: includes/class-sml-login-handler.php:95 includes/class-sml-shortcode.php:115
 msgid "Your account type is not permitted to log in through this form."
 msgstr ""
 
@@ -1215,12 +1215,12 @@ msgstr ""
 msgid "Missing reset information. Please request a new code."
 msgstr ""
 
-#: includes/class-sml-password-reset-handler.php:129 includes/class-sml-password-reset-handler.php:279
+#: includes/class-sml-password-reset-handler.php:129 includes/class-sml-password-reset-handler.php:283
 msgid "Those passwords do not match."
 msgstr ""
 
 #. translators: %d: minimum password length
-#: includes/class-sml-password-reset-handler.php:136 includes/class-sml-password-reset-handler.php:286 includes/class-sml-registration-handler.php:75
+#: includes/class-sml-password-reset-handler.php:136 includes/class-sml-password-reset-handler.php:290 includes/class-sml-registration-handler.php:75
 #, php-format
 msgid "Password must be at least %d characters."
 msgstr ""
@@ -1229,27 +1229,27 @@ msgstr ""
 msgid "That code is incorrect or has expired. Please request a new one."
 msgstr ""
 
-#: includes/class-sml-password-reset-handler.php:174 includes/class-sml-password-reset-handler.php:318
+#: includes/class-sml-password-reset-handler.php:174 includes/class-sml-password-reset-handler.php:322
 msgid "Your password has been reset, but your account type is not permitted to sign in through this form."
 msgstr ""
 
-#: includes/class-sml-password-reset-handler.php:186 includes/class-sml-password-reset-handler.php:330
+#: includes/class-sml-password-reset-handler.php:186 includes/class-sml-password-reset-handler.php:334
 msgid "Your password has been reset. You are now logged in."
 msgstr ""
 
-#: includes/class-sml-password-reset-handler.php:197
+#: includes/class-sml-password-reset-handler.php:201
 msgid "Please enter your email address or mobile number."
 msgstr ""
 
-#: includes/class-sml-password-reset-handler.php:256
+#: includes/class-sml-password-reset-handler.php:260
 msgid "If an account exists for that email, we've sent a link to reset the password."
 msgstr ""
 
-#: includes/class-sml-password-reset-handler.php:270
+#: includes/class-sml-password-reset-handler.php:274
 msgid "Missing reset information. Please request a new link."
 msgstr ""
 
-#: includes/class-sml-password-reset-handler.php:294
+#: includes/class-sml-password-reset-handler.php:298
 msgid "This password reset link is invalid or has expired. Please request a new one."
 msgstr ""
 
@@ -1261,7 +1261,7 @@ msgstr ""
 msgid "If an account exists for that mobile number, we've sent a code by SMS."
 msgstr ""
 
-#: includes/class-sml-phone.php:166
+#: includes/class-sml-phone.php:167
 msgid "Please enter a valid Iranian mobile number, e.g. 0912 345 6789."
 msgstr ""
 

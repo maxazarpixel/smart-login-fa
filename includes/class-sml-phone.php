@@ -124,7 +124,8 @@ class SML_Phone {
 	 */
 	public static function login_for( $e164, $password ) {
 		foreach ( self::users_for( $e164 ) as $user ) {
-			if ( wp_check_password( $password, $user->user_pass, $user->ID ) ) {
+			if ( wp_check_password( $password, $user->user_pass, $user->ID )
+				|| wp_check_password( SML_Iran::to_latin_digits( $password ), $user->user_pass, $user->ID ) ) {
 				return $user->user_login;
 			}
 		}

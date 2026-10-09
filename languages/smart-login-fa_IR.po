@@ -188,7 +188,7 @@ msgstr "درخواست ناموفق بود."
 msgid "Shortcode & form page"
 msgstr "شورت‌کد و صفحهٔ فرم"
 
-#: admin/class-sml-admin-page.php:1766 includes/class-sml-phone.php:173 includes/class-sml-user-profile.php:122
+#: admin/class-sml-admin-page.php:1766 includes/class-sml-phone.php:174 includes/class-sml-user-profile.php:122
 msgid "Please enter a valid mobile number."
 msgstr "لطفاً یک شمارهٔ موبایل معتبر وارد کنید."
 
@@ -1176,31 +1176,31 @@ msgstr "تنظیمات"
 msgid "Too many failed login attempts. Please try again in %d minute(s)."
 msgstr "تعداد تلاش‌های ناموفق ورود زیاد بوده است. لطفاً %d دقیقهٔ دیگر دوباره تلاش کنید."
 
-#: includes/class-sml-login-handler.php:105
+#: includes/class-sml-login-handler.php:129
 msgid "Please verify your mobile number to continue. We just sent you a verification code by SMS."
 msgstr "برای ادامه، شمارهٔ موبایل خود را تأیید کنید. همین حالا یک کد تأیید با پیامک برایتان فرستادیم."
 
-#: includes/class-sml-login-handler.php:106
+#: includes/class-sml-login-handler.php:130
 msgid "Please verify your email address to continue. We just sent you a verification code."
 msgstr "برای ادامه، ایمیل خود را تأیید کنید. همین حالا یک کد تأیید برایتان فرستادیم."
 
-#: includes/class-sml-login-handler.php:139 includes/class-sml-login-handler.php:155
+#: includes/class-sml-login-handler.php:163 includes/class-sml-login-handler.php:179
 msgid "Login successful."
 msgstr "ورود با موفقیت انجام شد."
 
-#: includes/class-sml-login-handler.php:146
+#: includes/class-sml-login-handler.php:170
 msgid "We noticed your email address isn't verified yet — we've sent you a verification email."
 msgstr "متوجه شدیم ایمیل شما هنوز تأیید نشده است؛ یک ایمیل تأیید برایتان ارسال کردیم."
 
-#: includes/class-sml-login-handler.php:28
+#: includes/class-sml-login-handler.php:34
 msgid "Please enter your username/email and password."
 msgstr "لطفاً نام کاربری/ایمیل و رمز عبور خود را وارد کنید."
 
-#: includes/class-sml-login-handler.php:64
+#: includes/class-sml-login-handler.php:88
 msgid "Incorrect username/email or password."
 msgstr "نام کاربری/ایمیل یا رمز عبور نادرست است."
 
-#: includes/class-sml-login-handler.php:71 includes/class-sml-shortcode.php:115
+#: includes/class-sml-login-handler.php:95 includes/class-sml-shortcode.php:115
 msgid "Your account type is not permitted to log in through this form."
 msgstr "نوع حساب شما اجازهٔ ورود از این فرم را ندارد."
 
@@ -1216,12 +1216,12 @@ msgstr "تسویه‌حساب"
 msgid "Missing reset information. Please request a new code."
 msgstr "اطلاعات بازیابی ناقص است. لطفاً کد جدیدی درخواست کنید."
 
-#: includes/class-sml-password-reset-handler.php:129 includes/class-sml-password-reset-handler.php:279
+#: includes/class-sml-password-reset-handler.php:129 includes/class-sml-password-reset-handler.php:283
 msgid "Those passwords do not match."
 msgstr "رمزهای عبور یکسان نیستند."
 
 #. translators: %d: minimum password length
-#: includes/class-sml-password-reset-handler.php:136 includes/class-sml-password-reset-handler.php:286 includes/class-sml-registration-handler.php:75
+#: includes/class-sml-password-reset-handler.php:136 includes/class-sml-password-reset-handler.php:290 includes/class-sml-registration-handler.php:75
 #, php-format
 msgid "Password must be at least %d characters."
 msgstr "رمز عبور باید دست‌کم %d نویسه باشد."
@@ -1230,27 +1230,27 @@ msgstr "رمز عبور باید دست‌کم %d نویسه باشد."
 msgid "That code is incorrect or has expired. Please request a new one."
 msgstr "این کد نادرست است یا منقضی شده است. لطفاً کد جدیدی درخواست کنید."
 
-#: includes/class-sml-password-reset-handler.php:174 includes/class-sml-password-reset-handler.php:318
+#: includes/class-sml-password-reset-handler.php:174 includes/class-sml-password-reset-handler.php:322
 msgid "Your password has been reset, but your account type is not permitted to sign in through this form."
 msgstr "رمز عبور شما بازیابی شد، اما نوع حساب شما اجازهٔ ورود از این فرم را ندارد."
 
-#: includes/class-sml-password-reset-handler.php:186 includes/class-sml-password-reset-handler.php:330
+#: includes/class-sml-password-reset-handler.php:186 includes/class-sml-password-reset-handler.php:334
 msgid "Your password has been reset. You are now logged in."
 msgstr "رمز عبور شما بازیابی شد. اکنون وارد شده‌اید."
 
-#: includes/class-sml-password-reset-handler.php:197
+#: includes/class-sml-password-reset-handler.php:201
 msgid "Please enter your email address or mobile number."
 msgstr "لطفاً نشانی ایمیل یا شمارهٔ موبایل خود را وارد کنید."
 
-#: includes/class-sml-password-reset-handler.php:256
+#: includes/class-sml-password-reset-handler.php:260
 msgid "If an account exists for that email, we've sent a link to reset the password."
 msgstr "اگر حسابی با این ایمیل وجود داشته باشد، لینک بازیابی رمز عبور برایش ارسال شده است."
 
-#: includes/class-sml-password-reset-handler.php:270
+#: includes/class-sml-password-reset-handler.php:274
 msgid "Missing reset information. Please request a new link."
 msgstr "اطلاعات بازیابی ناقص است. لطفاً لینک جدیدی درخواست کنید."
 
-#: includes/class-sml-password-reset-handler.php:294
+#: includes/class-sml-password-reset-handler.php:298
 msgid "This password reset link is invalid or has expired. Please request a new one."
 msgstr "این لینک بازیابی رمز عبور نامعتبر است یا منقضی شده است. لطفاً لینک جدیدی درخواست کنید."
 
@@ -1262,7 +1262,7 @@ msgstr "بازیابی با شمارهٔ موبایل در دسترس نیست. 
 msgid "If an account exists for that mobile number, we've sent a code by SMS."
 msgstr "اگر حسابی با این شمارهٔ موبایل وجود داشته باشد، یک کد پیامکی برایش ارسال شده است."
 
-#: includes/class-sml-phone.php:166
+#: includes/class-sml-phone.php:167
 msgid "Please enter a valid Iranian mobile number, e.g. 0912 345 6789."
 msgstr "لطفاً یک شمارهٔ موبایل ایرانی معتبر وارد کنید، مثلاً ۰۹۱۲ ۳۴۵ ۶۷۸۹."
 

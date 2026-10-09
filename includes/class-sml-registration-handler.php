@@ -51,11 +51,11 @@ class SML_Registration_Handler {
 
 		$first_name    = isset( $_POST['first_name'] ) ? sanitize_text_field( wp_unslash( $_POST['first_name'] ) ) : '';
 		$last_name     = isset( $_POST['last_name'] ) ? sanitize_text_field( wp_unslash( $_POST['last_name'] ) ) : '';
-		$email         = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+		$email         = isset( $_POST['email'] ) ? sanitize_email( SML_Iran::to_latin_digits( wp_unslash( $_POST['email'] ) ) ) : '';
 		$country_id    = isset( $_POST['phone_country'] ) ? sanitize_key( wp_unslash( $_POST['phone_country'] ) ) : '';
 		$phone_number  = isset( $_POST['phone_number'] ) ? preg_replace( '/[^0-9]/', '', SML_Iran::to_latin_digits( wp_unslash( $_POST['phone_number'] ) ) ) : '';
 		$national_id   = isset( $_POST['national_id'] ) ? preg_replace( '/[^0-9]/', '', SML_Iran::to_latin_digits( wp_unslash( $_POST['national_id'] ) ) ) : '';
-		$password      = isset( $_POST['password'] ) ? (string) wp_unslash( $_POST['password'] ) : '';
+		$password      = isset( $_POST['password'] ) ? SML_Iran::to_latin_digits( (string) wp_unslash( $_POST['password'] ) ) : '';
 
 		// When verifying by mobile the email is optional: an empty one gets a
 		// placeholder below. One that is entered must still be a real address.

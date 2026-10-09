@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.30.0
+Stable tag: 1.30.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,6 +65,10 @@ After changing any caching configuration, purge the cache and test in a private/
 
 == Changelog ==
 
+= 1.30.1 =
+* Changed: Persian and Arabic-Indic digits are converted to ASCII digits automatically in the email address and the password as well, on top of the mobile number and National ID that were already handled. This happens on the server, so the database always holds the ASCII form; in the browser the email field is converted as it is typed. Registration, password reset (link and SMS code) and login all apply it. At login the password is first tried exactly as typed and then converted, so existing passwords that really contain Persian digits keep working.
+* Changed: the form's headings ("Log In to your account", "Create Your Account", and so on) now sit on a single line, wrapping only when the space is too narrow.
+* Changed: the form uses the theme's body font instead of its own system font stack, so it matches the rest of the site.
 = 1.30.0 =
 * Added: a "Smart Login" section on the user edit and profile screens showing the account's mobile number, National ID and verification state. Users who can edit other users (administrators) can change or clear the mobile number and National ID there; everyone else sees them read-only, so a verified number cannot be swapped without going through verification.
 * Added: the same checks as the registration form apply on that screen — a valid mobile number (09123456789 or +<country code><number>, Persian digits accepted), a valid National ID with its check digit, no other verified account using the same number, and no other account using the same National ID. Nothing is saved when a check fails.

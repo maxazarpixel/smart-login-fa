@@ -321,6 +321,18 @@
 
 			wireOtp( root );
 
+			// Persian / Arabic digits in an email address, or in a login that
+			// is a phone number, become ASCII as they are typed. The server
+			// does the same, so this only keeps what the visitor sees honest.
+			qsa( '#sml-reg-email, #sml-login-user, #sml-forgot-email', root ).forEach( function ( input ) {
+				input.addEventListener( 'input', function () {
+					var v = input.value;
+					if ( /[\u06F0-\u06F9\u0660-\u0669]/.test( v ) && ( v.indexOf( '@' ) !== -1 || /^[+\d\u06F0-\u06F9\u0660-\u0669\s().-]+$/.test( v ) ) ) {
+						input.value = toLatinDigits( v );
+					}
+				} );
+			} );
+
 			// The <select> can't render an SVG inside its own closed state,
 			// so a real flag icon sits next to it and is swapped by hand
 			// whenever the selection changes.

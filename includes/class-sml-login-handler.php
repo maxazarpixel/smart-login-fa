@@ -24,6 +24,12 @@ class SML_Login_Handler {
 		$username = isset( $_POST['username'] ) ? sanitize_text_field( wp_unslash( $_POST['username'] ) ) : '';
 		$password = isset( $_POST['password'] ) ? (string) wp_unslash( $_POST['password'] ) : '';
 
+		// An email address typed with Persian digits is stored with ASCII
+		// ones, so look it up that way. (Plain usernames are left as typed.)
+		if ( false !== strpos( $username, '@' ) ) {
+			$username = SML_Iran::to_latin_digits( $username );
+		}
+
 		if ( ! $username || ! $password ) {
 			wp_send_json_error( array( 'message' => __( 'Please enter your username/email and password.', 'smart-login' ) ) );
 		}
@@ -58,6 +64,24 @@ class SML_Login_Handler {
 			),
 			is_ssl()
 		);
+
+		// Passwords are stored with ASCII digits (see registration and reset),
+		// so a password typed with Persian digits is retried converted. The
+		// as-typed attempt goes first so older passwords that really contain
+		// Persian digits keep working.
+		if ( is_wp_error( $user ) ) {
+			$latin_password = SML_Iran::to_latin_digits( $password );
+			if ( $latin_password !== $password ) {
+				$user = wp_signon(
+					array(
+						'user_login'    => $username,
+						'user_password' => $latin_password,
+						'remember'      => true,
+					),
+					is_ssl()
+				);
+			}
+		}
 
 		if ( is_wp_error( $user ) ) {
 			SML_Lockout::register_failure( $lock_key );

@@ -107,8 +107,8 @@ class SML_Password_Reset_Handler {
 
 		$login   = isset( $_POST['login'] ) ? sanitize_text_field( wp_unslash( $_POST['login'] ) ) : '';
 		$code    = isset( $_POST['code'] ) ? preg_replace( '/\D/', '', SML_Iran::to_latin_digits( wp_unslash( $_POST['code'] ) ) ) : '';
-		$pass    = isset( $_POST['password'] ) ? (string) wp_unslash( $_POST['password'] ) : '';
-		$confirm = isset( $_POST['password_confirm'] ) ? (string) wp_unslash( $_POST['password_confirm'] ) : '';
+		$pass    = isset( $_POST['password'] ) ? SML_Iran::to_latin_digits( (string) wp_unslash( $_POST['password'] ) ) : '';
+		$confirm = isset( $_POST['password_confirm'] ) ? SML_Iran::to_latin_digits( (string) wp_unslash( $_POST['password_confirm'] ) ) : '';
 
 		if ( ! $login || ! $code || ! $pass ) {
 			wp_send_json_error( array( 'message' => __( 'Missing reset information. Please request a new code.', 'smart-login' ) ) );
@@ -193,6 +193,10 @@ class SML_Password_Reset_Handler {
 
 		$login = isset( $_POST['login'] ) ? sanitize_text_field( wp_unslash( $_POST['login'] ) ) : '';
 
+		if ( false !== strpos( $login, '@' ) ) {
+			$login = SML_Iran::to_latin_digits( $login );
+		}
+
 		if ( ! $login ) {
 			wp_send_json_error( array( 'message' => __( 'Please enter your email address or mobile number.', 'smart-login' ) ) );
 		}
@@ -263,8 +267,8 @@ class SML_Password_Reset_Handler {
 
 		$login   = isset( $_POST['login'] ) ? sanitize_text_field( wp_unslash( $_POST['login'] ) ) : '';
 		$key     = isset( $_POST['key'] ) ? sanitize_text_field( wp_unslash( $_POST['key'] ) ) : '';
-		$pass    = isset( $_POST['password'] ) ? (string) wp_unslash( $_POST['password'] ) : '';
-		$confirm = isset( $_POST['password_confirm'] ) ? (string) wp_unslash( $_POST['password_confirm'] ) : '';
+		$pass    = isset( $_POST['password'] ) ? SML_Iran::to_latin_digits( (string) wp_unslash( $_POST['password'] ) ) : '';
+		$confirm = isset( $_POST['password_confirm'] ) ? SML_Iran::to_latin_digits( (string) wp_unslash( $_POST['password_confirm'] ) ) : '';
 
 		if ( ! $login || ! $key || ! $pass ) {
 			wp_send_json_error( array( 'message' => __( 'Missing reset information. Please request a new link.', 'smart-login' ) ) );
