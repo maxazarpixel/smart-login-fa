@@ -140,8 +140,16 @@
 	// not a claim of any country's official number format, just a readable
 	// grouping while the visitor types. Digits beyond the selected country's
 	// max are dropped rather than accepted and rejected later server-side.
+	// Persian and Arabic-Indic digits to ASCII, so typing with a Persian
+	// keyboard works in the numeric fields.
+	function toLatinDigits( value ) {
+		return ( value || '' )
+			.replace( /[\u06F0-\u06F9]/g, function ( d ) { return String( d.charCodeAt( 0 ) - 0x06F0 ); } )
+			.replace( /[\u0660-\u0669]/g, function ( d ) { return String( d.charCodeAt( 0 ) - 0x0660 ); } );
+	}
+
 	function formatPhoneDigits( value, maxDigits ) {
-		var digits = ( value || '' ).replace( /\D/g, '' ).slice( 0, maxDigits );
+		var digits = toLatinDigits( value ).replace( /\D/g, '' ).slice( 0, maxDigits );
 		var groups = [];
 		var remaining = digits;
 		while ( remaining.length > 4 ) {
@@ -327,7 +335,26 @@
 					phoneInput.value = formatPhoneDigits( phoneInput.value, max );
 				};
 
+				// The national ID field only applies to Iran: show it (and make
+				// it required, when configured) only for that selection.
+				var idWrap = qs( '[data-sml-national-id-wrap]', root );
+				var idInput = idWrap ? qs( 'input', idWrap ) : null;
+				var syncNationalId = function () {
+					if ( ! idWrap || ! idInput ) { return; }
+					var isIran = 'ir' === select.value;
+					idWrap.hidden = ! isIran;
+					idInput.disabled = ! isIran;
+					idInput.required = isIran && '1' === idWrap.getAttribute( 'data-sml-national-id-required' );
+				};
+				if ( idInput ) {
+					syncNationalId();
+					idInput.addEventListener( 'input', function () {
+						idInput.value = toLatinDigits( idInput.value ).replace( /\D/g, '' ).slice( 0, 10 );
+					} );
+				}
+
 				select.addEventListener( 'change', function () {
+					syncNationalId();
 					// Swapped as markup (not a sprite <use> href) so the
 					// neutral fallback badge for countries without a hand
 					// drawn flag also displays correctly.

@@ -47,7 +47,8 @@ class SML_Registration_Handler {
 		$last_name     = isset( $_POST['last_name'] ) ? sanitize_text_field( wp_unslash( $_POST['last_name'] ) ) : '';
 		$email         = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
 		$country_id    = isset( $_POST['phone_country'] ) ? sanitize_key( wp_unslash( $_POST['phone_country'] ) ) : '';
-		$phone_number  = isset( $_POST['phone_number'] ) ? preg_replace( '/[^0-9]/', '', wp_unslash( $_POST['phone_number'] ) ) : '';
+		$phone_number  = isset( $_POST['phone_number'] ) ? preg_replace( '/[^0-9]/', '', SML_Iran::to_latin_digits( wp_unslash( $_POST['phone_number'] ) ) ) : '';
+		$national_id   = isset( $_POST['national_id'] ) ? preg_replace( '/[^0-9]/', '', SML_Iran::to_latin_digits( wp_unslash( $_POST['national_id'] ) ) ) : '';
 		$password      = isset( $_POST['password'] ) ? (string) wp_unslash( $_POST['password'] ) : '';
 
 		if ( ! $first_name || ! $last_name || ! $email || ! $phone_number || ! $password ) {
@@ -86,6 +87,23 @@ class SML_Registration_Handler {
 			wp_send_json_error( array( 'message' => $phone_check->get_error_message() ) );
 		}
 
+		$iran_rules = SML_Iran::applies_to( $country_id );
+		if ( $iran_rules ) {
+			$phone_number = SML_Iran::normalize_mobile( $phone_number );
+
+			// Optional means "may be left empty", not "may be wrong": anything
+			// that is entered is still checked and must be unique.
+			if ( '' !== $national_id || SML_Iran::national_id_required() ) {
+				if ( ! SML_Iran::is_valid_national_id( $national_id ) ) {
+					wp_send_json_error( array( 'message' => __( 'Please enter a valid national ID (10 digits).', 'smart-login' ) ) );
+				}
+
+				if ( SML_Iran::national_id_exists( $national_id ) ) {
+					wp_send_json_error( array( 'message' => __( 'An account with that national ID already exists.', 'smart-login' ) ) );
+				}
+			}
+		}
+
 		if ( email_exists( $email ) ) {
 			wp_send_json_error( array( 'message' => __( 'An account with that email already exists.', 'smart-login' ) ) );
 		}
@@ -120,6 +138,9 @@ class SML_Registration_Handler {
 
 		update_user_meta( $user_id, 'sml_email_verified', 0 );
 		update_user_meta( $user_id, 'sml_phone', $phone_dial . ' ' . SML_Phone::format( $phone_number ) );
+		if ( $iran_rules && '' !== $national_id ) {
+			update_user_meta( $user_id, SML_Iran::NATIONAL_META, $national_id );
+		}
 
 		$redirect_to = SML_Page_Guard::validate_redirect( isset( $_POST['redirect_to'] ) ? wp_unslash( $_POST['redirect_to'] ) : '' );
 

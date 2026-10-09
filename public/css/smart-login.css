@@ -696,3 +696,7 @@
 	right: auto !important;
 	left: 0 !important;
 }
+
+.sml-card .sml-field-boxed[hidden] {
+	display: none !important;
+}

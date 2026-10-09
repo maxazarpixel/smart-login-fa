@@ -304,6 +304,10 @@ class SML_Shortcode {
 						<?php
 						$sml_allowed_countries = SML_Countries::allowed();
 						$sml_default_country   = isset( $sml_allowed_countries['us'] ) ? 'us' : (string) array_key_first( $sml_allowed_countries );
+						// A Persian-language site with the Iranian rules on starts on Iran.
+						if ( SML_Iran::enabled() && isset( $sml_allowed_countries['ir'] ) && 0 === strpos( determine_locale(), 'fa' ) ) {
+							$sml_default_country = 'ir';
+						}
 						?>
 						<?php SML_Flags::sprite(); ?>
 						<div class="sml-field-boxed">
@@ -320,6 +324,13 @@ class SML_Shortcode {
 							</div>
 							<label for="sml-reg-phone"><?php esc_html_e( 'Mobile number', 'smart-login' ); ?> <span class="sml-required">*</span></label>
 						</div>
+						<?php if ( SML_Iran::enabled() ) : ?>
+							<?php $sml_national_id_required = SML_Iran::national_id_required(); ?>
+							<div class="sml-field-boxed" data-sml-national-id-wrap data-sml-national-id-required="<?php echo $sml_national_id_required ? '1' : '0'; ?>"<?php echo 'ir' === $sml_default_country ? '' : ' hidden'; ?>>
+								<input type="text" id="sml-reg-national-id" class="sml-input" name="national_id" inputmode="numeric" autocomplete="off" maxlength="10" dir="ltr" placeholder=" "<?php echo ( $sml_national_id_required && 'ir' === $sml_default_country ) ? ' required' : ''; ?><?php echo 'ir' === $sml_default_country ? '' : ' disabled'; ?>>
+								<label for="sml-reg-national-id"><?php esc_html_e( 'National ID', 'smart-login' ); ?><?php if ( $sml_national_id_required ) : ?> <span class="sml-required">*</span><?php endif; ?></label>
+							</div>
+						<?php endif; ?>
 						<div class="sml-field-boxed">
 							<div class="sml-password-group">
 								<input type="password" id="sml-reg-pass" class="sml-input" name="password" autocomplete="new-password" placeholder=" " required>

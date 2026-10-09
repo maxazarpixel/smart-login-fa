@@ -30,6 +30,11 @@ class SML_Phone {
 	 * @return int
 	 */
 	public static function max_length( $country_id ) {
+		// Room for the optional leading zero (0912…).
+		if ( SML_Iran::applies_to( $country_id ) ) {
+			return 11;
+		}
+
 		$countries = SML_Countries::all();
 		if ( ! isset( $countries[ $country_id ] ) ) {
 			return self::MAX_E164_DIGITS - 1;
@@ -46,8 +51,16 @@ class SML_Phone {
 	 * @return true|WP_Error
 	 */
 	public static function validate( $country_id, $digits ) {
-		$digits = preg_replace( '/\D/', '', (string) $digits );
+		$digits = preg_replace( '/\D/', '', SML_Iran::to_latin_digits( $digits ) );
 		$max    = self::max_length( $country_id );
+
+		if ( SML_Iran::applies_to( $country_id ) ) {
+			if ( ! SML_Iran::is_valid_mobile( $digits ) ) {
+				return new WP_Error( 'sml_invalid_phone', __( 'Please enter a valid Iranian mobile number, e.g. 0912 345 6789.', 'smart-login' ) );
+			}
+
+			return true;
+		}
 
 		if ( strlen( $digits ) < self::MIN_DIGITS || strlen( $digits ) > $max ) {
 			return new WP_Error( 'sml_invalid_phone', __( 'Please enter a valid mobile number.', 'smart-login' ) );

@@ -196,6 +196,25 @@ class SML_Admin_Page extends APX_Admin_Page {
 					),
 				),
 				array(
+					'heading' => __( 'Iranian registration', 'smart-login' ),
+					'desc'    => __( 'Adds Iran to the country list, validates Iranian mobile numbers (10 digits starting with 9, a leading 0 is accepted) and can ask for the national ID when Iran is selected. Persian and Arabic digits are accepted in both fields.', 'smart-login' ),
+					'fields'  => array(
+						array(
+							'type'       => 'toggle',
+							'name'       => 'enable_iran_fields',
+							'label'      => __( 'Iranian mobile numbers & national ID', 'smart-login' ),
+							'dep_master' => 'iran',
+						),
+						array(
+							'type'  => 'toggle',
+							'name'  => 'iran_national_id_required',
+							'label' => __( 'Require the national ID', 'smart-login' ),
+							'desc'  => __( 'When off, the field is still shown but may be left empty. Anything entered is always checked and must not already belong to another account.', 'smart-login' ),
+							'dep'   => 'iran',
+						),
+					),
+				),
+				array(
 					'heading' => __( 'Disposable email protection', 'smart-login' ),
 					'desc'    => __( 'Rejects registration when the email address\'s domain matches the list below — reduces fake/fraudulent sign-ups from throwaway inboxes.', 'smart-login' ),
 					'fields'  => array(

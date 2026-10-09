@@ -31,6 +31,8 @@ class SML_Settings {
 			'block_disposable_emails'  => 1,
 			'disposable_email_domains' => implode( "\n", SML_Disposable_Email::default_domains() ),
 			'allowed_login_roles'      => '',
+			'enable_iran_fields'       => 0,
+			'iran_national_id_required' => 1,
 
 			// Google login.
 			'enable_google_login'      => 0,

@@ -289,7 +289,14 @@ class SML_Countries {
 		$known   = self::all();
 		$allowed = array_values( array_intersect( $ids, array_keys( $known ) ) );
 
-		return $allowed ? $allowed : self::default_allowed_ids();
+		$allowed = $allowed ? $allowed : self::default_allowed_ids();
+
+		// The Iranian registration rules are pointless if Iran can't be picked.
+		if ( SML_Iran::enabled() && isset( $known[ SML_Iran::COUNTRY_ID ] ) && ! in_array( SML_Iran::COUNTRY_ID, $allowed, true ) ) {
+			$allowed[] = SML_Iran::COUNTRY_ID;
+		}
+
+		return $allowed;
 	}
 
 	/**

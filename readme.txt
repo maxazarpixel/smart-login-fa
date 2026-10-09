@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.26.0
+Stable tag: 1.27.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,6 +23,7 @@ Highlights:
 * Honeypot and optional Google reCAPTCHA v3 / Cloudflare Turnstile bot protection.
 * Login lockout after repeated failed attempts.
 * Optional WooCommerce My Account login/register form replacement.
+* Optional Iranian registration: Iranian mobile-number validation and a national ID (کد ملی) field, both switchable in Settings → General.
 * Settings UI built on the AzarPixel WP Admin UI Kit.
 * Translated into Spanish (es_ES) and Persian (fa_IR, with full right-to-left layout); English is the source language.
 
@@ -62,6 +63,12 @@ After changing any caching configuration, purge the cache and test in a private/
 
 == Changelog ==
 
+= 1.27.0 =
+* Added: optional Iranian registration, off by default (Settings → General → "Iranian registration"). When on, Iran is always selectable in the registration country list, Iranian mobile numbers are checked against the real format (10 digits starting with 9, with or without the leading 0, stored normalised as +98 912 345 6789), and a National ID (کد ملی) field appears whenever Iran is the selected country.
+* Added: the National ID is checked with the official check-digit algorithm, rejects repeated-digit values, and must be unique across accounts. A second setting makes the field required or optional; when optional, a value that is entered is still validated.
+* Added: Persian and Arabic-Indic digits typed on a Persian keyboard are converted to ASCII in the mobile-number and National ID fields, in the browser and again on the server.
+* Added: on a Persian-language site with the Iranian rules enabled, the registration form starts with Iran selected.
+* Developer: the National ID is stored in the `sml_national_id` user meta key and removed on uninstall.
 = 1.26.0 =
 * Added: Spanish (es_ES) and Persian (fa_IR) translations covering the whole plugin — the login/register form, every notice and error, the verification / reset / welcome / Google-linked email templates, and the entire settings screen. Regional variants (es_MX, es_AR, fa_AF, …) fall back to the closest shipped translation, and a translation pack from translate.wordpress.org still takes precedence over the bundled files.
 * Added: right-to-left layout for Persian on the front-end form, the settings screen and HTML emails. Email, phone, password and code fields stay left-to-right, as is standard.
