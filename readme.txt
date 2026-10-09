@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.31.0
+Stable tag: 1.31.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -66,8 +66,11 @@ After changing any caching configuration, purge the cache and test in a private/
 
 == Changelog ==
 
+= 1.31.1 =
+* Fixed: logging out from a plain WordPress logout link (the admin bar, a theme's own link) landed on wp-login.php. It now returns to the Smart Login page. A logout link that names its own destination, such as a menu item or WooCommerce's My Account, is left alone, and the `sml_logout_redirect` filter can change the default.
+* Changed: `[smart_login_button]` and the menu login/logout item now also return to the login page after logging out (`logout_redirect="login"`, the new default). Use `logout_redirect="home"` for the previous behaviour.
 = 1.31.0 =
-* Added: `[smart_login_button]` — one button that reads "Log In" for visitors and "Log out" for signed-in users. Attributes: `login_text`, `logout_text`, `login_url`, `redirect` (current, home, none or a URL, applied after logging in), `logout_redirect` (home, current, none or a URL), `style` (button or link) and `class`. After logging in the visitor returns to the page they were on.
+* Added: `[smart_login_button]` — one button that reads "Log In" for visitors and "Log out" for signed-in users. Attributes: `login_text`, `logout_text`, `login_url`, `redirect` (current, home, none or a URL, applied after logging in), `logout_redirect` (login, home, current, none or a URL), `style` (button or link) and `class`. After logging in the visitor returns to the page they were on.
 * Added: the same button works in navigation menus, where shortcodes do not normally run. In a classic menu or in the block theme Navigation block add a Custom Link whose URL is `#sml-loginout` (its label becomes the login text), or whose label is the shortcode itself, for example `[smart_login_button login_text="Member login"]`. The link switches between login and logout by itself.
 * Added: a third verification mode, "No verification (signed in right away)", next to email and mobile. New accounts are created, signed in and sent to the redirect page immediately and nothing is emailed or texted. Such accounts are stored as verified (so changing the method later never locks them out) and are marked on the user edit screen as having signed up without verification. While this mode is on nobody is held back at login, including accounts that were still pending from an earlier mode.
 * Changed: the settings screens (Dashboard, Users and the rest) no longer ship their own font; they use the admin screen's body font like the rest of WordPress.

@@ -15,7 +15,7 @@
  *   logout_text      Label while logged in.         Default "Log out".
  *   login_url        Login page.                    Default: the configured form page.
  *   redirect         After logging in: current | home | none | a URL.   Default current.
- *   logout_redirect  After logging out: home | current | none | a URL.  Default home.
+ *   logout_redirect  After logging out: login | home | current | none | a URL.  Default login.
  *   style            button | link.                 Default button.
  *   class            Extra CSS classes.
  *
@@ -47,7 +47,7 @@ class SML_Login_Button {
 				'logout_text'     => __( 'Log out', 'smart-login' ),
 				'login_url'       => '',
 				'redirect'        => 'current',
-				'logout_redirect' => 'home',
+				'logout_redirect' => 'login',
 				'style'           => 'button',
 				'class'           => '',
 			),
@@ -57,7 +57,7 @@ class SML_Login_Button {
 	}
 
 	/**
-	 * @param string $setting current | home | none | URL
+	 * @param string $setting current | home | login | none | URL
 	 * @return string URL or ''.
 	 */
 	protected static function target_url( $setting ) {
@@ -68,6 +68,9 @@ class SML_Login_Button {
 		}
 		if ( 'home' === $setting ) {
 			return home_url( '/' );
+		}
+		if ( 'login' === $setting ) {
+			return SML_Settings::form_page_url();
 		}
 		if ( 'current' === $setting ) {
 			return SML_Page_Guard::current_url();

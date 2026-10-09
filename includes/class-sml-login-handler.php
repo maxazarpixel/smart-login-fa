@@ -16,6 +16,39 @@ class SML_Login_Handler {
 
 	public static function init() {
 		add_action( 'wp_ajax_nopriv_sml_login', array( __CLASS__, 'ajax_login' ) );
+		add_filter( 'logout_redirect', array( __CLASS__, 'logout_redirect' ), 10, 2 );
+	}
+
+	/**
+	 * A logout that does not say where to go (the admin bar, a plain
+	 * wp_logout_url(), a theme's own link) would land on wp-login.php, which
+	 * is not the page visitors know. Send it to the login page instead.
+	 * An explicit redirect_to — a menu item, WooCommerce's My Account — is
+	 * left untouched.
+	 *
+	 * @param string $redirect_to           Where WordPress is about to send the user.
+	 * @param string $requested_redirect_to What the logout link asked for ('' if nothing).
+	 * @return string
+	 */
+	public static function logout_redirect( $redirect_to, $requested_redirect_to ) {
+		if ( '' !== (string) $requested_redirect_to ) {
+			return $redirect_to;
+		}
+
+		$login_page = SML_Settings::form_page_url();
+
+		// form_page_url() falls back to the site home when it cannot find the
+		// form anywhere; in that case keep WordPress's own behaviour.
+		if ( trailingslashit( $login_page ) === trailingslashit( home_url( '/' ) ) ) {
+			return $redirect_to;
+		}
+
+		/**
+		 * Filters where a visitor lands after logging out without a requested destination.
+		 *
+		 * @param string $login_page The login page.
+		 */
+		return (string) apply_filters( 'sml_logout_redirect', $login_page );
 	}
 
 	public static function ajax_login() {

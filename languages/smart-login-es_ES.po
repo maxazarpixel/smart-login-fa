@@ -1188,33 +1188,33 @@ msgstr "Iniciar sesión"
 msgid "Log out"
 msgstr "Cerrar sesión"
 
-#: includes/class-sml-login-handler.php:129
-msgid "Please verify your mobile number to continue. We just sent you a verification code by SMS."
-msgstr "Verifica tu número de móvil para continuar. Acabamos de enviarte un código de verificación por SMS."
-
-#: includes/class-sml-login-handler.php:130
-msgid "Please verify your email address to continue. We just sent you a verification code."
-msgstr "Verifica tu correo electrónico para continuar. Acabamos de enviarte un código de verificación."
-
-#: includes/class-sml-login-handler.php:163 includes/class-sml-login-handler.php:179
-msgid "Login successful."
-msgstr "Inicio de sesión correcto."
-
-#: includes/class-sml-login-handler.php:170
-msgid "We noticed your email address isn't verified yet — we've sent you a verification email."
-msgstr "Notamos que tu correo aún no está verificado; te hemos enviado un correo de verificación."
-
-#: includes/class-sml-login-handler.php:34
-msgid "Please enter your username/email and password."
-msgstr "Introduce tu nombre de usuario o correo y tu contraseña."
-
-#: includes/class-sml-login-handler.php:88
+#: includes/class-sml-login-handler.php:121
 msgid "Incorrect username/email or password."
 msgstr "Nombre de usuario/correo o contraseña incorrectos."
 
-#: includes/class-sml-login-handler.php:95 includes/class-sml-shortcode.php:245
+#: includes/class-sml-login-handler.php:128 includes/class-sml-shortcode.php:245
 msgid "Your account type is not permitted to log in through this form."
 msgstr "Tu tipo de cuenta no tiene permiso para iniciar sesión mediante este formulario."
+
+#: includes/class-sml-login-handler.php:162
+msgid "Please verify your mobile number to continue. We just sent you a verification code by SMS."
+msgstr "Verifica tu número de móvil para continuar. Acabamos de enviarte un código de verificación por SMS."
+
+#: includes/class-sml-login-handler.php:163
+msgid "Please verify your email address to continue. We just sent you a verification code."
+msgstr "Verifica tu correo electrónico para continuar. Acabamos de enviarte un código de verificación."
+
+#: includes/class-sml-login-handler.php:196 includes/class-sml-login-handler.php:212
+msgid "Login successful."
+msgstr "Inicio de sesión correcto."
+
+#: includes/class-sml-login-handler.php:203
+msgid "We noticed your email address isn't verified yet — we've sent you a verification email."
+msgstr "Notamos que tu correo aún no está verificado; te hemos enviado un correo de verificación."
+
+#: includes/class-sml-login-handler.php:67
+msgid "Please enter your username/email and password."
+msgstr "Introduce tu nombre de usuario o correo y tu contraseña."
 
 #: includes/class-sml-page-guard.php:31
 msgid "Cart"
