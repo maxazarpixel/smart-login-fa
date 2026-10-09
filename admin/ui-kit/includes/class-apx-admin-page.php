@@ -342,6 +342,9 @@ class APX_Admin_Page {
 		$name = $f['name'];
 		$val  = isset( $s[ $name ] ) ? $s[ $name ] : '';
 		$dep  = ! empty( $f['dep'] ) ? ' data-apx-dep="' . esc_attr( $f['dep'] ) . '"' : '';
+		if ( $dep && ! empty( $f['dep_value'] ) ) {
+			$dep .= ' data-apx-dep-value="' . esc_attr( $f['dep_value'] ) . '"';
+		}
 
 		switch ( $f['type'] ) {
 
@@ -362,8 +365,9 @@ class APX_Admin_Page {
 
 			case 'select':
 				echo '<div class="apx-row"' . $dep . '>'; // phpcs:ignore
-				printf( '<label for="%1$s">%2$s</label><select id="%1$s" name="%1$s" data-apx-field>',
-					esc_attr( $name ), esc_html( $f['label'] ) );
+				printf( '<label for="%1$s">%2$s</label><select id="%1$s" name="%1$s" data-apx-field%3$s>',
+					esc_attr( $name ), esc_html( $f['label'] ),
+					! empty( $f['dep_master'] ) ? ' data-apx-dep-master="' . esc_attr( $f['dep_master'] ) . '"' : '' ); // phpcs:ignore
 				foreach ( (array) $f['options'] as $k => $label ) {
 					printf( '<option value="%s"%s>%s</option>',
 						esc_attr( $k ), selected( $val, $k, false ), esc_html( $label ) );

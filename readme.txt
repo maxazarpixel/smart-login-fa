@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.27.0
+Stable tag: 1.28.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,6 +23,7 @@ Highlights:
 * Honeypot and optional Google reCAPTCHA v3 / Cloudflare Turnstile bot protection.
 * Login lockout after repeated failed attempts.
 * Optional WooCommerce My Account login/register form replacement.
+* Choose how accounts are verified: by email (code + link) or by mobile number (SMS code through Kavenegar, FarazSMS, IPPanel or Melipayamak).
 * Optional Iranian registration: Iranian mobile-number validation and a national ID (کد ملی) field, both switchable in Settings → General.
 * Settings UI built on the AzarPixel WP Admin UI Kit.
 * Translated into Spanish (es_ES) and Persian (fa_IR, with full right-to-left layout); English is the source language.
@@ -63,6 +64,14 @@ After changing any caching configuration, purge the cache and test in a private/
 
 == Changelog ==
 
+= 1.28.0 =
+* Added: verification by mobile number. Settings → Verification → "Verification method" lets you choose between email (code and link, as before) and an SMS code. With SMS, the email field on the registration form becomes optional (an empty one gets an internal placeholder address that is never mailed), the verify screen reads accordingly, and unverified accounts that try to log in are sent a fresh code by SMS.
+* Added: SMS gateway settings for Kavenegar (verify lookup), FarazSMS (new API), IPPanel (legacy API) and Melipayamak (shared-template send), each used in template/pattern mode so the gateway owns the message text. A "Send test SMS" button checks the saved credentials and shows the gateway's own error. The API key is stored like the other secrets and is never rendered back. The `sml_sms_send` and `sml_sms_configured` filters let other code provide its own gateway.
+* Added: protections against SMS abuse and number squatting — registrations per IP are capped, a single number receives at most three codes per hour whichever account or IP asks, only a verified account blocks a number from being registered again, and an account whose code could not be sent is removed so the visitor can simply try again.
+* Changed: while the site verifies by mobile, using a password-reset link no longer marks the account verified, because an inbox says nothing about the phone.
+* Changed: Persian and Arabic-Indic digits are now accepted in the verification code boxes, including when pasted.
+* Note: mobile verification only takes effect once a gateway is fully configured; until then the site keeps verifying by email, so a half-finished setup can never block registration. Accounts created with Google sign-in are verified by Google and are not sent an SMS. The IPPanel legacy host could not be reached from the test network, so that gateway's request format follows the official SDK and is not live-verified; FarazSMS is the recommended choice for the same company's service.
+* Developer: new user meta `sml_phone_e164` (E.164 number) and `sml_placeholder_email`; both are removed on uninstall. The settings screen gained value-based dependencies (`dep_value`) for select fields.
 = 1.27.0 =
 * Added: optional Iranian registration, off by default (Settings → General → "Iranian registration"). When on, Iran is always selectable in the registration country list, Iranian mobile numbers are checked against the real format (10 digits starting with 9, with or without the leading 0, stored normalised as +98 912 345 6789), and a National ID (کد ملی) field appears whenever Iran is the selected country.
 * Added: the National ID is checked with the official check-digit algorithm, rejects repeated-digit values, and must be unique across accounts. A second setting makes the field required or optional; when optional, a value that is entered is still validated.

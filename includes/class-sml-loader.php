@@ -160,6 +160,7 @@ class SML_Loader {
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-flags.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-iran.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-phone.php';
+		require_once SML_PLUGIN_DIR . 'includes/class-sml-sms.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-verification.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-email.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-lockout.php';

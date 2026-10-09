@@ -78,7 +78,7 @@ class SML_Login_Handler {
 					$cooldown_check = SML_Verification::check_resend_cooldown( $user->ID );
 					if ( ! is_wp_error( $cooldown_check ) ) {
 						$issued = SML_Verification::issue( $user->ID );
-						SML_Email::send_verification( $user, $issued['code'], $issued['token'], true, $redirect_to );
+						SML_Verification::deliver( $user, $issued, true, $redirect_to );
 					}
 
 					$row              = SML_Verification::get_row( $user->ID );
@@ -89,7 +89,9 @@ class SML_Login_Handler {
 
 					wp_send_json_error(
 						array(
-							'message'          => __( 'Please verify your email address to continue. We just sent you a verification code.', 'smart-login' ),
+							'message'          => 'sms' === SML_Verification::channel_for( $user->ID )
+								? __( 'Please verify your mobile number to continue. We just sent you a verification code by SMS.', 'smart-login' )
+								: __( 'Please verify your email address to continue. We just sent you a verification code.', 'smart-login' ),
 							'unverified'       => true,
 							'user_id'          => $user->ID,
 							'resend_available' => $resend_available,
@@ -110,7 +112,7 @@ class SML_Login_Handler {
 					$cooldown_check = SML_Verification::check_resend_cooldown( $user->ID );
 					if ( ! is_wp_error( $cooldown_check ) ) {
 						$issued = SML_Verification::issue( $user->ID );
-						SML_Email::send_verification( $user, $issued['code'], $issued['token'], true, $redirect_to );
+						SML_Verification::deliver( $user, $issued, true, $redirect_to );
 					}
 
 					$row              = SML_Verification::get_row( $user->ID );

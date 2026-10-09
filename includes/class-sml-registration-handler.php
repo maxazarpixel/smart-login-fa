@@ -24,6 +24,12 @@ class SML_Registration_Handler {
 	const RESEND_IP_LIMIT  = 5;
 	const RESEND_IP_WINDOW = 600; // 10 minutes.
 
+	/**
+	 * Registrations per IP while verifying by SMS (each one sends a text).
+	 */
+	const SMS_REGISTER_LIMIT  = 10;
+	const SMS_REGISTER_WINDOW = 3600; // 1 hour.
+
 	public static function init() {
 		add_action( 'wp_ajax_nopriv_sml_register', array( __CLASS__, 'ajax_register' ) );
 		add_action( 'wp_ajax_nopriv_sml_verify_code', array( __CLASS__, 'ajax_verify_code' ) );
@@ -51,7 +57,12 @@ class SML_Registration_Handler {
 		$national_id   = isset( $_POST['national_id'] ) ? preg_replace( '/[^0-9]/', '', SML_Iran::to_latin_digits( wp_unslash( $_POST['national_id'] ) ) ) : '';
 		$password      = isset( $_POST['password'] ) ? (string) wp_unslash( $_POST['password'] ) : '';
 
-		if ( ! $first_name || ! $last_name || ! $email || ! $phone_number || ! $password ) {
+		// When verifying by mobile the email is optional: an empty one gets a
+		// placeholder below. One that is entered must still be a real address.
+		$mobile_mode = 'mobile' === SML_Verification::method();
+		$email_given = isset( $_POST['email'] ) && '' !== trim( (string) wp_unslash( $_POST['email'] ) );
+
+		if ( ! $first_name || ! $last_name || ( ! $email_given && ! $mobile_mode ) || ! $phone_number || ! $password ) {
 			wp_send_json_error( array( 'message' => __( 'Please fill in all fields.', 'smart-login' ) ) );
 		}
 
@@ -66,11 +77,11 @@ class SML_Registration_Handler {
 			);
 		}
 
-		if ( ! is_email( $email ) ) {
+		if ( $email_given && ! is_email( $email ) ) {
 			wp_send_json_error( array( 'message' => __( 'Please enter a valid email address.', 'smart-login' ) ) );
 		}
 
-		if ( SML_Disposable_Email::is_disposable( $email ) ) {
+		if ( $email_given && SML_Disposable_Email::is_disposable( $email ) ) {
 			wp_send_json_error( array( 'message' => __( 'Temporary or disposable email addresses are not allowed. Please register with a permanent email address.', 'smart-login' ) ) );
 		}
 
@@ -104,8 +115,45 @@ class SML_Registration_Handler {
 			}
 		}
 
-		if ( email_exists( $email ) ) {
+		if ( $email_given && email_exists( $email ) ) {
 			wp_send_json_error( array( 'message' => __( 'An account with that email already exists.', 'smart-login' ) ) );
+		}
+
+		// E.164 form of the number (one trunk zero dropped), kept on every
+		// account so switching the verification method later needs no migration.
+		$phone_e164 = '+' . preg_replace( '/\D/', '', $phone_dial ) . preg_replace( '/^0/', '', $phone_number );
+
+		if ( $mobile_mode ) {
+			// Only a *verified* owner blocks the number: otherwise anyone could
+			// register a stranger's number and lock them out of signing up.
+			$owners = get_users(
+				array(
+					'meta_query'  => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+						'relation' => 'AND',
+						array( 'key' => 'sml_phone_e164', 'value' => $phone_e164 ),
+						array( 'key' => 'sml_email_verified', 'value' => '1' ),
+					),
+					'number'      => 1,
+					'fields'      => 'ID',
+					'count_total' => false,
+				)
+			);
+			if ( $owners ) {
+				wp_send_json_error( array( 'message' => __( 'An account with that mobile number already exists.', 'smart-login' ) ) );
+			}
+
+			// Every account created here costs an SMS, so cap it per IP.
+			$sms_rate = SML_Rate_Limit::check( 'sms_register', self::SMS_REGISTER_LIMIT, self::SMS_REGISTER_WINDOW );
+			if ( is_wp_error( $sms_rate ) ) {
+				wp_send_json_error( array( 'message' => $sms_rate->get_error_message() ) );
+			}
+			SML_Rate_Limit::record( 'sms_register', self::SMS_REGISTER_WINDOW );
+		}
+
+		$placeholder_email = false;
+		if ( ! $email_given ) {
+			$placeholder_email = true;
+			$email             = 'm' . substr( md5( $phone_e164 . wp_generate_password( 12, false ) ), 0, 14 ) . '@mobile.invalid';
 		}
 
 		$username = self::generate_username( $first_name, $last_name, $email );
@@ -138,6 +186,10 @@ class SML_Registration_Handler {
 
 		update_user_meta( $user_id, 'sml_email_verified', 0 );
 		update_user_meta( $user_id, 'sml_phone', $phone_dial . ' ' . SML_Phone::format( $phone_number ) );
+		update_user_meta( $user_id, 'sml_phone_e164', $phone_e164 );
+		if ( $placeholder_email ) {
+			update_user_meta( $user_id, 'sml_placeholder_email', 1 );
+		}
 		if ( $iran_rules && '' !== $national_id ) {
 			update_user_meta( $user_id, SML_Iran::NATIONAL_META, $national_id );
 		}
@@ -146,10 +198,19 @@ class SML_Registration_Handler {
 
 		$issued = SML_Verification::issue( $user_id );
 		$user   = get_user_by( 'id', $user_id );
-		SML_Email::send_verification( $user, $issued['code'], $issued['token'], false, $redirect_to );
+		$sent   = SML_Verification::deliver( $user, $issued, false, $redirect_to );
+
+		if ( is_wp_error( $sent ) ) {
+			// No code reached them, so don't leave a dead unverified account
+			// behind: they can simply submit the form again.
+			require_once ABSPATH . 'wp-admin/includes/user.php';
+			wp_delete_user( $user_id );
+			wp_send_json_error( array( 'message' => $sent->get_error_message() ) );
+		}
 
 		wp_send_json_success(
 			array(
+				'channel'          => $sent,
 				'user_id'          => $user_id,
 				'code_expires_at'  => $issued['code_expires_at'] * 1000,
 				'resend_available' => ( time() + (int) SML_Settings::get( 'resend_cooldown_seconds', 60 ) ) * 1000,
@@ -246,7 +307,7 @@ class SML_Registration_Handler {
 			$redirect_to = SML_Page_Guard::validate_redirect( isset( $_POST['redirect_to'] ) ? wp_unslash( $_POST['redirect_to'] ) : '' );
 
 			$issued = SML_Verification::issue( $user_id );
-			SML_Email::send_verification( $user, $issued['code'], $issued['token'], true, $redirect_to );
+			SML_Verification::deliver( $user, $issued, true, $redirect_to );
 
 			$response['code_expires_at']  = $issued['code_expires_at'] * 1000;
 			$response['resend_available'] = ( time() + $cooldown_seconds ) * 1000;

@@ -43,6 +43,13 @@ class SML_Settings {
 			'google_remember_session'  => 1,
 
 			// Verification.
+			'verification_method'      => 'email',
+			'sms_provider'             => 'none',
+			'sms_api_key'              => '',
+			'sms_username'             => '',
+			'sms_sender'               => '',
+			'sms_template'             => '',
+			'sms_code_variable'        => 'code',
 			'code_length'              => 6,
 			'code_expiry_minutes'      => 10,
 			'link_expiry_minutes'      => 30,

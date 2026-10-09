@@ -24,7 +24,7 @@ delete_option( 'sml_db_version' );
 delete_option( 'sml_log_key' );
 
 $wpdb->query(
-	"DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('sml_email_verified', 'sml_phone', 'sml_last_login', 'sml_reset_requests', 'sml_reset_requested_at', 'sml_google_sub', 'sml_national_id')" // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	"DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('sml_email_verified', 'sml_phone', 'sml_last_login', 'sml_reset_requests', 'sml_reset_requested_at', 'sml_google_sub', 'sml_national_id', 'sml_phone_e164', 'sml_placeholder_email')" // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 );
 
 // The log directory carries a random filename, so remove the whole folder.

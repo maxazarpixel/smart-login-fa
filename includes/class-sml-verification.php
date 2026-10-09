@@ -45,6 +45,74 @@ class SML_Verification {
 	}
 
 	/**
+	 * How new accounts are verified right now. 'mobile' only takes effect
+	 * once an SMS gateway is fully configured, so choosing it before the
+	 * credentials are in can never leave visitors unable to register.
+	 *
+	 * @return string 'email'|'mobile'
+	 */
+	public static function method() {
+		return ( 'mobile' === SML_Settings::get( 'verification_method', 'email' ) && SML_SMS::is_configured() ) ? 'mobile' : 'email';
+	}
+
+	/**
+	 * Which channel a code for this user goes out on.
+	 *
+	 * @param int $user_id
+	 * @return string 'sms'|'email'
+	 */
+	public static function channel_for( $user_id ) {
+		return ( 'mobile' === self::method() && '' !== self::user_e164( $user_id ) ) ? 'sms' : 'email';
+	}
+
+	/**
+	 * @param int $user_id
+	 * @return string E.164 number (+989123456789) or ''.
+	 */
+	public static function user_e164( $user_id ) {
+		return (string) get_user_meta( $user_id, 'sml_phone_e164', true );
+	}
+
+	/**
+	 * Accounts registered by mobile number alone get a made-up address (an
+	 * RFC 2606 `.invalid` one) because WordPress wants an email. It must
+	 * never be mailed.
+	 *
+	 * @param int $user_id
+	 * @return bool
+	 */
+	public static function has_placeholder_email( $user_id ) {
+		return (bool) get_user_meta( $user_id, 'sml_placeholder_email', true );
+	}
+
+	/**
+	 * Sends a freshly issued code over the right channel: SMS when the
+	 * site verifies by mobile and the account has a number, email
+	 * otherwise.
+	 *
+	 * @param WP_User $user
+	 * @param array   $issued      Result of issue().
+	 * @param bool    $is_resend
+	 * @param string  $redirect_to Already validated.
+	 * @return string|WP_Error 'sms'|'email' on success.
+	 */
+	public static function deliver( WP_User $user, array $issued, $is_resend = false, $redirect_to = '' ) {
+		if ( 'sms' === self::channel_for( $user->ID ) ) {
+			$sent = SML_SMS::send_code( self::user_e164( $user->ID ), $issued['code'] );
+
+			return is_wp_error( $sent ) ? $sent : 'sms';
+		}
+
+		if ( self::has_placeholder_email( $user->ID ) ) {
+			return new WP_Error( 'sml_no_channel', __( 'We could not send the SMS. Please try again in a few minutes.', 'smart-login' ) );
+		}
+
+		SML_Email::send_verification( $user, $issued['code'], $issued['token'], $is_resend, $redirect_to );
+
+		return 'email';
+	}
+
+	/**
 	 * @param int $user_id
 	 * @return object|null
 	 */

@@ -363,8 +363,45 @@ class SML_Admin_Page extends APX_Admin_Page {
 	protected function panel_verification() {
 		return array(
 			'title'    => __( 'Verification', 'smart-login' ),
-			'desc'     => __( 'Controls how new accounts confirm their email address.', 'smart-login' ),
+			'desc'     => __( 'Controls how new accounts confirm their email address or mobile number.', 'smart-login' ),
 			'sections' => array(
+				array(
+					'heading' => __( 'Verification method', 'smart-login' ),
+					'desc'    => __( 'Choose what new accounts must prove they own. Mobile verification needs the SMS gateway below; until it is fully set up the site keeps verifying by email, so nobody is locked out of registering. Accounts created with Google sign-in are verified by Google and are never sent an SMS.', 'smart-login' ),
+					'fields'  => array(
+						array(
+							'type'       => 'select',
+							'name'       => 'verification_method',
+							'label'      => __( 'Verify accounts by', 'smart-login' ),
+							'dep_master' => 'vmethod',
+							'options'    => array(
+								'email'  => __( 'Email (code and link)', 'smart-login' ),
+								'mobile' => __( 'Mobile number (SMS code)', 'smart-login' ),
+							),
+							'desc'       => __( 'With mobile verification the email field on the registration form becomes optional, and a password-reset link no longer counts as verification.', 'smart-login' ),
+						),
+					),
+				),
+				array(
+					'heading' => __( 'SMS gateway', 'smart-login' ),
+					'desc'    => __( 'Used when accounts are verified by mobile number. Create an approved verification template at your gateway whose text contains the code placeholder — Smart Login only sends the code.', 'smart-login' ),
+					'fields'  => array(
+						array(
+							'type'      => 'select',
+							'name'      => 'sms_provider',
+							'label'     => __( 'SMS gateway', 'smart-login' ),
+							'options'   => SML_SMS::providers(),
+							'dep'       => 'vmethod',
+							'dep_value' => 'mobile',
+						),
+						array( 'type' => 'text', 'name' => 'sms_username', 'label' => __( 'Username', 'smart-login' ), 'desc' => __( 'Melipayamak only.', 'smart-login' ), 'dep' => 'vmethod', 'dep_value' => 'mobile' ),
+						array( 'type' => 'password', 'name' => 'sms_api_key', 'label' => __( 'API key', 'smart-login' ), 'secret' => true, 'desc' => __( 'For Melipayamak this is the account password or API key. Stored with autoload disabled and never rendered back in plaintext. Leave blank to keep the current value.', 'smart-login' ), 'dep' => 'vmethod', 'dep_value' => 'mobile' ),
+						array( 'type' => 'text', 'name' => 'sms_sender', 'label' => __( 'Sender line number', 'smart-login' ), 'desc' => __( 'FarazSMS and IPPanel only.', 'smart-login' ), 'dep' => 'vmethod', 'dep_value' => 'mobile' ),
+						array( 'type' => 'text', 'name' => 'sms_template', 'label' => __( 'Template / pattern code', 'smart-login' ), 'desc' => __( 'Kavenegar: the verification template name. FarazSMS and IPPanel: the pattern code. Melipayamak: the bodyId of the approved template.', 'smart-login' ), 'dep' => 'vmethod', 'dep_value' => 'mobile' ),
+						array( 'type' => 'text', 'name' => 'sms_code_variable', 'label' => __( 'Code variable name', 'smart-login' ), 'desc' => __( 'FarazSMS and IPPanel only: the variable in your pattern that receives the code, for example code.', 'smart-login' ), 'dep' => 'vmethod', 'dep_value' => 'mobile' ),
+						array( 'type' => 'html', 'html' => $this->test_sms_html() ),
+					),
+				),
 				array(
 					'heading' => __( 'Code & link', 'smart-login' ),
 					'fields'  => array(
@@ -1663,6 +1700,106 @@ class SML_Admin_Page extends APX_Admin_Page {
 	 * registration/verification flow — so if this also fails, the cause is
 	 * the site's mailer (e.g. WP Mail SMTP) or server, not this plugin.
 	 */
+	/**
+	 * Phone box + button that sends a sample code through the saved SMS
+	 * settings (save first — the test reads the stored values).
+	 */
+	protected function test_sms_html() {
+		return '<div class="apx-row" data-apx-dep="vmethod" data-apx-dep-value="mobile">'
+			. '<label>' . esc_html__( 'Test SMS', 'smart-login' ) . '</label>'
+			. '<input type="text" id="sml-test-sms-number" dir="ltr" placeholder="09123456789" style="max-width:200px;"> '
+			. '<button type="button" class="button button-secondary" id="sml-test-sms-btn">' . esc_html__( 'Send test SMS', 'smart-login' ) . '</button> '
+			. '<span id="sml-test-sms-status" style="font-size:13px;"></span>'
+			. '<p class="description">' . esc_html__( 'Sends a sample code to this number using the saved gateway settings (save your changes first). Use an Iranian number such as 09123456789, or +<country code><number>.', 'smart-login' ) . '</p>'
+			. '</div>'
+			. '<script>(function(){
+				var btn = document.getElementById("sml-test-sms-btn");
+				var input = document.getElementById("sml-test-sms-number");
+				var status = document.getElementById("sml-test-sms-status");
+				if (!btn) { return; }
+				btn.addEventListener("click", function(){
+					btn.disabled = true;
+					status.textContent = "' . esc_js( __( 'Sending…', 'smart-login' ) ) . '";
+					status.style.color = "";
+					fetch(window.APX_UI.restUrl.replace(/\/$/, "") + "/test-sms", {
+						method: "POST",
+						credentials: "same-origin",
+						headers: { "X-WP-Nonce": window.APX_UI.restNonce, "Content-Type": "application/json" },
+						body: JSON.stringify({ phone: input.value })
+					}).then(function(r){ return r.json(); }).then(function(data){
+						status.textContent = data.message || "";
+						status.style.color = data.sent ? "#12805c" : "#d92d20";
+					}).catch(function(){
+						status.textContent = "' . esc_js( __( 'Request failed.', 'smart-login' ) ) . '";
+						status.style.color = "#d92d20";
+					}).then(function(){ btn.disabled = false; });
+				});
+			})();</script>';
+	}
+
+	/**
+	 * Sends a sample code through the saved gateway settings so an admin can
+	 * confirm the credentials and template before turning mobile
+	 * verification on.
+	 *
+	 * @param WP_REST_Request $req
+	 * @return WP_REST_Response
+	 */
+	public function rest_test_sms( WP_REST_Request $req ) {
+		$raw    = SML_Iran::to_latin_digits( (string) $req->get_param( 'phone' ) );
+		$digits = preg_replace( '/\D/', '', $raw );
+		$e164   = '';
+
+		if ( 1 === preg_match( '/^09\d{9}$/', $digits ) ) {
+			$e164 = '+98' . substr( $digits, 1 );
+		} elseif ( 0 === strpos( trim( $raw ), '+' ) && strlen( $digits ) >= 8 && strlen( $digits ) <= 15 ) {
+			$e164 = '+' . $digits;
+		} elseif ( 0 === strpos( $digits, '00' ) && strlen( $digits ) >= 10 && strlen( $digits ) <= 17 ) {
+			$e164 = '+' . substr( $digits, 2 );
+		}
+
+		if ( '' === $e164 ) {
+			return rest_ensure_response(
+				array(
+					'sent'    => false,
+					'message' => __( 'Please enter a valid mobile number.', 'smart-login' ),
+				)
+			);
+		}
+
+		if ( ! SML_SMS::is_configured() ) {
+			return rest_ensure_response(
+				array(
+					'sent'    => false,
+					'message' => __( 'Fill in the gateway settings and save them first.', 'smart-login' ),
+				)
+			);
+		}
+
+		$result = SML_SMS::send_code( $e164, '12345', false );
+
+		if ( is_wp_error( $result ) ) {
+			$data   = $result->get_error_data();
+			$detail = is_array( $data ) && ! empty( $data['detail'] ) ? $data['detail'] : $result->get_error_message();
+
+			return rest_ensure_response(
+				array(
+					'sent'    => false,
+					/* translators: %s: error detail from the SMS gateway */
+					'message' => sprintf( __( 'The gateway refused the message: %s', 'smart-login' ), $detail ),
+				)
+			);
+		}
+
+		return rest_ensure_response(
+			array(
+				'sent'    => true,
+				/* translators: %s: masked phone number */
+				'message' => sprintf( __( 'Sample code sent to %s.', 'smart-login' ), SML_SMS::mask( $e164 ) ),
+			)
+		);
+	}
+
 	protected function test_email_html() {
 		return '<div class="apx-row">'
 			. '<label>' . esc_html__( 'Test delivery', 'smart-login' ) . '</label>'
@@ -1923,6 +2060,16 @@ class SML_Admin_Page extends APX_Admin_Page {
 
 		register_rest_route(
 			$this->cfg['rest_ns'],
+			'/test-sms',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'rest_test_sms' ),
+				'permission_callback' => array( $this, 'rest_permission' ),
+			)
+		);
+
+		register_rest_route(
+			$this->cfg['rest_ns'],
 			'/test-email',
 			array(
 				'methods'             => 'POST',
@@ -2090,7 +2237,11 @@ class SML_Admin_Page extends APX_Admin_Page {
 			$name    = $f['name'];
 			$hasval  = '' !== (string) ( isset( $s[ $name ] ) ? $s[ $name ] : '' );
 			$display = $hasval ? self::SECRET_PLACEHOLDER : '';
-			echo '<div class="apx-row">';
+			$dep = ! empty( $f['dep'] ) ? ' data-apx-dep="' . esc_attr( $f['dep'] ) . '"' : '';
+			if ( $dep && ! empty( $f['dep_value'] ) ) {
+				$dep .= ' data-apx-dep-value="' . esc_attr( $f['dep_value'] ) . '"';
+			}
+			echo '<div class="apx-row"' . $dep . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			printf( '<label for="%1$s">%2$s</label>', esc_attr( $name ), esc_html( $f['label'] ) );
 			printf(
 				'<input type="password" id="%1$s" name="%1$s" value="%2$s" autocomplete="new-password" placeholder="%3$s" style="min-width:340px" data-apx-field data-apx-secret="1">',

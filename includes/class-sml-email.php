@@ -63,6 +63,10 @@ class SML_Email {
 	 * @return bool
 	 */
 	public static function send_welcome( WP_User $user ) {
+		if ( SML_Verification::has_placeholder_email( $user->ID ) ) {
+			return false;
+		}
+
 		$subject = self::substitute( SML_Settings::get( 'welcome_subject' ), $user );
 		$body    = self::substitute( SML_Settings::get( 'welcome_body' ), $user );
 

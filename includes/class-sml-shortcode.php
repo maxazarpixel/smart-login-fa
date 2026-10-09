@@ -298,8 +298,9 @@ class SML_Shortcode {
 							</div>
 						</div>
 						<div class="sml-field-boxed">
-							<input type="email" id="sml-reg-email" class="sml-input" name="email" autocomplete="email" placeholder=" " required>
-							<label for="sml-reg-email"><?php esc_html_e( 'Email', 'smart-login' ); ?> <span class="sml-required">*</span></label>
+							<?php $sml_email_required = 'mobile' !== SML_Verification::method(); ?>
+							<input type="email" id="sml-reg-email" class="sml-input" name="email" autocomplete="email" placeholder=" "<?php echo $sml_email_required ? ' required' : ''; ?>>
+							<label for="sml-reg-email"><?php esc_html_e( 'Email', 'smart-login' ); ?><?php if ( $sml_email_required ) : ?> <span class="sml-required">*</span><?php else : ?> <span class="sml-optional">(<?php esc_html_e( 'optional', 'smart-login' ); ?>)</span><?php endif; ?></label>
 						</div>
 						<?php
 						$sml_allowed_countries = SML_Countries::allowed();
@@ -403,7 +404,14 @@ class SML_Shortcode {
 			</div>
 
 			<div class="sml-panel" data-sml-panel="verify" hidden>
-				<p class="sml-verify-intro"><?php echo esc_html( SML_Settings::get( 'verify_intro_text' ) ); ?></p>
+				<?php
+				$sml_intro = (string) SML_Settings::get( 'verify_intro_text' );
+				// The stock email wording is wrong for SMS; a custom text is left alone.
+				if ( 'mobile' === SML_Verification::method() && SML_Settings::defaults()['verify_intro_text'] === $sml_intro ) {
+					$sml_intro = __( 'We sent a verification code by SMS to your mobile number. Enter it below.', 'smart-login' );
+				}
+				?>
+				<p class="sml-verify-intro"><?php echo esc_html( $sml_intro ); ?></p>
 				<form data-sml-form="verify" novalidate>
 					<input type="hidden" name="user_id" data-sml-user-id value="">
 					<input type="hidden" name="code" data-sml-otp-value value="">

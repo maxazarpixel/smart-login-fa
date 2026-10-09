@@ -202,7 +202,7 @@
 
 		boxes.forEach( function ( box, i ) {
 			box.addEventListener( 'input', function () {
-				box.value = box.value.replace( /[^0-9]/g, '' ).slice( -1 );
+				box.value = toLatinDigits( box.value ).replace( /[^0-9]/g, '' ).slice( -1 );
 				if ( box.value && boxes[ i + 1 ] ) {
 					boxes[ i + 1 ].focus();
 				}
@@ -217,7 +217,8 @@
 
 			box.addEventListener( 'paste', function ( e ) {
 				e.preventDefault();
-				var text = ( e.clipboardData || window.clipboardData ).getData( 'text' ).replace( /[^0-9]/g, '' );
+				var text = ( e.clipboardData || window.clipboardData ).getData( 'text' );
+				text = toLatinDigits( text ).replace( /[^0-9]/g, '' );
 				text.split( '' ).forEach( function ( digit, idx ) {
 					if ( boxes[ idx ] ) { boxes[ idx ].value = digit; }
 				} );

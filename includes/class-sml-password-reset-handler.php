@@ -141,7 +141,9 @@ class SML_Password_Reset_Handler {
 		// the code/link verification flow exists to establish — so this also
 		// completes email verification if it hadn't already: mark verified,
 		// clear any pending code/link row, and fire `sml_user_verified`.
-		if ( ! SML_Verification::is_verified( $user->ID ) ) {
+		// When the site verifies by mobile, an inbox says nothing about the
+		// phone number, so the reset must not count as verification.
+		if ( 'email' === SML_Verification::method() && ! SML_Verification::is_verified( $user->ID ) ) {
 			SML_Verification::complete( $user->ID );
 		}
 

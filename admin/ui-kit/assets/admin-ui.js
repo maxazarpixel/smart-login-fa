@@ -114,7 +114,11 @@
             var name = master.getAttribute('data-apx-dep-master');
             var on = master.type === 'checkbox' ? master.checked : !!master.value;
             $$('[data-apx-dep="' + name + '"]').forEach(function (block) {
-                block.style.display = on ? '' : 'none';
+                // A block may name the master values it is shown for
+                // (data-apx-dep-value="a,b"); otherwise any truthy master shows it.
+                var want = block.getAttribute('data-apx-dep-value');
+                var show = want ? want.split(',').indexOf(master.value) !== -1 : on;
+                block.style.display = show ? '' : 'none';
             });
         });
     }

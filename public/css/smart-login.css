@@ -700,3 +700,8 @@
 .sml-card .sml-field-boxed[hidden] {
 	display: none !important;
 }
+
+.sml-card .sml-optional {
+	font-weight: 400;
+	opacity: 0.65;
+}
