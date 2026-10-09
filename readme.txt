@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.29.0
+Stable tag: 1.30.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,6 +65,10 @@ After changing any caching configuration, purge the cache and test in a private/
 
 == Changelog ==
 
+= 1.30.0 =
+* Added: a "Smart Login" section on the user edit and profile screens showing the account's mobile number, National ID and verification state. Users who can edit other users (administrators) can change or clear the mobile number and National ID there; everyone else sees them read-only, so a verified number cannot be swapped without going through verification.
+* Added: the same checks as the registration form apply on that screen — a valid mobile number (09123456789 or +<country code><number>, Persian digits accepted), a valid National ID with its check digit, no other verified account using the same number, and no other account using the same National ID. Nothing is saved when a check fails.
+* Note: accounts registered by mobile number alone are marked on that screen, because their email address is an internal placeholder.
 = 1.29.0 =
 * Added: log in with a mobile number. The login field now accepts an email address, a username or a mobile number in any common form (09123456789, +989123456789, 00989123456789, with spaces or dashes, or typed with Persian digits). If several unverified accounts share a number, the one whose password was typed is used.
 * Added: password reset by SMS. Typing a mobile number in "Forgot password?" texts a one-time code; a new step takes the code and the new password and signs the user in. The answer is identical whether or not the number belongs to an account, the code is single use, expires with the verification code expiry, locks after the configured number of wrong attempts, and every failure shows one generic message. Requires a configured SMS gateway; an optional separate template for reset codes can be set under Settings → Verification → SMS gateway.

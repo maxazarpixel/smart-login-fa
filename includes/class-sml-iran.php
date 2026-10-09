@@ -101,14 +101,16 @@ class SML_Iran {
 	}
 
 	/**
-	 * @param string $id ASCII digits only.
+	 * @param string $id              ASCII digits only.
+	 * @param int    $exclude_user_id Account to ignore (the one being edited).
 	 * @return bool
 	 */
-	public static function national_id_exists( $id ) {
+	public static function national_id_exists( $id, $exclude_user_id = 0 ) {
 		$found = get_users(
 			array(
 				'meta_key'    => self::NATIONAL_META, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 				'meta_value'  => $id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'exclude'     => $exclude_user_id ? array( (int) $exclude_user_id ) : array(),
 				'number'      => 1,
 				'fields'      => 'ID',
 				'count_total' => false,

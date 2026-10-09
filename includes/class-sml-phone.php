@@ -50,6 +50,31 @@ class SML_Phone {
 	}
 
 	/**
+	 * The stored display form of a number (+98 936 123 4567), found by the
+	 * longest matching dial code in the country list.
+	 *
+	 * @param string $e164
+	 * @return string
+	 */
+	public static function display_from_e164( $e164 ) {
+		$digits = preg_replace( '/\D/', '', (string) $e164 );
+		$best   = '';
+
+		foreach ( SML_Countries::all() as $country ) {
+			$dial = preg_replace( '/\D/', '', $country['dial'] );
+			if ( '' !== $dial && 0 === strpos( $digits, $dial ) && strlen( $dial ) > strlen( $best ) ) {
+				$best = $dial;
+			}
+		}
+
+		if ( '' === $best ) {
+			return '+' . $digits;
+		}
+
+		return '+' . $best . ' ' . self::format( substr( $digits, strlen( $best ) ) );
+	}
+
+	/**
 	 * Accounts registered with this number, verified ones first.
 	 *
 	 * @param string $e164

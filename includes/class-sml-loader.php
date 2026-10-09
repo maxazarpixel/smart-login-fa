@@ -54,6 +54,7 @@ class SML_Loader {
 
 		if ( is_admin() ) {
 			SML_Users_List::init();
+			SML_User_Profile::init();
 		}
 
 		SML_Registration_Handler::init();
@@ -171,6 +172,7 @@ class SML_Loader {
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-page-guard.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-shortcode.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-users-list.php';
+		require_once SML_PLUGIN_DIR . 'includes/class-sml-user-profile.php';
 		require_once SML_PLUGIN_DIR . 'includes/class-sml-google-auth.php';
 
 		require_once SML_PLUGIN_DIR . 'includes/providers/interface-sml-bot-protection-provider.php';

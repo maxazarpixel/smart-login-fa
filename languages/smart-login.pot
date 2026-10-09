@@ -2,7 +2,7 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Smart Login 1.29.0\n"
+"Project-Id-Version: Smart Login 1.30.0\n"
 "Report-Msgid-Bugs-To: https://www.azarpixel.com\n"
 "POT-Creation-Date: 2026-01-01 00:00+0000\n"
 "MIME-Version: 1.0\n"
@@ -187,7 +187,7 @@ msgstr ""
 msgid "Shortcode & form page"
 msgstr ""
 
-#: admin/class-sml-admin-page.php:1766 includes/class-sml-phone.php:148
+#: admin/class-sml-admin-page.php:1766 includes/class-sml-phone.php:173 includes/class-sml-user-profile.php:122
 msgid "Please enter a valid mobile number."
 msgstr ""
 
@@ -931,7 +931,7 @@ msgstr ""
 msgid "All users"
 msgstr ""
 
-#: admin/class-sml-admin-page.php:661 admin/class-sml-admin-page.php:789 admin/class-sml-admin-page.php:1007 admin/class-sml-admin-page.php:1041 admin/class-sml-admin-page.php:1334 includes/class-sml-users-list.php:29 includes/class-sml-users-list.php:56 includes/class-sml-users-list.php:104
+#: admin/class-sml-admin-page.php:661 admin/class-sml-admin-page.php:789 admin/class-sml-admin-page.php:1007 admin/class-sml-admin-page.php:1041 admin/class-sml-admin-page.php:1334 includes/class-sml-user-profile.php:91 includes/class-sml-users-list.php:29 includes/class-sml-users-list.php:56 includes/class-sml-users-list.php:104
 msgid "Verified"
 msgstr ""
 
@@ -1015,7 +1015,7 @@ msgstr ""
 msgid "No password-reset requests yet."
 msgstr ""
 
-#: admin/class-sml-admin-page.php:72
+#: admin/class-sml-admin-page.php:72 includes/class-sml-user-profile.php:59
 msgid "Smart Login"
 msgstr ""
 
@@ -1035,7 +1035,7 @@ msgstr ""
 msgid "Nothing recorded yet."
 msgstr ""
 
-#: admin/class-sml-admin-page.php:791 admin/class-sml-admin-page.php:1008 admin/class-sml-admin-page.php:1336 includes/class-sml-users-list.php:59
+#: admin/class-sml-admin-page.php:791 admin/class-sml-admin-page.php:1008 admin/class-sml-admin-page.php:1336 includes/class-sml-user-profile.php:93 includes/class-sml-users-list.php:59
 msgid "Pending"
 msgstr ""
 
@@ -1165,7 +1165,7 @@ msgstr ""
 msgid "Temporary or disposable email addresses are not allowed."
 msgstr ""
 
-#: includes/class-sml-loader.php:149
+#: includes/class-sml-loader.php:150
 msgid "Settings"
 msgstr ""
 
@@ -1261,7 +1261,7 @@ msgstr ""
 msgid "If an account exists for that mobile number, we've sent a code by SMS."
 msgstr ""
 
-#: includes/class-sml-phone.php:141
+#: includes/class-sml-phone.php:166
 msgid "Please enter a valid Iranian mobile number, e.g. 0912 345 6789."
 msgstr ""
 
@@ -1271,11 +1271,11 @@ msgstr ""
 msgid "Too many requests from your network. Please try again in %d minute(s)."
 msgstr ""
 
-#: includes/class-sml-registration-handler.php:109
+#: includes/class-sml-registration-handler.php:109 includes/class-sml-user-profile.php:135
 msgid "Please enter a valid national ID (10 digits)."
 msgstr ""
 
-#: includes/class-sml-registration-handler.php:113
+#: includes/class-sml-registration-handler.php:113 includes/class-sml-user-profile.php:137
 msgid "An account with that national ID already exists."
 msgstr ""
 
@@ -1283,7 +1283,7 @@ msgstr ""
 msgid "An account with that email already exists."
 msgstr ""
 
-#: includes/class-sml-registration-handler.php:142
+#: includes/class-sml-registration-handler.php:142 includes/class-sml-user-profile.php:126
 msgid "An account with that mobile number already exists."
 msgstr ""
 
@@ -1496,11 +1496,11 @@ msgstr ""
 msgid "Phone number"
 msgstr ""
 
-#: includes/class-sml-shortcode.php:326
+#: includes/class-sml-shortcode.php:326 includes/class-sml-user-profile.php:62
 msgid "Mobile number"
 msgstr ""
 
-#: includes/class-sml-shortcode.php:332
+#: includes/class-sml-shortcode.php:332 includes/class-sml-user-profile.php:75
 msgid "National ID"
 msgstr ""
 
@@ -1633,6 +1633,22 @@ msgstr ""
 
 #: includes/class-sml-sms.php:42
 msgid "Melipayamak"
+msgstr ""
+
+#: includes/class-sml-user-profile.php:67
+msgid "Use 09123456789 for an Iranian number, or +<country code><number>. Leave empty to remove it."
+msgstr ""
+
+#: includes/class-sml-user-profile.php:79
+msgid "Ten digits. Leave empty to remove it."
+msgstr ""
+
+#: includes/class-sml-user-profile.php:88
+msgid "Account verification"
+msgstr ""
+
+#: includes/class-sml-user-profile.php:96
+msgid "Registered with a mobile number only, so there is no real email address on this account."
 msgstr ""
 
 #. translators: %d: seconds remaining
