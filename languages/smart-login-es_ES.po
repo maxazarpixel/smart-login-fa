@@ -176,7 +176,7 @@ msgstr "Enviar SMS de prueba"
 msgid "Sends a sample code to this number using the saved gateway settings (save your changes first). Use an Iranian number such as 09123456789, or +<country code><number>."
 msgstr "Envía un código de ejemplo a este número con los ajustes guardados de la pasarela (guarda los cambios antes). Usa un número iraní como 09123456789, o +<prefijo del país><número>."
 
-#: admin/class-sml-admin-page.php:1723 admin/class-sml-admin-page.php:1817 includes/class-sml-shortcode.php:80
+#: admin/class-sml-admin-page.php:1723 admin/class-sml-admin-page.php:1817 includes/class-sml-shortcode.php:210
 msgid "Sending…"
 msgstr "Enviando…"
 
@@ -1000,7 +1000,7 @@ msgstr "Más solicitudes de restablecimiento de contraseña"
 msgid "User"
 msgstr "Usuario"
 
-#: admin/class-sml-admin-page.php:711 admin/class-sml-admin-page.php:772 admin/class-sml-admin-page.php:1033 includes/class-sml-shortcode.php:303 includes/class-sml-shortcode.php:370
+#: admin/class-sml-admin-page.php:711 admin/class-sml-admin-page.php:772 admin/class-sml-admin-page.php:1033 includes/class-sml-shortcode.php:441 includes/class-sml-shortcode.php:508
 msgid "Email"
 msgstr "Correo"
 
@@ -1120,7 +1120,7 @@ msgstr "Cancelar"
 msgid "Save"
 msgstr "Guardar"
 
-#: includes/class-sml-email.php:107 includes/class-sml-email.php:271 includes/class-sml-shortcode.php:410 includes/class-sml-shortcode.php:447
+#: includes/class-sml-email.php:107 includes/class-sml-email.php:271 includes/class-sml-shortcode.php:548 includes/class-sml-shortcode.php:585
 msgid "Reset Password"
 msgstr "Restablecer contraseña"
 
@@ -1142,15 +1142,15 @@ msgstr "Continuar con Google"
 msgid "or"
 msgstr "o"
 
-#: includes/class-sml-google-auth.php:478 includes/class-sml-shortcode.php:116
+#: includes/class-sml-google-auth.php:478 includes/class-sml-shortcode.php:246
 msgid "Your Google account's email is not verified."
 msgstr "El correo de tu cuenta de Google no está verificado."
 
-#: includes/class-sml-google-auth.php:483 includes/class-sml-shortcode.php:117
+#: includes/class-sml-google-auth.php:483 includes/class-sml-shortcode.php:247
 msgid "Google did not return a usable email address."
 msgstr "Google no devolvió una dirección de correo utilizable."
 
-#: includes/class-sml-google-auth.php:511 includes/class-sml-shortcode.php:120
+#: includes/class-sml-google-auth.php:511 includes/class-sml-shortcode.php:250
 msgid "An account with that email already exists. Please sign in with your password instead."
 msgstr "Ya existe una cuenta con ese correo. Inicia sesión con tu contraseña."
 
@@ -1158,11 +1158,11 @@ msgstr "Ya existe una cuenta con ese correo. Inicia sesión con tu contraseña."
 msgid "This account cannot be accessed with Google sign-in."
 msgstr "No se puede acceder a esta cuenta con el inicio de sesión de Google."
 
-#: includes/class-sml-google-auth.php:532 includes/class-sml-shortcode.php:118
+#: includes/class-sml-google-auth.php:532 includes/class-sml-shortcode.php:248
 msgid "New account registration is currently disabled."
 msgstr "El registro de cuentas nuevas está desactivado actualmente."
 
-#: includes/class-sml-google-auth.php:536 includes/class-sml-shortcode.php:119
+#: includes/class-sml-google-auth.php:536 includes/class-sml-shortcode.php:249
 msgid "Temporary or disposable email addresses are not allowed."
 msgstr "No se permiten direcciones de correo temporales o desechables."
 
@@ -1200,7 +1200,7 @@ msgstr "Introduce tu nombre de usuario o correo y tu contraseña."
 msgid "Incorrect username/email or password."
 msgstr "Nombre de usuario/correo o contraseña incorrectos."
 
-#: includes/class-sml-login-handler.php:95 includes/class-sml-shortcode.php:115
+#: includes/class-sml-login-handler.php:95 includes/class-sml-shortcode.php:245
 msgid "Your account type is not permitted to log in through this form."
 msgstr "Tu tipo de cuenta no tiene permiso para iniciar sesión mediante este formulario."
 
@@ -1438,208 +1438,222 @@ msgstr ""
 "\n"
 "Si no has sido tú, restablece tu contraseña de inmediato y ponte en contacto con nosotros."
 
-#: includes/class-sml-shortcode.php:111
-msgid "Google sign-in was cancelled."
-msgstr "Se canceló el inicio de sesión con Google."
-
-#: includes/class-sml-shortcode.php:112
-msgid "That Google sign-in link has expired. Please try again."
-msgstr "Ese enlace de inicio de sesión de Google ha caducado. Inténtalo de nuevo."
-
-#: includes/class-sml-shortcode.php:113
-msgid "Could not complete Google sign-in. Please try again."
-msgstr "No se pudo completar el inicio de sesión con Google. Inténtalo de nuevo."
-
-#: includes/class-sml-shortcode.php:114
-msgid "Could not read your Google profile. Please try again."
-msgstr "No se pudo leer tu perfil de Google. Inténtalo de nuevo."
-
-#: includes/class-sml-shortcode.php:121
-msgid "This account cannot be accessed with Google sign-in. Please sign in with your password."
-msgstr "No se puede acceder a esta cuenta con el inicio de sesión de Google. Inicia sesión con tu contraseña."
-
-#: includes/class-sml-shortcode.php:124
-msgid "Google sign-in failed. Please try again."
-msgstr "Falló el inicio de sesión con Google. Inténtalo de nuevo."
-
-#: includes/class-sml-shortcode.php:234
+#: includes/class-sml-shortcode.php:128 includes/class-sml-shortcode.php:372
 msgid "Your email has been verified. You are now logged in."
 msgstr "Tu correo se ha verificado. Ya has iniciado sesión."
 
-#: includes/class-sml-shortcode.php:236
+#: includes/class-sml-shortcode.php:130 includes/class-sml-shortcode.php:374
 msgid "That verification link is invalid or has expired."
 msgstr "Ese enlace de verificación no es válido o ha caducado."
 
-#: includes/class-sml-shortcode.php:248 includes/class-sml-shortcode.php:269 includes/class-sml-shortcode.php:346
-msgid "Log In"
-msgstr "Iniciar sesión"
-
-#: includes/class-sml-shortcode.php:249
-msgid "to your account"
-msgstr "en tu cuenta"
-
-#: includes/class-sml-shortcode.php:256 includes/class-sml-shortcode.php:370
-msgid "Email or mobile number"
-msgstr "Correo electrónico o número de móvil"
-
-#: includes/class-sml-shortcode.php:261 includes/class-sml-shortcode.php:338 includes/class-sml-shortcode.php:394 includes/class-sml-shortcode.php:403 includes/class-sml-shortcode.php:431 includes/class-sml-shortcode.php:440
-msgid "Show password"
-msgstr "Mostrar contraseña"
-
-#: includes/class-sml-shortcode.php:265 includes/class-sml-shortcode.php:342 includes/class-sml-shortcode.php:354 includes/class-sml-shortcode.php:381 includes/class-sml-shortcode.php:418
-msgid "Password"
-msgstr "Contraseña"
-
-#: includes/class-sml-shortcode.php:267
-msgid "Forgot password?"
-msgstr "¿Olvidaste tu contraseña?"
-
-#: includes/class-sml-shortcode.php:271 includes/class-sml-shortcode.php:345
-msgid "Create Account"
-msgstr "Crear cuenta"
-
-#: includes/class-sml-shortcode.php:279
-msgid "Create Your"
-msgstr "Crea tu"
-
-#: includes/class-sml-shortcode.php:280
-msgid "Account"
-msgstr "cuenta"
-
-#: includes/class-sml-shortcode.php:286
-msgid "Leave this field empty"
-msgstr "Deja este campo vacío"
-
-#: includes/class-sml-shortcode.php:293
-msgid "First name"
-msgstr "Nombre"
-
-#: includes/class-sml-shortcode.php:297
-msgid "Last name"
-msgstr "Apellidos"
-
-#: includes/class-sml-shortcode.php:303
-msgid "optional"
-msgstr "opcional"
-
-#: includes/class-sml-shortcode.php:318
-msgid "Country code"
-msgstr "Prefijo del país"
-
-#: includes/class-sml-shortcode.php:324
-msgid "Phone number"
-msgstr "Número de teléfono"
-
-#: includes/class-sml-shortcode.php:326 includes/class-sml-user-profile.php:62
-msgid "Mobile number"
-msgstr "Número de móvil"
-
-#: includes/class-sml-shortcode.php:332 includes/class-sml-user-profile.php:75
-msgid "National ID"
-msgstr "Documento de identidad"
-
-#: includes/class-sml-shortcode.php:353
-msgid "Reset Your"
-msgstr "Restablece tu"
-
-#: includes/class-sml-shortcode.php:360
-msgid "Enter your email address or mobile number and we'll send you a link or an SMS code to reset your password."
-msgstr "Introduce tu correo electrónico o tu número de móvil y te enviaremos un enlace o un código por SMS para restablecer tu contraseña."
-
-#: includes/class-sml-shortcode.php:362
-msgid "Enter your email address and we'll send you a link to reset your password."
-msgstr "Introduce tu dirección de correo y te enviaremos un enlace para restablecer tu contraseña."
-
-#: includes/class-sml-shortcode.php:373
-msgid "Send Reset Link"
-msgstr "Enviar enlace de restablecimiento"
-
-#: includes/class-sml-shortcode.php:374
-msgid "Back to Log In"
-msgstr "Volver a iniciar sesión"
-
-#: includes/class-sml-shortcode.php:380 includes/class-sml-shortcode.php:417
-msgid "Set a New"
-msgstr "Establece una nueva"
-
-#: includes/class-sml-shortcode.php:383
-msgid "Enter the code we sent by SMS and choose a new password."
-msgstr "Introduce el código que te enviamos por SMS y elige una contraseña nueva."
-
-#: includes/class-sml-shortcode.php:389 includes/class-sml-shortcode.php:465
-msgid "Verification code"
-msgstr "Código de verificación"
-
-#: includes/class-sml-shortcode.php:398 includes/class-sml-shortcode.php:435
-msgid "New password"
-msgstr "Nueva contraseña"
-
-#: includes/class-sml-shortcode.php:407 includes/class-sml-shortcode.php:444
-msgid "Confirm password"
-msgstr "Confirmar contraseña"
-
-#: includes/class-sml-shortcode.php:411 includes/class-sml-shortcode.php:422
-msgid "Request a new link"
-msgstr "Solicitar un enlace nuevo"
-
-#: includes/class-sml-shortcode.php:421
-msgid "This password reset link is invalid or has expired."
-msgstr "Este enlace de restablecimiento de contraseña no es válido o ha caducado."
-
-#: includes/class-sml-shortcode.php:457
-msgid "We sent a verification code by SMS to your mobile number. Enter it below."
-msgstr "Hemos enviado un código de verificación por SMS a tu número de móvil. Introdúcelo abajo."
-
-#. translators: %d: digit position
-#: includes/class-sml-shortcode.php:476
+#. translators: %s: the signed-in user's display name
+#: includes/class-sml-shortcode.php:137
 #, php-format
-msgid "Digit %d"
-msgstr "Dígito %d"
+msgid "You are already logged in as %s."
+msgstr "Ya has iniciado sesión como %s."
 
-#: includes/class-sml-shortcode.php:479
-msgid "Verify"
-msgstr "Verificar"
+#: includes/class-sml-shortcode.php:143
+msgid "Continue"
+msgstr "Continuar"
 
-#: includes/class-sml-shortcode.php:480
-msgid "Not now"
-msgstr "Ahora no"
+#: includes/class-sml-shortcode.php:144
+msgid "Log out"
+msgstr "Cerrar sesión"
 
-#: includes/class-sml-shortcode.php:79
+#: includes/class-sml-shortcode.php:209
 msgid "Verifying…"
 msgstr "Verificando…"
 
-#: includes/class-sml-shortcode.php:81
+#: includes/class-sml-shortcode.php:211
 msgid "Logging in…"
 msgstr "Iniciando sesión…"
 
-#: includes/class-sml-shortcode.php:82 includes/class-sml-shortcode.php:482
+#: includes/class-sml-shortcode.php:212 includes/class-sml-shortcode.php:620
 msgid "Resend code"
 msgstr "Reenviar código"
 
-#: includes/class-sml-shortcode.php:83
+#: includes/class-sml-shortcode.php:213
 #, php-format
 msgid "Resend in %ds"
 msgstr "Reenviar en %ds"
 
-#: includes/class-sml-shortcode.php:84
+#: includes/class-sml-shortcode.php:214
 msgid "Something went wrong. Please try again."
 msgstr "Algo salió mal. Inténtalo de nuevo."
 
-#: includes/class-sml-shortcode.php:85 includes/class-sml-shortcode.php:262 includes/class-sml-shortcode.php:339 includes/class-sml-shortcode.php:395 includes/class-sml-shortcode.php:404 includes/class-sml-shortcode.php:432 includes/class-sml-shortcode.php:441
+#: includes/class-sml-shortcode.php:215 includes/class-sml-shortcode.php:400 includes/class-sml-shortcode.php:477 includes/class-sml-shortcode.php:533 includes/class-sml-shortcode.php:542 includes/class-sml-shortcode.php:570 includes/class-sml-shortcode.php:579
 msgid "Show"
 msgstr "Mostrar"
 
-#: includes/class-sml-shortcode.php:86
+#: includes/class-sml-shortcode.php:216
 msgid "Hide"
 msgstr "Ocultar"
 
-#: includes/class-sml-shortcode.php:87
+#: includes/class-sml-shortcode.php:217
 msgid "Resetting…"
 msgstr "Restableciendo…"
 
-#: includes/class-sml-shortcode.php:88
+#: includes/class-sml-shortcode.php:218
 msgid "Please verify your email address to secure your account. You can also choose \"Not now\" and verify later."
 msgstr "Verifica tu correo electrónico para proteger tu cuenta. También puedes elegir «Ahora no» y verificarlo más tarde."
+
+#: includes/class-sml-shortcode.php:241
+msgid "Google sign-in was cancelled."
+msgstr "Se canceló el inicio de sesión con Google."
+
+#: includes/class-sml-shortcode.php:242
+msgid "That Google sign-in link has expired. Please try again."
+msgstr "Ese enlace de inicio de sesión de Google ha caducado. Inténtalo de nuevo."
+
+#: includes/class-sml-shortcode.php:243
+msgid "Could not complete Google sign-in. Please try again."
+msgstr "No se pudo completar el inicio de sesión con Google. Inténtalo de nuevo."
+
+#: includes/class-sml-shortcode.php:244
+msgid "Could not read your Google profile. Please try again."
+msgstr "No se pudo leer tu perfil de Google. Inténtalo de nuevo."
+
+#: includes/class-sml-shortcode.php:251
+msgid "This account cannot be accessed with Google sign-in. Please sign in with your password."
+msgstr "No se puede acceder a esta cuenta con el inicio de sesión de Google. Inicia sesión con tu contraseña."
+
+#: includes/class-sml-shortcode.php:254
+msgid "Google sign-in failed. Please try again."
+msgstr "Falló el inicio de sesión con Google. Inténtalo de nuevo."
+
+#: includes/class-sml-shortcode.php:386 includes/class-sml-shortcode.php:407 includes/class-sml-shortcode.php:484
+msgid "Log In"
+msgstr "Iniciar sesión"
+
+#: includes/class-sml-shortcode.php:387
+msgid "to your account"
+msgstr "en tu cuenta"
+
+#: includes/class-sml-shortcode.php:394 includes/class-sml-shortcode.php:508
+msgid "Email or mobile number"
+msgstr "Correo electrónico o número de móvil"
+
+#: includes/class-sml-shortcode.php:399 includes/class-sml-shortcode.php:476 includes/class-sml-shortcode.php:532 includes/class-sml-shortcode.php:541 includes/class-sml-shortcode.php:569 includes/class-sml-shortcode.php:578
+msgid "Show password"
+msgstr "Mostrar contraseña"
+
+#: includes/class-sml-shortcode.php:403 includes/class-sml-shortcode.php:480 includes/class-sml-shortcode.php:492 includes/class-sml-shortcode.php:519 includes/class-sml-shortcode.php:556
+msgid "Password"
+msgstr "Contraseña"
+
+#: includes/class-sml-shortcode.php:405
+msgid "Forgot password?"
+msgstr "¿Olvidaste tu contraseña?"
+
+#: includes/class-sml-shortcode.php:409 includes/class-sml-shortcode.php:483
+msgid "Create Account"
+msgstr "Crear cuenta"
+
+#: includes/class-sml-shortcode.php:417
+msgid "Create Your"
+msgstr "Crea tu"
+
+#: includes/class-sml-shortcode.php:418
+msgid "Account"
+msgstr "cuenta"
+
+#: includes/class-sml-shortcode.php:424
+msgid "Leave this field empty"
+msgstr "Deja este campo vacío"
+
+#: includes/class-sml-shortcode.php:431
+msgid "First name"
+msgstr "Nombre"
+
+#: includes/class-sml-shortcode.php:435
+msgid "Last name"
+msgstr "Apellidos"
+
+#: includes/class-sml-shortcode.php:441
+msgid "optional"
+msgstr "opcional"
+
+#: includes/class-sml-shortcode.php:456
+msgid "Country code"
+msgstr "Prefijo del país"
+
+#: includes/class-sml-shortcode.php:462
+msgid "Phone number"
+msgstr "Número de teléfono"
+
+#: includes/class-sml-shortcode.php:464 includes/class-sml-user-profile.php:62
+msgid "Mobile number"
+msgstr "Número de móvil"
+
+#: includes/class-sml-shortcode.php:470 includes/class-sml-user-profile.php:75
+msgid "National ID"
+msgstr "Documento de identidad"
+
+#: includes/class-sml-shortcode.php:491
+msgid "Reset Your"
+msgstr "Restablece tu"
+
+#: includes/class-sml-shortcode.php:498
+msgid "Enter your email address or mobile number and we'll send you a link or an SMS code to reset your password."
+msgstr "Introduce tu correo electrónico o tu número de móvil y te enviaremos un enlace o un código por SMS para restablecer tu contraseña."
+
+#: includes/class-sml-shortcode.php:500
+msgid "Enter your email address and we'll send you a link to reset your password."
+msgstr "Introduce tu dirección de correo y te enviaremos un enlace para restablecer tu contraseña."
+
+#: includes/class-sml-shortcode.php:511
+msgid "Send Reset Link"
+msgstr "Enviar enlace de restablecimiento"
+
+#: includes/class-sml-shortcode.php:512
+msgid "Back to Log In"
+msgstr "Volver a iniciar sesión"
+
+#: includes/class-sml-shortcode.php:518 includes/class-sml-shortcode.php:555
+msgid "Set a New"
+msgstr "Establece una nueva"
+
+#: includes/class-sml-shortcode.php:521
+msgid "Enter the code we sent by SMS and choose a new password."
+msgstr "Introduce el código que te enviamos por SMS y elige una contraseña nueva."
+
+#: includes/class-sml-shortcode.php:527 includes/class-sml-shortcode.php:603
+msgid "Verification code"
+msgstr "Código de verificación"
+
+#: includes/class-sml-shortcode.php:536 includes/class-sml-shortcode.php:573
+msgid "New password"
+msgstr "Nueva contraseña"
+
+#: includes/class-sml-shortcode.php:545 includes/class-sml-shortcode.php:582
+msgid "Confirm password"
+msgstr "Confirmar contraseña"
+
+#: includes/class-sml-shortcode.php:549 includes/class-sml-shortcode.php:560
+msgid "Request a new link"
+msgstr "Solicitar un enlace nuevo"
+
+#: includes/class-sml-shortcode.php:559
+msgid "This password reset link is invalid or has expired."
+msgstr "Este enlace de restablecimiento de contraseña no es válido o ha caducado."
+
+#: includes/class-sml-shortcode.php:595
+msgid "We sent a verification code by SMS to your mobile number. Enter it below."
+msgstr "Hemos enviado un código de verificación por SMS a tu número de móvil. Introdúcelo abajo."
+
+#. translators: %d: digit position
+#: includes/class-sml-shortcode.php:614
+#, php-format
+msgid "Digit %d"
+msgstr "Dígito %d"
+
+#: includes/class-sml-shortcode.php:617
+msgid "Verify"
+msgstr "Verificar"
+
+#: includes/class-sml-shortcode.php:618
+msgid "Not now"
+msgstr "Ahora no"
 
 #: includes/class-sml-sms.php:146
 msgid "SMS sending is not configured."

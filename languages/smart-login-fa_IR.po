@@ -176,7 +176,7 @@ msgstr "ارسال پیامک آزمایشی"
 msgid "Sends a sample code to this number using the saved gateway settings (save your changes first). Use an Iranian number such as 09123456789, or +<country code><number>."
 msgstr "یک کد نمونه را با تنظیمات ذخیره‌شدهٔ درگاه به این شماره می‌فرستد (ابتدا تغییرات را ذخیره کنید). از شمارهٔ ایرانی مثل 09123456789 یا فرمت +<کد کشور><شماره> استفاده کنید."
 
-#: admin/class-sml-admin-page.php:1723 admin/class-sml-admin-page.php:1817 includes/class-sml-shortcode.php:80
+#: admin/class-sml-admin-page.php:1723 admin/class-sml-admin-page.php:1817 includes/class-sml-shortcode.php:210
 msgid "Sending…"
 msgstr "در حال ارسال…"
 
@@ -1000,7 +1000,7 @@ msgstr "بیشترین درخواست‌های بازیابی رمز عبور"
 msgid "User"
 msgstr "کاربر"
 
-#: admin/class-sml-admin-page.php:711 admin/class-sml-admin-page.php:772 admin/class-sml-admin-page.php:1033 includes/class-sml-shortcode.php:303 includes/class-sml-shortcode.php:370
+#: admin/class-sml-admin-page.php:711 admin/class-sml-admin-page.php:772 admin/class-sml-admin-page.php:1033 includes/class-sml-shortcode.php:441 includes/class-sml-shortcode.php:508
 msgid "Email"
 msgstr "ایمیل"
 
@@ -1120,7 +1120,7 @@ msgstr "انصراف"
 msgid "Save"
 msgstr "ذخیره"
 
-#: includes/class-sml-email.php:107 includes/class-sml-email.php:271 includes/class-sml-shortcode.php:410 includes/class-sml-shortcode.php:447
+#: includes/class-sml-email.php:107 includes/class-sml-email.php:271 includes/class-sml-shortcode.php:548 includes/class-sml-shortcode.php:585
 msgid "Reset Password"
 msgstr "بازیابی رمز عبور"
 
@@ -1142,15 +1142,15 @@ msgstr "ادامه با گوگل"
 msgid "or"
 msgstr "یا"
 
-#: includes/class-sml-google-auth.php:478 includes/class-sml-shortcode.php:116
+#: includes/class-sml-google-auth.php:478 includes/class-sml-shortcode.php:246
 msgid "Your Google account's email is not verified."
 msgstr "ایمیل حساب گوگل شما تأیید نشده است."
 
-#: includes/class-sml-google-auth.php:483 includes/class-sml-shortcode.php:117
+#: includes/class-sml-google-auth.php:483 includes/class-sml-shortcode.php:247
 msgid "Google did not return a usable email address."
 msgstr "گوگل نشانی ایمیل قابل استفاده‌ای برنگرداند."
 
-#: includes/class-sml-google-auth.php:511 includes/class-sml-shortcode.php:120
+#: includes/class-sml-google-auth.php:511 includes/class-sml-shortcode.php:250
 msgid "An account with that email already exists. Please sign in with your password instead."
 msgstr "حسابی با این ایمیل از قبل وجود دارد. لطفاً با رمز عبور وارد شوید."
 
@@ -1158,11 +1158,11 @@ msgstr "حسابی با این ایمیل از قبل وجود دارد. لطف�
 msgid "This account cannot be accessed with Google sign-in."
 msgstr "ورود به این حساب با گوگل امکان‌پذیر نیست."
 
-#: includes/class-sml-google-auth.php:532 includes/class-sml-shortcode.php:118
+#: includes/class-sml-google-auth.php:532 includes/class-sml-shortcode.php:248
 msgid "New account registration is currently disabled."
 msgstr "ثبت‌نام حساب جدید در حال حاضر غیرفعال است."
 
-#: includes/class-sml-google-auth.php:536 includes/class-sml-shortcode.php:119
+#: includes/class-sml-google-auth.php:536 includes/class-sml-shortcode.php:249
 msgid "Temporary or disposable email addresses are not allowed."
 msgstr "استفاده از ایمیل‌های موقت یا یکبارمصرف مجاز نیست."
 
@@ -1200,7 +1200,7 @@ msgstr "لطفاً نام کاربری/ایمیل و رمز عبور خود را
 msgid "Incorrect username/email or password."
 msgstr "نام کاربری/ایمیل یا رمز عبور نادرست است."
 
-#: includes/class-sml-login-handler.php:95 includes/class-sml-shortcode.php:115
+#: includes/class-sml-login-handler.php:95 includes/class-sml-shortcode.php:245
 msgid "Your account type is not permitted to log in through this form."
 msgstr "نوع حساب شما اجازهٔ ورود از این فرم را ندارد."
 
@@ -1438,208 +1438,222 @@ msgstr ""
 "\n"
 "اگر این کار از سوی شما نبوده، فوراً رمز عبور خود را بازیابی کنید و با ما تماس بگیرید."
 
-#: includes/class-sml-shortcode.php:111
-msgid "Google sign-in was cancelled."
-msgstr "ورود با گوگل لغو شد."
-
-#: includes/class-sml-shortcode.php:112
-msgid "That Google sign-in link has expired. Please try again."
-msgstr "لینک ورود با گوگل منقضی شده است. لطفاً دوباره تلاش کنید."
-
-#: includes/class-sml-shortcode.php:113
-msgid "Could not complete Google sign-in. Please try again."
-msgstr "ورود با گوگل کامل نشد. لطفاً دوباره تلاش کنید."
-
-#: includes/class-sml-shortcode.php:114
-msgid "Could not read your Google profile. Please try again."
-msgstr "خواندن نمایهٔ گوگل شما ممکن نشد. لطفاً دوباره تلاش کنید."
-
-#: includes/class-sml-shortcode.php:121
-msgid "This account cannot be accessed with Google sign-in. Please sign in with your password."
-msgstr "ورود به این حساب با گوگل امکان‌پذیر نیست. لطفاً با رمز عبور وارد شوید."
-
-#: includes/class-sml-shortcode.php:124
-msgid "Google sign-in failed. Please try again."
-msgstr "ورود با گوگل ناموفق بود. لطفاً دوباره تلاش کنید."
-
-#: includes/class-sml-shortcode.php:234
+#: includes/class-sml-shortcode.php:128 includes/class-sml-shortcode.php:372
 msgid "Your email has been verified. You are now logged in."
 msgstr "ایمیل شما تأیید شد. اکنون وارد شده‌اید."
 
-#: includes/class-sml-shortcode.php:236
+#: includes/class-sml-shortcode.php:130 includes/class-sml-shortcode.php:374
 msgid "That verification link is invalid or has expired."
 msgstr "این لینک تأیید نامعتبر است یا منقضی شده است."
 
-#: includes/class-sml-shortcode.php:248 includes/class-sml-shortcode.php:269 includes/class-sml-shortcode.php:346
-msgid "Log In"
-msgstr "ورود"
-
-#: includes/class-sml-shortcode.php:249
-msgid "to your account"
-msgstr "به حساب کاربری"
-
-#: includes/class-sml-shortcode.php:256 includes/class-sml-shortcode.php:370
-msgid "Email or mobile number"
-msgstr "ایمیل یا شمارهٔ موبایل"
-
-#: includes/class-sml-shortcode.php:261 includes/class-sml-shortcode.php:338 includes/class-sml-shortcode.php:394 includes/class-sml-shortcode.php:403 includes/class-sml-shortcode.php:431 includes/class-sml-shortcode.php:440
-msgid "Show password"
-msgstr "نمایش رمز عبور"
-
-#: includes/class-sml-shortcode.php:265 includes/class-sml-shortcode.php:342 includes/class-sml-shortcode.php:354 includes/class-sml-shortcode.php:381 includes/class-sml-shortcode.php:418
-msgid "Password"
-msgstr "رمز عبور"
-
-#: includes/class-sml-shortcode.php:267
-msgid "Forgot password?"
-msgstr "رمز عبور را فراموش کرده‌اید؟"
-
-#: includes/class-sml-shortcode.php:271 includes/class-sml-shortcode.php:345
-msgid "Create Account"
-msgstr "ایجاد حساب"
-
-#: includes/class-sml-shortcode.php:279
-msgid "Create Your"
-msgstr "ایجاد"
-
-#: includes/class-sml-shortcode.php:280
-msgid "Account"
-msgstr "حساب کاربری"
-
-#: includes/class-sml-shortcode.php:286
-msgid "Leave this field empty"
-msgstr "این فیلد را خالی بگذارید"
-
-#: includes/class-sml-shortcode.php:293
-msgid "First name"
-msgstr "نام"
-
-#: includes/class-sml-shortcode.php:297
-msgid "Last name"
-msgstr "نام خانوادگی"
-
-#: includes/class-sml-shortcode.php:303
-msgid "optional"
-msgstr "اختیاری"
-
-#: includes/class-sml-shortcode.php:318
-msgid "Country code"
-msgstr "کد کشور"
-
-#: includes/class-sml-shortcode.php:324
-msgid "Phone number"
-msgstr "شمارهٔ تلفن"
-
-#: includes/class-sml-shortcode.php:326 includes/class-sml-user-profile.php:62
-msgid "Mobile number"
-msgstr "شمارهٔ موبایل"
-
-#: includes/class-sml-shortcode.php:332 includes/class-sml-user-profile.php:75
-msgid "National ID"
-msgstr "کد ملی"
-
-#: includes/class-sml-shortcode.php:353
-msgid "Reset Your"
-msgstr "بازیابی"
-
-#: includes/class-sml-shortcode.php:360
-msgid "Enter your email address or mobile number and we'll send you a link or an SMS code to reset your password."
-msgstr "نشانی ایمیل یا شمارهٔ موبایل خود را وارد کنید تا لینک یا کد پیامکی بازیابی رمز عبور را برایتان بفرستیم."
-
-#: includes/class-sml-shortcode.php:362
-msgid "Enter your email address and we'll send you a link to reset your password."
-msgstr "نشانی ایمیل خود را وارد کنید تا لینک بازیابی رمز عبور را برایتان بفرستیم."
-
-#: includes/class-sml-shortcode.php:373
-msgid "Send Reset Link"
-msgstr "ارسال لینک بازیابی"
-
-#: includes/class-sml-shortcode.php:374
-msgid "Back to Log In"
-msgstr "بازگشت به ورود"
-
-#: includes/class-sml-shortcode.php:380 includes/class-sml-shortcode.php:417
-msgid "Set a New"
-msgstr "تعیین"
-
-#: includes/class-sml-shortcode.php:383
-msgid "Enter the code we sent by SMS and choose a new password."
-msgstr "کدی را که با پیامک فرستادیم وارد کنید و رمز عبور جدیدی انتخاب کنید."
-
-#: includes/class-sml-shortcode.php:389 includes/class-sml-shortcode.php:465
-msgid "Verification code"
-msgstr "کد تأیید"
-
-#: includes/class-sml-shortcode.php:398 includes/class-sml-shortcode.php:435
-msgid "New password"
-msgstr "رمز عبور جدید"
-
-#: includes/class-sml-shortcode.php:407 includes/class-sml-shortcode.php:444
-msgid "Confirm password"
-msgstr "تکرار رمز عبور"
-
-#: includes/class-sml-shortcode.php:411 includes/class-sml-shortcode.php:422
-msgid "Request a new link"
-msgstr "درخواست لینک جدید"
-
-#: includes/class-sml-shortcode.php:421
-msgid "This password reset link is invalid or has expired."
-msgstr "این لینک بازیابی رمز عبور نامعتبر است یا منقضی شده است."
-
-#: includes/class-sml-shortcode.php:457
-msgid "We sent a verification code by SMS to your mobile number. Enter it below."
-msgstr "یک کد تأیید با پیامک به شمارهٔ موبایل شما فرستادیم. آن را در زیر وارد کنید."
-
-#. translators: %d: digit position
-#: includes/class-sml-shortcode.php:476
+#. translators: %s: the signed-in user's display name
+#: includes/class-sml-shortcode.php:137
 #, php-format
-msgid "Digit %d"
-msgstr "رقم %d"
+msgid "You are already logged in as %s."
+msgstr "شما قبلاً با نام %s وارد شده‌اید."
 
-#: includes/class-sml-shortcode.php:479
-msgid "Verify"
-msgstr "تأیید"
+#: includes/class-sml-shortcode.php:143
+msgid "Continue"
+msgstr "ادامه"
 
-#: includes/class-sml-shortcode.php:480
-msgid "Not now"
-msgstr "فعلاً نه"
+#: includes/class-sml-shortcode.php:144
+msgid "Log out"
+msgstr "خروج"
 
-#: includes/class-sml-shortcode.php:79
+#: includes/class-sml-shortcode.php:209
 msgid "Verifying…"
 msgstr "در حال تأیید…"
 
-#: includes/class-sml-shortcode.php:81
+#: includes/class-sml-shortcode.php:211
 msgid "Logging in…"
 msgstr "در حال ورود…"
 
-#: includes/class-sml-shortcode.php:82 includes/class-sml-shortcode.php:482
+#: includes/class-sml-shortcode.php:212 includes/class-sml-shortcode.php:620
 msgid "Resend code"
 msgstr "ارسال مجدد کد"
 
-#: includes/class-sml-shortcode.php:83
+#: includes/class-sml-shortcode.php:213
 #, php-format
 msgid "Resend in %ds"
 msgstr "ارسال مجدد تا %d ثانیه دیگر"
 
-#: includes/class-sml-shortcode.php:84
+#: includes/class-sml-shortcode.php:214
 msgid "Something went wrong. Please try again."
 msgstr "مشکلی پیش آمد. لطفاً دوباره تلاش کنید."
 
-#: includes/class-sml-shortcode.php:85 includes/class-sml-shortcode.php:262 includes/class-sml-shortcode.php:339 includes/class-sml-shortcode.php:395 includes/class-sml-shortcode.php:404 includes/class-sml-shortcode.php:432 includes/class-sml-shortcode.php:441
+#: includes/class-sml-shortcode.php:215 includes/class-sml-shortcode.php:400 includes/class-sml-shortcode.php:477 includes/class-sml-shortcode.php:533 includes/class-sml-shortcode.php:542 includes/class-sml-shortcode.php:570 includes/class-sml-shortcode.php:579
 msgid "Show"
 msgstr "نمایش"
 
-#: includes/class-sml-shortcode.php:86
+#: includes/class-sml-shortcode.php:216
 msgid "Hide"
 msgstr "پنهان کردن"
 
-#: includes/class-sml-shortcode.php:87
+#: includes/class-sml-shortcode.php:217
 msgid "Resetting…"
 msgstr "در حال بازیابی…"
 
-#: includes/class-sml-shortcode.php:88
+#: includes/class-sml-shortcode.php:218
 msgid "Please verify your email address to secure your account. You can also choose \"Not now\" and verify later."
 msgstr "برای ایمن‌سازی حساب خود، ایمیلتان را تأیید کنید. می‌توانید «فعلاً نه» را هم انتخاب کنید و بعداً تأیید کنید."
+
+#: includes/class-sml-shortcode.php:241
+msgid "Google sign-in was cancelled."
+msgstr "ورود با گوگل لغو شد."
+
+#: includes/class-sml-shortcode.php:242
+msgid "That Google sign-in link has expired. Please try again."
+msgstr "لینک ورود با گوگل منقضی شده است. لطفاً دوباره تلاش کنید."
+
+#: includes/class-sml-shortcode.php:243
+msgid "Could not complete Google sign-in. Please try again."
+msgstr "ورود با گوگل کامل نشد. لطفاً دوباره تلاش کنید."
+
+#: includes/class-sml-shortcode.php:244
+msgid "Could not read your Google profile. Please try again."
+msgstr "خواندن نمایهٔ گوگل شما ممکن نشد. لطفاً دوباره تلاش کنید."
+
+#: includes/class-sml-shortcode.php:251
+msgid "This account cannot be accessed with Google sign-in. Please sign in with your password."
+msgstr "ورود به این حساب با گوگل امکان‌پذیر نیست. لطفاً با رمز عبور وارد شوید."
+
+#: includes/class-sml-shortcode.php:254
+msgid "Google sign-in failed. Please try again."
+msgstr "ورود با گوگل ناموفق بود. لطفاً دوباره تلاش کنید."
+
+#: includes/class-sml-shortcode.php:386 includes/class-sml-shortcode.php:407 includes/class-sml-shortcode.php:484
+msgid "Log In"
+msgstr "ورود"
+
+#: includes/class-sml-shortcode.php:387
+msgid "to your account"
+msgstr "به حساب کاربری"
+
+#: includes/class-sml-shortcode.php:394 includes/class-sml-shortcode.php:508
+msgid "Email or mobile number"
+msgstr "ایمیل یا شمارهٔ موبایل"
+
+#: includes/class-sml-shortcode.php:399 includes/class-sml-shortcode.php:476 includes/class-sml-shortcode.php:532 includes/class-sml-shortcode.php:541 includes/class-sml-shortcode.php:569 includes/class-sml-shortcode.php:578
+msgid "Show password"
+msgstr "نمایش رمز عبور"
+
+#: includes/class-sml-shortcode.php:403 includes/class-sml-shortcode.php:480 includes/class-sml-shortcode.php:492 includes/class-sml-shortcode.php:519 includes/class-sml-shortcode.php:556
+msgid "Password"
+msgstr "رمز عبور"
+
+#: includes/class-sml-shortcode.php:405
+msgid "Forgot password?"
+msgstr "رمز عبور را فراموش کرده‌اید؟"
+
+#: includes/class-sml-shortcode.php:409 includes/class-sml-shortcode.php:483
+msgid "Create Account"
+msgstr "ایجاد حساب"
+
+#: includes/class-sml-shortcode.php:417
+msgid "Create Your"
+msgstr "ایجاد"
+
+#: includes/class-sml-shortcode.php:418
+msgid "Account"
+msgstr "حساب کاربری"
+
+#: includes/class-sml-shortcode.php:424
+msgid "Leave this field empty"
+msgstr "این فیلد را خالی بگذارید"
+
+#: includes/class-sml-shortcode.php:431
+msgid "First name"
+msgstr "نام"
+
+#: includes/class-sml-shortcode.php:435
+msgid "Last name"
+msgstr "نام خانوادگی"
+
+#: includes/class-sml-shortcode.php:441
+msgid "optional"
+msgstr "اختیاری"
+
+#: includes/class-sml-shortcode.php:456
+msgid "Country code"
+msgstr "کد کشور"
+
+#: includes/class-sml-shortcode.php:462
+msgid "Phone number"
+msgstr "شمارهٔ تلفن"
+
+#: includes/class-sml-shortcode.php:464 includes/class-sml-user-profile.php:62
+msgid "Mobile number"
+msgstr "شمارهٔ موبایل"
+
+#: includes/class-sml-shortcode.php:470 includes/class-sml-user-profile.php:75
+msgid "National ID"
+msgstr "کد ملی"
+
+#: includes/class-sml-shortcode.php:491
+msgid "Reset Your"
+msgstr "بازیابی"
+
+#: includes/class-sml-shortcode.php:498
+msgid "Enter your email address or mobile number and we'll send you a link or an SMS code to reset your password."
+msgstr "نشانی ایمیل یا شمارهٔ موبایل خود را وارد کنید تا لینک یا کد پیامکی بازیابی رمز عبور را برایتان بفرستیم."
+
+#: includes/class-sml-shortcode.php:500
+msgid "Enter your email address and we'll send you a link to reset your password."
+msgstr "نشانی ایمیل خود را وارد کنید تا لینک بازیابی رمز عبور را برایتان بفرستیم."
+
+#: includes/class-sml-shortcode.php:511
+msgid "Send Reset Link"
+msgstr "ارسال لینک بازیابی"
+
+#: includes/class-sml-shortcode.php:512
+msgid "Back to Log In"
+msgstr "بازگشت به ورود"
+
+#: includes/class-sml-shortcode.php:518 includes/class-sml-shortcode.php:555
+msgid "Set a New"
+msgstr "تعیین"
+
+#: includes/class-sml-shortcode.php:521
+msgid "Enter the code we sent by SMS and choose a new password."
+msgstr "کدی را که با پیامک فرستادیم وارد کنید و رمز عبور جدیدی انتخاب کنید."
+
+#: includes/class-sml-shortcode.php:527 includes/class-sml-shortcode.php:603
+msgid "Verification code"
+msgstr "کد تأیید"
+
+#: includes/class-sml-shortcode.php:536 includes/class-sml-shortcode.php:573
+msgid "New password"
+msgstr "رمز عبور جدید"
+
+#: includes/class-sml-shortcode.php:545 includes/class-sml-shortcode.php:582
+msgid "Confirm password"
+msgstr "تکرار رمز عبور"
+
+#: includes/class-sml-shortcode.php:549 includes/class-sml-shortcode.php:560
+msgid "Request a new link"
+msgstr "درخواست لینک جدید"
+
+#: includes/class-sml-shortcode.php:559
+msgid "This password reset link is invalid or has expired."
+msgstr "این لینک بازیابی رمز عبور نامعتبر است یا منقضی شده است."
+
+#: includes/class-sml-shortcode.php:595
+msgid "We sent a verification code by SMS to your mobile number. Enter it below."
+msgstr "یک کد تأیید با پیامک به شمارهٔ موبایل شما فرستادیم. آن را در زیر وارد کنید."
+
+#. translators: %d: digit position
+#: includes/class-sml-shortcode.php:614
+#, php-format
+msgid "Digit %d"
+msgstr "رقم %d"
+
+#: includes/class-sml-shortcode.php:617
+msgid "Verify"
+msgstr "تأیید"
+
+#: includes/class-sml-shortcode.php:618
+msgid "Not now"
+msgstr "فعلاً نه"
 
 #: includes/class-sml-sms.php:146
 msgid "SMS sending is not configured."

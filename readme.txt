@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.30.1
+Stable tag: 1.30.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,6 +65,9 @@ After changing any caching configuration, purge the cache and test in a private/
 
 == Changelog ==
 
+= 1.30.2 =
+* Fixed: a visitor who was already signed in still saw the login form when they opened the page that holds it (for example /login/). Such a visitor is now sent on to where they were headed — an explicit `redirect_to`, else the "Redirect after login" page, else the site home — and, where a redirect cannot happen, the form is replaced by a short "You are already logged in" card with Continue and Log out buttons. Password-reset links, the verification-link landing and Google error messages are not redirected, so their messages still show, and the form stays visible in the editor, previews and the common page builders so it can still be designed.
+* Added: the `sml_logged_in_redirect` filter lets another plugin choose the destination per user, for example a different dashboard for each role.
 = 1.30.1 =
 * Changed: Persian and Arabic-Indic digits are converted to ASCII digits automatically in the email address and the password as well, on top of the mobile number and National ID that were already handled. This happens on the server, so the database always holds the ASCII form; in the browser the email field is converted as it is typed. Registration, password reset (link and SMS code) and login all apply it. At login the password is first tried exactly as typed and then converted, so existing passwords that really contain Persian digits keep working.
 * Changed: the form's headings ("Log In to your account", "Create Your Account", and so on) now sit on a single line, wrapping only when the space is too narrow.

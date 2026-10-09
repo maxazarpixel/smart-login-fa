@@ -15,6 +15,136 @@ class SML_Shortcode {
 	public static function init() {
 		add_shortcode( 'smart_login_form', array( __CLASS__, 'render' ) );
 		add_action( 'init', array( __CLASS__, 'maybe_handle_verify_link' ) );
+		add_action( 'template_redirect', array( __CLASS__, 'maybe_redirect_logged_in' ) );
+	}
+
+	/**
+	 * Where a visitor who is already signed in should go instead of seeing
+	 * the login form: an explicit, validated `redirect_to`, else the
+	 * configured "Redirect after login" page, else the site home. Other
+	 * code (e.g. a membership dashboard) can choose per user.
+	 *
+	 * @return string
+	 */
+	public static function logged_in_destination() {
+		$url = SML_Page_Guard::validate_redirect(
+			isset( $_GET['redirect_to'] ) ? wp_unslash( $_GET['redirect_to'] ) : '' // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		);
+
+		if ( ! $url ) {
+			$url = SML_Settings::post_login_redirect_url();
+		}
+
+		if ( ! $url ) {
+			$url = home_url( '/' );
+		}
+
+		/**
+		 * Filters where a signed-in visitor is sent from the login page.
+		 *
+		 * @param string  $url  Destination.
+		 * @param WP_User $user The signed-in user.
+		 */
+		return (string) apply_filters( 'sml_logged_in_redirect', $url, wp_get_current_user() );
+	}
+
+	/**
+	 * Contexts where the form must stay visible even for a signed-in user:
+	 * editors, previews and page builders, where an administrator is
+	 * designing the page.
+	 *
+	 * @return bool
+	 */
+	protected static function is_design_context() {
+		if ( is_admin() || is_customize_preview() || is_preview() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+			return true;
+		}
+
+		if ( isset( $_GET['elementor-preview'] ) || isset( $_GET['et_fb'] ) || isset( $_GET['fl_builder'] ) || isset( $_GET['ct_builder'] ) || isset( $_GET['brizy-edit'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * A signed-in visitor opening the page that holds the login form is
+	 * sent on to where they were headed. Password-reset links are left
+	 * alone (they can be opened while signed in), and so are the status
+	 * flags the form turns into a message.
+	 */
+	public static function maybe_redirect_logged_in() {
+		if ( ! is_user_logged_in() || self::is_design_context() || ! is_singular() ) {
+			return;
+		}
+
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+		if ( isset( $_GET['sml_reset'] ) || isset( $_GET['sml_verified'] ) || isset( $_GET['sml_google_error'] ) || isset( $_GET['sml_stay'] ) ) {
+			return;
+		}
+		// phpcs:enable
+
+		$post = get_queried_object();
+		if ( ! $post instanceof WP_Post ) {
+			return;
+		}
+
+		$login_page_id = (int) SML_Settings::get( 'login_page_id' );
+		$is_form_page  = ( $login_page_id && (int) $post->ID === $login_page_id ) || has_shortcode( (string) $post->post_content, 'smart_login_form' );
+		if ( ! $is_form_page ) {
+			return;
+		}
+
+		$destination = self::logged_in_destination();
+
+		// Never bounce a page to itself (the destination can be relative or absolute).
+		$here_path = untrailingslashit( (string) wp_parse_url( SML_Page_Guard::current_url(), PHP_URL_PATH ) );
+		$to_path   = untrailingslashit( (string) wp_parse_url( $destination, PHP_URL_PATH ) );
+		$to_host   = wp_parse_url( $destination, PHP_URL_HOST );
+		if ( $here_path === $to_path && ( ! $to_host || wp_parse_url( home_url(), PHP_URL_HOST ) === $to_host ) ) {
+			return;
+		}
+
+		SML_Loader::bypass_page_cache();
+		wp_safe_redirect( $destination );
+		exit;
+	}
+
+	/**
+	 * Shown in place of the form when a signed-in visitor still ends up
+	 * on it (the page was reached some way that cannot redirect).
+	 *
+	 * @param string $verified_status 'success' | 'error' | '' from the verify-link landing.
+	 * @return string
+	 */
+	protected static function logged_in_html( $verified_status = '' ) {
+		$user        = wp_get_current_user();
+		$destination = self::logged_in_destination();
+
+		ob_start();
+		?>
+		<div class="sml-card sml-card--logged-in">
+			<?php if ( 'success' === $verified_status ) : ?>
+				<div class="sml-notice sml-notice--ok"><?php esc_html_e( 'Your email has been verified. You are now logged in.', 'smart-login' ); ?></div>
+			<?php elseif ( 'error' === $verified_status ) : ?>
+				<div class="sml-notice sml-notice--error"><?php esc_html_e( 'That verification link is invalid or has expired.', 'smart-login' ); ?></div>
+			<?php endif; ?>
+			<p class="sml-verify-intro">
+				<?php
+				echo esc_html(
+					sprintf(
+						/* translators: %s: the signed-in user's display name */
+						__( 'You are already logged in as %s.', 'smart-login' ),
+						$user->display_name
+					)
+				);
+				?>
+			</p>
+			<a class="sml-btn sml-btn--primary" href="<?php echo esc_url( $destination ); ?>"><?php esc_html_e( 'Continue', 'smart-login' ); ?></a>
+			<a class="sml-btn sml-btn--secondary" href="<?php echo esc_url( wp_logout_url( home_url( '/' ) ) ); ?>"><?php esc_html_e( 'Log out', 'smart-login' ); ?></a>
+		</div>
+		<?php
+		return ob_get_clean();
 	}
 
 	/**
@@ -132,6 +262,14 @@ class SML_Shortcode {
 
 		if ( ! $show_login ) {
 			return '';
+		}
+
+		// Already signed in: no form (that is what the user sees as "I logged in
+		// but the form is still here"). Designers keep the form in editors.
+		if ( is_user_logged_in() && ! self::is_design_context() && ! isset( $_GET['sml_reset'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			SML_Loader::bypass_page_cache();
+
+			return self::logged_in_html( isset( $_GET['sml_verified'] ) ? sanitize_text_field( wp_unslash( $_GET['sml_verified'] ) ) : '' ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		}
 
 		$verified_status = isset( $_GET['sml_verified'] ) ? sanitize_text_field( wp_unslash( $_GET['sml_verified'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
