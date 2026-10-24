@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.31.1
+Stable tag: 1.32.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -66,6 +66,11 @@ After changing any caching configuration, purge the cache and test in a private/
 
 == Changelog ==
 
+= 1.32.0 =
+* Added: the login form now has two tabs, "Email or username" and "Mobile number". The mobile tab has a country code selector (like the registration form) and a number box; a leading 0 is dropped automatically, so 09126724066 with Iran selected signs in the same account as +989126724066. The tab last used is remembered in the browser.
+* Fixed: signing in with a mobile number failed for accounts created by older versions, which kept only the number as typed (leading zero included) and no standard (E.164) copy. Those numbers are now converted automatically — in small batches in the admin, and on demand when a phone login finds nothing.
+* Changed: a ten-digit Iranian mobile typed without its leading zero (9126724066) is also recognised in the "Email or username" box.
+* Fixed: two country selectors on one page (registration and the login mobile tab) no longer interfere with each other — choosing Iran while logging in no longer toggles the registration form's National ID field.
 = 1.31.1 =
 * Fixed: logging out from a plain WordPress logout link (the admin bar, a theme's own link) landed on wp-login.php. It now returns to the Smart Login page. A logout link that names its own destination, such as a menu item or WooCommerce's My Account, is left alone, and the `sml_logout_redirect` filter can change the default.
 * Changed: `[smart_login_button]` and the menu login/logout item now also return to the login page after logging out (`logout_redirect="login"`, the new default). Use `logout_redirect="home"` for the previous behaviour.

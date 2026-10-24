@@ -46,7 +46,97 @@ class SML_Phone {
 			return '+98' . substr( $s, 1 );
 		}
 
+		// 9123456789: an Iranian mobile typed without the leading zero.
+		if ( 1 === preg_match( '/^9\d{9}$/', $s ) ) {
+			return '+98' . $s;
+		}
+
 		return '';
+	}
+
+	/**
+	 * E.164 number for a country's dial code and what the visitor typed in
+	 * the national-number box: the trunk zero is dropped, and an Iranian
+	 * number typed with its country code (98… / 0098…) is accepted too.
+	 *
+	 * @param string $dial   e.g. +98
+	 * @param string $digits Digits typed, ASCII.
+	 * @return string '' when nothing usable was typed.
+	 */
+	public static function e164_for( $dial, $digits ) {
+		$dial   = preg_replace( '/\D/', '', (string) $dial );
+		$digits = preg_replace( '/\D/', '', SML_Iran::to_latin_digits( (string) $digits ) );
+
+		if ( '' === $dial || '' === $digits ) {
+			return '';
+		}
+
+		if ( '98' === $dial ) {
+			$digits = preg_replace( '/^(?:0098|98)(?=9\d{9}$)/', '', $digits );
+		}
+
+		return '+' . $dial . preg_replace( '/^0/', '', $digits );
+	}
+
+	/**
+	 * Works out the E.164 number from a stored display form such as
+	 * "+98 091 267 240 66" (older versions kept the number exactly as typed,
+	 * leading zero included, and no E.164 copy).
+	 *
+	 * @param string $display
+	 * @return string '' when it cannot be read.
+	 */
+	public static function e164_from_display( $display ) {
+		$digits = preg_replace( '/\D/', '', (string) $display );
+		$best   = '';
+
+		foreach ( SML_Countries::all() as $country ) {
+			$dial = preg_replace( '/\D/', '', $country['dial'] );
+			if ( '' !== $dial && 0 === strpos( $digits, $dial ) && strlen( $dial ) > strlen( $best ) ) {
+				$best = $dial;
+			}
+		}
+
+		if ( '' === $best ) {
+			return '';
+		}
+
+		$e164 = self::e164_for( '+' . $best, substr( $digits, strlen( $best ) ) );
+
+		return ( strlen( $e164 ) >= 9 && strlen( $e164 ) <= 16 ) ? $e164 : '';
+	}
+
+	/**
+	 * Gives older accounts the E.164 copy that phone login and SMS reset look
+	 * up. Runs in small batches and records when nothing is left. Accounts
+	 * whose number cannot be read get an empty marker so they are not retried.
+	 */
+	public static function maybe_backfill_e164() {
+		if ( '1' === get_option( 'sml_e164_backfilled' ) ) {
+			return;
+		}
+
+		$limit = 400;
+		$ids   = get_users(
+			array(
+				'meta_query'  => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+					'relation' => 'AND',
+					array( 'key' => 'sml_phone', 'compare' => 'EXISTS' ),
+					array( 'key' => 'sml_phone_e164', 'compare' => 'NOT EXISTS' ),
+				),
+				'number'      => $limit,
+				'fields'      => 'ID',
+				'count_total' => false,
+			)
+		);
+
+		foreach ( $ids as $id ) {
+			update_user_meta( $id, 'sml_phone_e164', self::e164_from_display( (string) get_user_meta( $id, 'sml_phone', true ) ) );
+		}
+
+		if ( count( $ids ) < $limit ) {
+			update_option( 'sml_e164_backfilled', '1', false );
+		}
 	}
 
 	/**

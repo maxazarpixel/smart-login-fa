@@ -321,6 +321,40 @@
 
 			wireOtp( root );
 
+			// Login form: "Email or username" / "Mobile number" tabs. The choice is
+			// remembered in the browser so a returning visitor lands on their own.
+			var loginTabsForm = qs( '[data-sml-form="login"]', root );
+			if ( loginTabsForm && qs( '[data-sml-login-tab]', loginTabsForm ) ) {
+				var loginModeField = qs( '[data-sml-login-mode]', loginTabsForm );
+				var loginTabs = qsa( '[data-sml-login-tab]', loginTabsForm );
+				var setLoginMode = function ( mode ) {
+					loginModeField.value = mode;
+					loginTabs.forEach( function ( tab ) {
+						var on = tab.getAttribute( 'data-sml-login-tab' ) === mode;
+						tab.classList.toggle( 'is-active', on );
+						tab.setAttribute( 'aria-selected', on ? 'true' : 'false' );
+					} );
+					qsa( '[data-sml-login-group]', loginTabsForm ).forEach( function ( group ) {
+						var on = group.getAttribute( 'data-sml-login-group' ) === mode;
+						group.hidden = ! on;
+						qsa( 'input, select', group ).forEach( function ( field ) { field.disabled = ! on; } );
+					} );
+					var userField = qs( '[name="username"]', loginTabsForm );
+					var phoneField = qs( '[name="phone_number"]', loginTabsForm );
+					if ( userField ) { userField.required = 'account' === mode; }
+					if ( phoneField ) { phoneField.required = 'mobile' === mode; }
+					try { window.localStorage.setItem( 'sml-login-mode', mode ); } catch ( err ) { /* storage blocked */ }
+				};
+				loginTabs.forEach( function ( tab ) {
+					tab.addEventListener( 'click', function () {
+						setLoginMode( tab.getAttribute( 'data-sml-login-tab' ) );
+					} );
+				} );
+				var savedMode = 'account';
+				try { savedMode = window.localStorage.getItem( 'sml-login-mode' ) || 'account'; } catch ( err ) { /* storage blocked */ }
+				setLoginMode( 'mobile' === savedMode ? 'mobile' : 'account' );
+			}
+
 			// Persian / Arabic digits in an email address, or in a login that
 			// is a phone number, become ASCII as they are typed. The server
 			// does the same, so this only keeps what the visitor sees honest.
@@ -337,7 +371,9 @@
 			// so a real flag icon sits next to it and is swapped by hand
 			// whenever the selection changes.
 			qsa( '[data-sml-flag-select]', root ).forEach( function ( select ) {
-				var phoneInput = qs( '[data-sml-phone-input]', root );
+				// Each country select belongs to its own phone box (registration and
+				// the login "Mobile number" tab each have one).
+				var phoneInput = qs( '[data-sml-phone-input]', select.closest( '.sml-phone-group' ) || root );
 
 				var applyMaxForSelected = function () {
 					if ( ! phoneInput ) { return; }
@@ -350,7 +386,8 @@
 
 				// The national ID field only applies to Iran: show it (and make
 				// it required, when configured) only for that selection.
-				var idWrap = qs( '[data-sml-national-id-wrap]', root );
+				var ownForm = select.closest( '[data-sml-form="register"]' );
+				var idWrap = ownForm ? qs( '[data-sml-national-id-wrap]', ownForm ) : null;
 				var idInput = idWrap ? qs( 'input', idWrap ) : null;
 				var syncNationalId = function () {
 					if ( ! idWrap || ! idInput ) { return; }

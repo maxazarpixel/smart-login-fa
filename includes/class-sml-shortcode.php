@@ -19,6 +19,24 @@ class SML_Shortcode {
 	}
 
 	/**
+	 * The country the phone fields start on: the US when it is allowed,
+	 * otherwise the first allowed one; Iran on a Persian site with the Iranian
+	 * rules on.
+	 *
+	 * @param array $allowed SML_Countries::allowed().
+	 * @return string Country id.
+	 */
+	protected static function default_country( array $allowed ) {
+		$default = isset( $allowed['us'] ) ? 'us' : (string) array_key_first( $allowed );
+
+		if ( SML_Iran::enabled() && isset( $allowed['ir'] ) && 0 === strpos( determine_locale(), 'fa' ) ) {
+			$default = 'ir';
+		}
+
+		return $default;
+	}
+
+	/**
 	 * Where a visitor who is already signed in should go instead of seeing
 	 * the login form: an explicit, validated `redirect_to`, else the
 	 * configured "Redirect after login" page, else the site home. Other
@@ -389,9 +407,37 @@ class SML_Shortcode {
 				<?php echo SML_Google_Auth::button_html( $redirect_to ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 				<form data-sml-form="login" novalidate>
 					<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>">
-					<div class="sml-field-boxed">
-						<input type="text" id="sml-login-user" class="sml-input" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" dir="ltr" placeholder=" " required>
-						<label for="sml-login-user"><?php esc_html_e( 'Email or mobile number', 'smart-login' ); ?></label>
+					<?php
+					$sml_login_countries = SML_Countries::allowed();
+					$sml_login_country   = self::default_country( $sml_login_countries );
+					SML_Flags::sprite();
+					?>
+					<input type="hidden" name="login_mode" value="account" data-sml-login-mode>
+					<div class="sml-login-tabs" role="tablist">
+						<button type="button" class="sml-login-tab is-active" role="tab" aria-selected="true" data-sml-login-tab="account"><?php esc_html_e( 'Email or username', 'smart-login' ); ?></button>
+						<button type="button" class="sml-login-tab" role="tab" aria-selected="false" data-sml-login-tab="mobile"><?php esc_html_e( 'Mobile number', 'smart-login' ); ?></button>
+					</div>
+					<div data-sml-login-group="account">
+						<div class="sml-field-boxed">
+							<input type="text" id="sml-login-user" class="sml-input" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" dir="ltr" placeholder=" " required>
+							<label for="sml-login-user"><?php esc_html_e( 'Email or username', 'smart-login' ); ?></label>
+						</div>
+					</div>
+					<div data-sml-login-group="mobile" hidden>
+						<div class="sml-field-boxed">
+							<div class="sml-phone-group">
+								<div class="sml-phone-code">
+									<span class="sml-phone-flag" data-sml-flag-wrap><?php echo SML_Flags::icon( $sml_login_country ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+									<select name="phone_country" id="sml-login-phone-country" class="sml-input" aria-label="<?php esc_attr_e( 'Country code', 'smart-login' ); ?>" data-sml-flag-select>
+										<?php foreach ( $sml_login_countries as $id => $country ) : ?>
+											<option value="<?php echo esc_attr( $id ); ?>" data-max="<?php echo esc_attr( SML_Phone::max_length( $id ) ); ?>" data-flag="<?php echo esc_attr( base64_encode( SML_Flags::icon( $id ) ) ); ?>"<?php selected( $sml_login_country, $id ); ?>><?php echo esc_html( $country['dial'] . ' ' . SML_Countries::name( $id ) ); ?></option>
+										<?php endforeach; ?>
+									</select>
+								</div>
+								<input type="tel" id="sml-login-phone" class="sml-input" name="phone_number" data-sml-phone-input autocomplete="tel-national" inputmode="numeric" dir="ltr" placeholder="<?php esc_attr_e( 'Phone number', 'smart-login' ); ?>" maxlength="<?php echo esc_attr( SML_Phone::max_length( $sml_login_country ) + 4 ); ?>">
+							</div>
+							<label for="sml-login-phone"><?php esc_html_e( 'Mobile number', 'smart-login' ); ?></label>
+						</div>
 					</div>
 					<div class="sml-field-boxed">
 						<div class="sml-password-group">
@@ -442,11 +488,7 @@ class SML_Shortcode {
 						</div>
 						<?php
 						$sml_allowed_countries = SML_Countries::allowed();
-						$sml_default_country   = isset( $sml_allowed_countries['us'] ) ? 'us' : (string) array_key_first( $sml_allowed_countries );
-						// A Persian-language site with the Iranian rules on starts on Iran.
-						if ( SML_Iran::enabled() && isset( $sml_allowed_countries['ir'] ) && 0 === strpos( determine_locale(), 'fa' ) ) {
-							$sml_default_country = 'ir';
-						}
+						$sml_default_country   = self::default_country( $sml_allowed_countries );
 						?>
 						<?php SML_Flags::sprite(); ?>
 						<div class="sml-field-boxed">

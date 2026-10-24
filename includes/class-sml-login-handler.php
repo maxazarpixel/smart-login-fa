@@ -17,6 +17,7 @@ class SML_Login_Handler {
 	public static function init() {
 		add_action( 'wp_ajax_nopriv_sml_login', array( __CLASS__, 'ajax_login' ) );
 		add_filter( 'logout_redirect', array( __CLASS__, 'logout_redirect' ), 10, 2 );
+		add_action( 'admin_init', array( 'SML_Phone', 'maybe_backfill_e164' ) );
 	}
 
 	/**
@@ -54,17 +55,36 @@ class SML_Login_Handler {
 	public static function ajax_login() {
 		check_ajax_referer( self::NONCE_ACTION, 'nonce' );
 
-		$username = isset( $_POST['username'] ) ? sanitize_text_field( wp_unslash( $_POST['username'] ) ) : '';
-		$password = isset( $_POST['password'] ) ? (string) wp_unslash( $_POST['password'] ) : '';
+		$mobile_tab = isset( $_POST['login_mode'] ) && 'mobile' === sanitize_key( wp_unslash( $_POST['login_mode'] ) );
+		$username   = isset( $_POST['username'] ) ? sanitize_text_field( wp_unslash( $_POST['username'] ) ) : '';
+		$password   = isset( $_POST['password'] ) ? (string) wp_unslash( $_POST['password'] ) : '';
+		$e164       = '';
 
-		// An email address typed with Persian digits is stored with ASCII
-		// ones, so look it up that way. (Plain usernames are left as typed.)
-		if ( false !== strpos( $username, '@' ) ) {
-			$username = SML_Iran::to_latin_digits( $username );
-		}
+		if ( $mobile_tab ) {
+			// "Mobile number" tab: country code + national number, as on the
+			// registration form. The leading zero is dropped for the lookup.
+			$country_id = isset( $_POST['phone_country'] ) ? sanitize_key( wp_unslash( $_POST['phone_country'] ) ) : '';
+			$typed      = isset( $_POST['phone_number'] ) ? sanitize_text_field( wp_unslash( $_POST['phone_number'] ) ) : '';
+			$countries  = SML_Countries::all();
 
-		if ( ! $username || ! $password ) {
-			wp_send_json_error( array( 'message' => __( 'Please enter your username/email and password.', 'smart-login' ) ) );
+			if ( '' === preg_replace( '/\D/', '', SML_Iran::to_latin_digits( $typed ) ) || ! $password ) {
+				wp_send_json_error( array( 'message' => __( 'Please enter your mobile number and password.', 'smart-login' ) ) );
+			}
+
+			$e164 = isset( $countries[ $country_id ] ) ? SML_Phone::e164_for( $countries[ $country_id ]['dial'], $typed ) : '';
+			// Nothing real can be signed in with this; it only lets the normal
+			// failure path (and lockout) run with the same generic message.
+			$username = '' !== $e164 ? $e164 : 'sml-no-such-user';
+		} else {
+			// An email address typed with Persian digits is stored with ASCII
+			// ones, so look it up that way. (Plain usernames are left as typed.)
+			if ( false !== strpos( $username, '@' ) ) {
+				$username = SML_Iran::to_latin_digits( $username );
+			}
+
+			if ( ! $username || ! $password ) {
+				wp_send_json_error( array( 'message' => __( 'Please enter your username/email and password.', 'smart-login' ) ) );
+			}
 		}
 
 		$bot_check = SML_Registration_Handler::check_bot_provider();
@@ -75,9 +95,14 @@ class SML_Login_Handler {
 		// A mobile number can stand in for the username. Lockout counts by the
 		// normalised number, so 0912…, +98912… and Persian digits share one
 		// counter instead of each format getting its own attempts.
-		$e164     = SML_Phone::parse_e164( $username );
+		if ( ! $mobile_tab ) {
+			$e164 = SML_Phone::parse_e164( $username );
+		}
 		$lock_key = '' !== $e164 ? $e164 : $username;
 		if ( '' !== $e164 ) {
+			// Accounts made by older versions have no E.164 copy yet.
+			SML_Phone::maybe_backfill_e164();
+
 			$matched = SML_Phone::login_for( $e164, $password );
 			if ( '' !== $matched ) {
 				$username = $matched;

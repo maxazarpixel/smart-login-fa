@@ -59,6 +59,12 @@ class SML_Flags {
 	 * Prints the hidden sprite. Call once per page.
 	 */
 	public static function sprite() {
+		static $printed = false;
+		if ( $printed ) {
+			return;
+		}
+		$printed = true;
+
 		echo '<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">'; // phpcs:ignore
 		foreach ( self::shapes() as $id => $markup ) {
 			printf( '<symbol id="sml-flag-%s" viewBox="0 0 20 14">%s</symbol>', esc_attr( $id ), $markup ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

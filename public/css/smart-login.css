@@ -736,3 +736,39 @@
 	opacity: 0.88;
 	color: var(--sml-accent-fg, #ffffff);
 }
+
+/* Login form tabs: Email or username / Mobile number */
+.sml-card .sml-login-tabs {
+	display: flex !important;
+	gap: 4px !important;
+	margin: 0 0 12px !important;
+	padding: 3px !important;
+	background: var(--sml-surface) !important;
+	border-radius: var(--sml-radius-sm) !important;
+}
+
+.sml-card .sml-login-tab {
+	flex: 1 1 0 !important;
+	margin: 0 !important;
+	padding: 8px 10px !important;
+	font-family: inherit !important;
+	font-size: 13px !important;
+	font-weight: 600 !important;
+	line-height: 1.3 !important;
+	color: var(--sml-muted) !important;
+	background: transparent !important;
+	border: 0 !important;
+	border-radius: calc(var(--sml-radius-sm) - 2px) !important;
+	box-shadow: none !important;
+	cursor: pointer !important;
+}
+
+.sml-card .sml-login-tab.is-active {
+	color: var(--sml-fg) !important;
+	background: var(--sml-bg) !important;
+	box-shadow: 0 1px 2px rgba(17, 17, 20, 0.12) !important;
+}
+
+.sml-card [data-sml-login-group][hidden] {
+	display: none !important;
+}
