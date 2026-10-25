@@ -72,6 +72,12 @@ class SML_Login_Handler {
 			}
 
 			$e164 = isset( $countries[ $country_id ] ) ? SML_Phone::e164_for( $countries[ $country_id ]['dial'], $typed ) : '';
+
+			// An Iranian number of the wrong length can never match an account;
+			// say so instead of a vague "incorrect password".
+			if ( 0 === strpos( $e164, '+98' ) && 1 !== preg_match( '/^\+989\d{9}$/', $e164 ) ) {
+				wp_send_json_error( array( 'message' => SML_Phone::iranian_mobile_error( $typed ) ) );
+			}
 			// Nothing real can be signed in with this; it only lets the normal
 			// failure path (and lockout) run with the same generic message.
 			$username = '' !== $e164 ? $e164 : 'sml-no-such-user';

@@ -379,13 +379,25 @@
 				// the login "Mobile number" tab each have one).
 				var phoneInput = qs( '[data-sml-phone-input]', select.closest( '.sml-phone-group' ) || root );
 
+				// Digits the visitor may type for the selected country. With Iran
+				// selected the trunk 0 is removed from the box as soon as it is
+				// typed (0912… becomes 912…), so 10 digits are what is left.
+				var phoneLimit = function () {
+					if ( 'ir' === select.value ) { return 10; }
+					var opt = select.options[ select.selectedIndex ];
+					return opt ? parseInt( opt.getAttribute( 'data-max' ), 10 ) || 14 : 14;
+				};
+				var tidyPhone = function () {
+					var digits = toLatinDigits( phoneInput.value ).replace( /\D/g, '' );
+					if ( 'ir' === select.value ) { digits = digits.replace( /^0+/, '' ); }
+					return formatPhoneDigits( digits, phoneLimit() );
+				};
+
 				var applyMaxForSelected = function () {
 					if ( ! phoneInput ) { return; }
-					var opt = select.options[ select.selectedIndex ];
-					var max = opt ? parseInt( opt.getAttribute( 'data-max' ), 10 ) || 14 : 14;
 					// +4 allows for the display spaces inserted by formatPhoneDigits().
-					phoneInput.setAttribute( 'maxlength', max + 4 );
-					phoneInput.value = formatPhoneDigits( phoneInput.value, max );
+					phoneInput.setAttribute( 'maxlength', phoneLimit() + 4 );
+					phoneInput.value = tidyPhone();
 				};
 
 				// The national ID field only applies to Iran: show it (and make
@@ -425,10 +437,8 @@
 				if ( phoneInput ) {
 					applyMaxForSelected();
 					phoneInput.addEventListener( 'input', function () {
-						var opt = select.options[ select.selectedIndex ];
-						var max = opt ? parseInt( opt.getAttribute( 'data-max' ), 10 ) || 14 : 14;
 						var caretAtEnd = phoneInput.selectionStart === phoneInput.value.length;
-						phoneInput.value = formatPhoneDigits( phoneInput.value, max );
+						phoneInput.value = tidyPhone();
 						if ( caretAtEnd ) {
 							phoneInput.setSelectionRange( phoneInput.value.length, phoneInput.value.length );
 						}

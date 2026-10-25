@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.34.0
+Stable tag: 1.34.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -68,6 +68,9 @@ After changing any caching configuration, purge the cache and test in a private/
 
 == Changelog ==
 
+= 1.34.1 =
+* Changed: with Iran selected, the leading 0 of a mobile number is removed from the box itself as soon as it is typed (0912… shows as 912…), on the registration form and on the login "Mobile number" tab, so it is clear how many digits are left. Other countries are untouched.
+* Changed: a mobile number of the wrong length now says what is wrong — "An Iranian mobile number has 10 digits once the leading 0 is removed … You entered N" — on registration and on the login mobile tab, instead of a generic error or a vague "incorrect password".
 = 1.34.0 =
 * Changed: the plugin is now named "Smart Login FA" and ships in the folder `smart-login-fa`, so it installs next to — and can replace — the original Smart Login plugin. Settings, users and data are shared with the original; nothing has to be reconfigured.
 * Added: because both plugins use the same classes, only one can run. Activating Smart Login FA while the original is active switches the original off by itself; if the two ever end up loaded together, Smart Login FA steps aside with a notice instead of causing a fatal error.

@@ -1200,27 +1200,27 @@ msgstr "Iniciar sesión"
 msgid "Log out"
 msgstr "Cerrar sesión"
 
-#: includes/class-sml-login-handler.php:146
+#: includes/class-sml-login-handler.php:152
 msgid "Incorrect username/email or password."
 msgstr "Nombre de usuario/correo o contraseña incorrectos."
 
-#: includes/class-sml-login-handler.php:153 includes/class-sml-shortcode.php:308
+#: includes/class-sml-login-handler.php:159 includes/class-sml-shortcode.php:308
 msgid "Your account type is not permitted to log in through this form."
 msgstr "Tu tipo de cuenta no tiene permiso para iniciar sesión mediante este formulario."
 
-#: includes/class-sml-login-handler.php:187
+#: includes/class-sml-login-handler.php:193
 msgid "Please verify your mobile number to continue. We just sent you a verification code by SMS."
 msgstr "Verifica tu número de móvil para continuar. Acabamos de enviarte un código de verificación por SMS."
 
-#: includes/class-sml-login-handler.php:188
+#: includes/class-sml-login-handler.php:194
 msgid "Please verify your email address to continue. We just sent you a verification code."
 msgstr "Verifica tu correo electrónico para continuar. Acabamos de enviarte un código de verificación."
 
-#: includes/class-sml-login-handler.php:221 includes/class-sml-login-handler.php:237
+#: includes/class-sml-login-handler.php:227 includes/class-sml-login-handler.php:243
 msgid "Login successful."
 msgstr "Inicio de sesión correcto."
 
-#: includes/class-sml-login-handler.php:228
+#: includes/class-sml-login-handler.php:234
 msgid "We noticed your email address isn't verified yet — we've sent you a verification email."
 msgstr "Notamos que tu correo aún no está verificado; te hemos enviado un correo de verificación."
 
@@ -1228,7 +1228,7 @@ msgstr "Notamos que tu correo aún no está verificado; te hemos enviado un corr
 msgid "Please enter your mobile number and password."
 msgstr "Introduce tu número de móvil y tu contraseña."
 
-#: includes/class-sml-login-handler.php:86
+#: includes/class-sml-login-handler.php:92
 msgid "Please enter your username/email and password."
 msgstr "Introduce tu nombre de usuario o correo y tu contraseña."
 
@@ -1290,9 +1290,11 @@ msgstr "El restablecimiento por número de móvil no está disponible. Usa tu co
 msgid "If an account exists for that mobile number, we've sent a code by SMS."
 msgstr "Si existe una cuenta con ese número de móvil, te hemos enviado un código por SMS."
 
-#: includes/class-sml-phone.php:257
-msgid "Please enter a valid Iranian mobile number, e.g. 0912 345 6789."
-msgstr "Introduce un número móvil iraní válido, p. ej. 0912 345 6789."
+#. translators: %d: how many digits were typed after the leading 0 was removed
+#: includes/class-sml-phone.php:279
+#, php-format
+msgid "An Iranian mobile number has 10 digits once the leading 0 is removed (for example 0912 345 6789). You entered %d."
+msgstr "Un número móvil iraní tiene 10 dígitos una vez quitado el 0 inicial (por ejemplo 0912 345 6789). Has introducido %d."
 
 #. translators: %d: minutes remaining
 #: includes/class-sml-rate-limit.php:49

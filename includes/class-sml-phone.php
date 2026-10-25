@@ -254,7 +254,7 @@ class SML_Phone {
 
 		if ( SML_Iran::applies_to( $country_id ) ) {
 			if ( ! SML_Iran::is_valid_mobile( $digits ) ) {
-				return new WP_Error( 'sml_invalid_phone', __( 'Please enter a valid Iranian mobile number, e.g. 0912 345 6789.', 'smart-login' ) );
+				return new WP_Error( 'sml_invalid_phone', self::iranian_mobile_error( $digits ) );
 			}
 
 			return true;
@@ -265,6 +265,20 @@ class SML_Phone {
 		}
 
 		return true;
+	}
+
+	/**
+	 * What is wrong with an Iranian mobile number, in terms the visitor can act on.
+	 *
+	 * @param string $digits ASCII digits as typed.
+	 * @return string
+	 */
+	public static function iranian_mobile_error( $digits ) {
+		return sprintf(
+			/* translators: %d: how many digits were typed after the leading 0 was removed */
+			__( 'An Iranian mobile number has 10 digits once the leading 0 is removed (for example 0912 345 6789). You entered %d.', 'smart-login' ),
+			strlen( SML_Iran::normalize_mobile( preg_replace( '/\D/', '', SML_Iran::to_latin_digits( (string) $digits ) ) ) )
+		);
 	}
 
 	/**

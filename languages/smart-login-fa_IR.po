@@ -1200,27 +1200,27 @@ msgstr "ورود"
 msgid "Log out"
 msgstr "خروج"
 
-#: includes/class-sml-login-handler.php:146
+#: includes/class-sml-login-handler.php:152
 msgid "Incorrect username/email or password."
 msgstr "نام کاربری/ایمیل یا رمز عبور نادرست است."
 
-#: includes/class-sml-login-handler.php:153 includes/class-sml-shortcode.php:308
+#: includes/class-sml-login-handler.php:159 includes/class-sml-shortcode.php:308
 msgid "Your account type is not permitted to log in through this form."
 msgstr "نوع حساب شما اجازهٔ ورود از این فرم را ندارد."
 
-#: includes/class-sml-login-handler.php:187
+#: includes/class-sml-login-handler.php:193
 msgid "Please verify your mobile number to continue. We just sent you a verification code by SMS."
 msgstr "برای ادامه، شمارهٔ موبایل خود را تأیید کنید. همین حالا یک کد تأیید با پیامک برایتان فرستادیم."
 
-#: includes/class-sml-login-handler.php:188
+#: includes/class-sml-login-handler.php:194
 msgid "Please verify your email address to continue. We just sent you a verification code."
 msgstr "برای ادامه، ایمیل خود را تأیید کنید. همین حالا یک کد تأیید برایتان فرستادیم."
 
-#: includes/class-sml-login-handler.php:221 includes/class-sml-login-handler.php:237
+#: includes/class-sml-login-handler.php:227 includes/class-sml-login-handler.php:243
 msgid "Login successful."
 msgstr "ورود با موفقیت انجام شد."
 
-#: includes/class-sml-login-handler.php:228
+#: includes/class-sml-login-handler.php:234
 msgid "We noticed your email address isn't verified yet — we've sent you a verification email."
 msgstr "متوجه شدیم ایمیل شما هنوز تأیید نشده است؛ یک ایمیل تأیید برایتان ارسال کردیم."
 
@@ -1228,7 +1228,7 @@ msgstr "متوجه شدیم ایمیل شما هنوز تأیید نشده اس�
 msgid "Please enter your mobile number and password."
 msgstr "لطفاً شمارهٔ موبایل و رمز عبور خود را وارد کنید."
 
-#: includes/class-sml-login-handler.php:86
+#: includes/class-sml-login-handler.php:92
 msgid "Please enter your username/email and password."
 msgstr "لطفاً نام کاربری/ایمیل و رمز عبور خود را وارد کنید."
 
@@ -1290,9 +1290,11 @@ msgstr "بازیابی با شمارهٔ موبایل در دسترس نیست. 
 msgid "If an account exists for that mobile number, we've sent a code by SMS."
 msgstr "اگر حسابی با این شمارهٔ موبایل وجود داشته باشد، یک کد پیامکی برایش ارسال شده است."
 
-#: includes/class-sml-phone.php:257
-msgid "Please enter a valid Iranian mobile number, e.g. 0912 345 6789."
-msgstr "لطفاً یک شمارهٔ موبایل ایرانی معتبر وارد کنید، مثلاً ۰۹۱۲ ۳۴۵ ۶۷۸۹."
+#. translators: %d: how many digits were typed after the leading 0 was removed
+#: includes/class-sml-phone.php:279
+#, php-format
+msgid "An Iranian mobile number has 10 digits once the leading 0 is removed (for example 0912 345 6789). You entered %d."
+msgstr "شمارهٔ موبایل ایران پس از حذف صفر ابتدایی ۱۰ رقم است (مثلاً 0912 345 6789). شما %d رقم وارد کرده‌اید."
 
 #. translators: %d: minutes remaining
 #: includes/class-sml-rate-limit.php:49
