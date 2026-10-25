@@ -359,9 +359,13 @@
 			// is a phone number, become ASCII as they are typed. The server
 			// does the same, so this only keeps what the visitor sees honest.
 			qsa( '#sml-reg-email, #sml-login-user, #sml-forgot-email', root ).forEach( function ( input ) {
+				// The registration box only ever holds an email, so it always
+				// converts; the login / forgot boxes may hold a username, which
+				// is only touched once it is clearly an email or a phone number.
+				var emailOnly = 'sml-reg-email' === input.id;
 				input.addEventListener( 'input', function () {
 					var v = input.value;
-					if ( /[\u06F0-\u06F9\u0660-\u0669]/.test( v ) && ( v.indexOf( '@' ) !== -1 || /^[+\d\u06F0-\u06F9\u0660-\u0669\s().-]+$/.test( v ) ) ) {
+					if ( /[\u06F0-\u06F9\u0660-\u0669]/.test( v ) && ( emailOnly || v.indexOf( '@' ) !== -1 || /^[+\d\u06F0-\u06F9\u0660-\u0669\s().-]+$/.test( v ) ) ) {
 						input.value = toLatinDigits( v );
 					}
 				} );

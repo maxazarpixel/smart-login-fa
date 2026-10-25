@@ -16,6 +16,51 @@ class SML_Shortcode {
 		add_shortcode( 'smart_login_form', array( __CLASS__, 'render' ) );
 		add_action( 'init', array( __CLASS__, 'maybe_handle_verify_link' ) );
 		add_action( 'template_redirect', array( __CLASS__, 'maybe_redirect_logged_in' ) );
+		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_digit_normaliser' ) );
+	}
+
+	/**
+	 * Email and phone fields anywhere on the site (login, registration, the
+	 * WooCommerce checkout and My Account, contact forms…) turn Persian and
+	 * Arabic-Indic digits into ASCII digits as they are typed, so what gets
+	 * stored and validated is always the ASCII form. Switchable in Settings.
+	 */
+	public static function enqueue_digit_normaliser() {
+		if ( is_admin() || ! SML_Settings::get( 'convert_digits_sitewide' ) ) {
+			return;
+		}
+
+		wp_register_script( 'smart-login-digits', false, array(), SML_VERSION, true );
+		wp_enqueue_script( 'smart-login-digits' );
+		wp_add_inline_script( 'smart-login-digits', self::digit_normaliser_js() );
+	}
+
+	/**
+	 * @return string
+	 */
+	public static function digit_normaliser_js() {
+		return <<<'JS'
+( function () {
+	var selector = 'input[type="email"], input[type="tel"], input[autocomplete="email"], input[autocomplete^="tel"], input[inputmode="tel"], input[inputmode="email"]';
+	function toLatin( v ) {
+		return v
+			.replace( /[\u06F0-\u06F9]/g, function ( d ) { return String( d.charCodeAt( 0 ) - 0x06F0 ); } )
+			.replace( /[\u0660-\u0669]/g, function ( d ) { return String( d.charCodeAt( 0 ) - 0x0660 ); } );
+	}
+	document.addEventListener( 'input', function ( e ) {
+		var el = e.target;
+		if ( ! el || ! el.matches || ! el.matches( selector ) ) { return; }
+		var v = el.value;
+		if ( ! /[\u06F0-\u06F9\u0660-\u0669]/.test( v ) ) { return; }
+		var pos = null;
+		try { pos = el.selectionStart; } catch ( err ) { /* not supported on this input type */ }
+		el.value = toLatin( v );
+		if ( pos !== null ) {
+			try { el.setSelectionRange( pos, pos ); } catch ( err ) { /* ignore */ }
+		}
+	}, true );
+}() );
+JS;
 	}
 
 	/**

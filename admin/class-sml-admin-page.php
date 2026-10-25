@@ -196,6 +196,17 @@ class SML_Admin_Page extends APX_Admin_Page {
 					),
 				),
 				array(
+					'heading' => __( 'Persian digits', 'smart-login' ),
+					'fields'  => array(
+						array(
+							'type'  => 'toggle',
+							'name'  => 'convert_digits_sitewide',
+							'label' => __( 'Convert Persian digits in email and phone fields', 'smart-login' ),
+							'desc'  => __( 'On every email and phone field of the public site — not only Smart Login\'s own forms, but also the WooCommerce checkout and My Account, contact forms and so on — Persian and Arabic digits are turned into English digits as they are typed. Smart Login\'s own forms and the user edit screen always do this on the server too.', 'smart-login' ),
+						),
+					),
+				),
+				array(
 					'heading' => __( 'Iranian registration', 'smart-login' ),
 					'desc'    => __( 'Adds Iran to the country list, validates Iranian mobile numbers (10 digits starting with 9, a leading 0 is accepted) and can ask for the national ID when Iran is selected. Persian and Arabic digits are accepted in both fields.', 'smart-login' ),
 					'fields'  => array(

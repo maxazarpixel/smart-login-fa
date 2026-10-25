@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.32.0
+Stable tag: 1.33.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -66,6 +66,11 @@ After changing any caching configuration, purge the cache and test in a private/
 
 == Changelog ==
 
+= 1.33.0 =
+* Added: Persian and Arabic-Indic digits typed into any email or phone field of the public site are turned into English digits on the spot — not only Smart Login's own forms but also, for example, the WooCommerce checkout and My Account and contact forms. Only email and phone fields are touched (type email or tel, or an email / tel autocomplete or input mode); ordinary text fields and passwords are left alone, and the cursor stays where it was. It can be switched off under Settings → General → "Convert Persian digits in email and phone fields".
+* Fixed: in the registration form's email box, Persian digits stayed as typed until an @ appeared; they are now converted immediately.
+* Added: the mobile number and National ID boxes on the user edit screen convert Persian digits as they are typed.
+* Note: this converts what the browser sends. Smart Login's own forms and the user edit screen also convert on the server; third-party forms rely on the browser conversion.
 = 1.32.0 =
 * Added: the login form now has two tabs, "Email or username" and "Mobile number". The mobile tab has a country code selector (like the registration form) and a number box; a leading 0 is dropped automatically, so 09126724066 with Iran selected signs in the same account as +989126724066. The tab last used is remembered in the browser.
 * Fixed: signing in with a mobile number failed for accounts created by older versions, which kept only the number as typed (leading zero included) and no standard (E.164) copy. Those numbers are now converted automatically — in small batches in the admin, and on demand when a phone login finds nothing.

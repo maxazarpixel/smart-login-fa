@@ -102,6 +102,22 @@ class SML_User_Profile {
 				</tr>
 			<?php endif; ?>
 		</table>
+		<?php if ( $can_edit ) : ?>
+			<script>
+			( function () {
+				function toLatin( v ) {
+					return v
+						.replace( /[\u06F0-\u06F9]/g, function ( d ) { return String( d.charCodeAt( 0 ) - 0x06F0 ); } )
+						.replace( /[\u0660-\u0669]/g, function ( d ) { return String( d.charCodeAt( 0 ) - 0x0660 ); } );
+				}
+				[ 'sml_profile_phone', 'sml_profile_national_id' ].forEach( function ( id ) {
+					var el = document.getElementById( id );
+					if ( ! el ) { return; }
+					el.addEventListener( 'input', function () { el.value = toLatin( el.value ); } );
+				} );
+			}() );
+			</script>
+		<?php endif; ?>
 		<?php
 	}
 
