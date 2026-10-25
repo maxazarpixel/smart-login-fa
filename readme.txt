@@ -1,16 +1,18 @@
-=== Smart Login ===
+=== Smart Login FA ===
 Contributors: azarpixel
 Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.33.0
+Stable tag: 1.34.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 Modern, secure login & registration plugin with email verification (code + link), for standard WordPress and WooCommerce sites.
 
 == Description ==
+
+Smart Login FA is the Persian-ready edition of Smart Login: the same plugin plus Iranian mobile numbers and National ID, SMS verification, login with a mobile number, Persian-digit handling, and Persian (fa_IR) and Spanish translations. It installs as its own plugin (folder `smart-login-fa`) and uses the same settings as the original, so it can replace it without reconfiguring: activating Smart Login FA switches the original off automatically.
 
 Smart Login provides a single-shortcode login and registration form, `[smart_login_form]`, with mandatory email verification for new accounts — supporting both a 6-digit code and a clickable link in the same email.
 
@@ -66,6 +68,10 @@ After changing any caching configuration, purge the cache and test in a private/
 
 == Changelog ==
 
+= 1.34.0 =
+* Changed: the plugin is now named "Smart Login FA" and ships in the folder `smart-login-fa`, so it installs next to — and can replace — the original Smart Login plugin. Settings, users and data are shared with the original; nothing has to be reconfigured.
+* Added: because both plugins use the same classes, only one can run. Activating Smart Login FA while the original is active switches the original off by itself; if the two ever end up loaded together, Smart Login FA steps aside with a notice instead of causing a fatal error.
+* Added: the hourly cleanup task is re-created automatically if it is missing (the original removes it when it is deactivated).
 = 1.33.0 =
 * Added: Persian and Arabic-Indic digits typed into any email or phone field of the public site are turned into English digits on the spot — not only Smart Login's own forms but also, for example, the WooCommerce checkout and My Account and contact forms. Only email and phone fields are touched (type email or tel, or an email / tel autocomplete or input mode); ordinary text fields and passwords are left alone, and the cursor stays where it was. It can be switched off under Settings → General → "Convert Persian digits in email and phone fields".
 * Fixed: in the registration form's email box, Persian digits stayed as typed until an @ appeared; they are now converted immediately.

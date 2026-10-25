@@ -1764,3 +1764,7 @@ msgstr "این لینک تأیید نامعتبر است یا قبلاً است�
 #: includes/class-sml-verification.php:264
 msgid "This verification link has expired. Please request a new one."
 msgstr "این لینک تأیید منقضی شده است. لطفاً لینک جدیدی درخواست کنید."
+
+#: smart-login.php:50
+msgid "Smart Login FA could not start because another copy of Smart Login is active. Activate Smart Login FA from the Plugins screen and the other copy is switched off automatically; your settings are shared."
+msgstr "Smart Login FA شروع به کار نکرد، چون نسخهٔ دیگری از Smart Login فعال است. Smart Login FA را از صفحهٔ افزونه‌ها فعال کنید تا نسخهٔ دیگر خودکار غیرفعال شود؛ تنظیمات مشترک هستند."

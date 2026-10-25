@@ -1764,3 +1764,7 @@ msgstr "Este enlace de verificación no es válido o ya se ha usado."
 #: includes/class-sml-verification.php:264
 msgid "This verification link has expired. Please request a new one."
 msgstr "Este enlace de verificación ha caducado. Solicita uno nuevo."
+
+#: smart-login.php:50
+msgid "Smart Login FA could not start because another copy of Smart Login is active. Activate Smart Login FA from the Plugins screen and the other copy is switched off automatically; your settings are shared."
+msgstr "Smart Login FA no pudo iniciarse porque hay otra copia de Smart Login activa. Activa Smart Login FA desde la pantalla de Plugins y la otra copia se desactiva automáticamente; los ajustes se comparten."

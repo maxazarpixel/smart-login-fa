@@ -28,12 +28,12 @@ if ($OutDir -eq "") {
 }
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 
-$out = Join-Path $OutDir "smart-login-$version.zip"
+$out = Join-Path $OutDir "smart-login-fa-$version.zip"
 if (Test-Path $out) { Remove-Item $out -Force }
 
 # git archive already honours .gitattributes export-ignore (CLAUDE.md,
 # .gitignore, .gitattributes, .claude, release, bin are all excluded).
-git archive --format=zip --prefix=smart-login/ -o "$out" $Ref
+git archive --format=zip --prefix=smart-login-fa/ -o "$out" $Ref
 if ($LASTEXITCODE -ne 0) { throw "git archive failed" }
 
 Write-Host "Built $out"

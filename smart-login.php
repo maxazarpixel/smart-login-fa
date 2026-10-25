@@ -1,9 +1,9 @@
 <?php
 /**
- * Plugin Name:       Smart Login
+ * Plugin Name:       Smart Login FA
  * Plugin URI:        https://www.azarpixel.com
  * Description:       Modern, secure login & registration plugin with email verification (code + link), for standard WordPress and WooCommerce sites.
- * Version:           1.33.0
+ * Version:           1.34.0
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Author:            Maziyar Nikbakhsh
@@ -20,74 +20,48 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SML_VERSION', '1.33.0' );
+// Smart Login FA shares its classes, constants and settings with the original
+// Smart Login plugin, so only one of the two can run. If the original is
+// already loaded, step aside — and once this plugin has been activated,
+// switch the original off so the site carries on with this one.
+if ( defined( 'SML_VERSION' ) ) {
+	if ( ! function_exists( 'smlfa_take_over' ) ) {
+		/**
+		 * Runs after WordPress has saved the activation, so the change is not
+		 * overwritten with the list it read before.
+		 *
+		 * @param string $plugin Basename of the plugin that was just activated.
+		 */
+		function smlfa_take_over( $plugin ) {
+			$other = defined( 'SML_PLUGIN_BASENAME' ) ? SML_PLUGIN_BASENAME : '';
+			if ( plugin_basename( __FILE__ ) !== $plugin || '' === $other || $other === $plugin ) {
+				return;
+			}
+			if ( ! function_exists( 'deactivate_plugins' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/plugin.php';
+			}
+			// Silent: keep the other copy's scheduled task and data in place,
+			// this plugin uses the same ones.
+			deactivate_plugins( $other, true );
+		}
+
+		function smlfa_conflict_notice() {
+			echo '<div class="notice notice-warning"><p>'
+				. esc_html__( 'Smart Login FA could not start because another copy of Smart Login is active. Activate Smart Login FA from the Plugins screen and the other copy is switched off automatically; your settings are shared.', 'smart-login' )
+				. '</p></div>';
+		}
+	}
+
+	add_action( 'activated_plugin', 'smlfa_take_over' );
+	add_action( 'admin_notices', 'smlfa_conflict_notice' );
+	return;
+}
+
+define( 'SML_VERSION', '1.34.0' );
 define( 'SML_DB_VERSION', '1.0.0' );
 define( 'SML_PLUGIN_FILE', __FILE__ );
 define( 'SML_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SML_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'SML_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
-require_once SML_PLUGIN_DIR . 'includes/class-sml-loader.php';
-require_once SML_PLUGIN_DIR . 'includes/class-sml-disposable-email.php';
-require_once SML_PLUGIN_DIR . 'includes/class-sml-settings.php';
-require_once SML_PLUGIN_DIR . 'includes/class-sml-countries.php';
-
-/**
- * Creates/upgrades the sml_verifications table via dbDelta.
- * Safe to call on every activation and on version-mismatch auto-upgrade.
- */
-function sml_install_db() {
-	global $wpdb;
-
-	$table_name      = $wpdb->prefix . 'sml_verifications';
-	$charset_collate = $wpdb->get_charset_collate();
-
-	$sql = "CREATE TABLE {$table_name} (
-		id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-		user_id BIGINT UNSIGNED NOT NULL,
-		code_hash VARCHAR(255) NOT NULL,
-		link_token_hash VARCHAR(255) NOT NULL,
-		code_expires_at DATETIME NOT NULL,
-		link_expires_at DATETIME NOT NULL,
-		attempts SMALLINT UNSIGNED NOT NULL DEFAULT 0,
-		last_sent_at DATETIME NULL,
-		created_at DATETIME NOT NULL,
-		PRIMARY KEY  (id),
-		KEY user_id (user_id)
-	) {$charset_collate};";
-
-	require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-	dbDelta( $sql );
-
-	update_option( 'sml_db_version', SML_DB_VERSION );
-}
-
-function sml_activate() {
-	sml_install_db();
-
-	if ( false === get_option( 'sml_login_settings', false ) ) {
-		add_option( 'sml_login_settings', SML_Settings::defaults() );
-	}
-
-	if ( ! wp_next_scheduled( 'sml_cleanup_expired_verifications' ) ) {
-		wp_schedule_event( time(), 'hourly', 'sml_cleanup_expired_verifications' );
-	}
-}
-register_activation_hook( __FILE__, 'sml_activate' );
-
-function sml_deactivate() {
-	wp_clear_scheduled_hook( 'sml_cleanup_expired_verifications' );
-}
-register_deactivation_hook( __FILE__, 'sml_deactivate' );
-
-/**
- * Keeps the DB schema current if the plugin was updated without a reactivation.
- */
-function sml_maybe_upgrade_db() {
-	if ( get_option( 'sml_db_version' ) !== SML_DB_VERSION ) {
-		sml_install_db();
-	}
-}
-add_action( 'plugins_loaded', 'sml_maybe_upgrade_db' );
-
-add_action( 'plugins_loaded', array( 'SML_Loader', 'init' ) );
+require_once SML_PLUGIN_DIR . 'includes/bootstrap.php';
