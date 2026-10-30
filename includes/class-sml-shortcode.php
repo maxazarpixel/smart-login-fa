@@ -407,6 +407,18 @@ JS;
 			$initial_panel = 'login';
 		}
 
+		/**
+		 * Filters a notice shown above the login form on first load (for
+		 * example "you were signed out because …"). The filter does its own
+		 * reading of the request; Smart Login reads nothing for it.
+		 *
+		 * @param string $notice Plain text, escaped on output. Default ''.
+		 */
+		$login_notice = ( 'login' === $initial_panel ) ? (string) apply_filters( 'sml_login_notice', '' ) : '';
+		if ( '' !== $login_notice ) {
+			SML_Loader::bypass_page_cache();
+		}
+
 		// Bot-protection markup shared by every form. reCAPTCHA v3 is
 		// invisible (token fetched in JS), so only Turnstile adds a visible
 		// widget; the hidden token field is always present so the JS has one
@@ -442,7 +454,7 @@ JS;
 				<div class="sml-notice sml-notice--error"><?php echo esc_html( self::google_error_message( $google_error ) ); ?></div>
 			<?php endif; ?>
 
-			<div class="sml-message" data-sml-message hidden></div>
+			<div class="sml-message<?php echo '' !== $login_notice ? ' sml-message--ok' : ''; ?>" data-sml-message<?php echo '' === $login_notice ? ' hidden' : ''; ?>><?php echo esc_html( $login_notice ); ?></div>
 
 			<div class="sml-panel" data-sml-panel="login"<?php echo 'login' === $initial_panel ? '' : ' hidden'; ?>>
 				<div class="sml-heading">

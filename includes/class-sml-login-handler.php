@@ -133,18 +133,44 @@ class SML_Login_Handler {
 		// so a password typed with Persian digits is retried converted. The
 		// as-typed attempt goes first so older passwords that really contain
 		// Persian digits keep working.
+		$passthrough = false;
 		if ( is_wp_error( $user ) ) {
-			$latin_password = SML_Iran::to_latin_digits( $password );
-			if ( $latin_password !== $password ) {
-				$user = wp_signon(
-					array(
-						'user_login'    => $username,
-						'user_password' => $latin_password,
-						'remember'      => true,
-					),
-					is_ssl()
-				);
+			$passthrough = self::is_passthrough_error( $user );
+
+			// A passed-through error is not a wrong password, so there is
+			// nothing to retry.
+			if ( ! $passthrough ) {
+				$latin_password = SML_Iran::to_latin_digits( $password );
+				if ( $latin_password !== $password ) {
+					$user = wp_signon(
+						array(
+							'user_login'    => $username,
+							'user_password' => $latin_password,
+							'remember'      => true,
+						),
+						is_ssl()
+					);
+
+					if ( is_wp_error( $user ) ) {
+						$passthrough = self::is_passthrough_error( $user );
+					}
+				}
 			}
+		}
+
+		if ( is_wp_error( $user ) && $passthrough ) {
+			// Another plugin refused this sign-in for its own reason (an account
+			// lock, a device limit…): show its message, with its link when it
+			// has one, and do not count it as a failed password attempt.
+			$link = self::extract_link( $user->get_error_message() );
+
+			wp_send_json_error(
+				array(
+					'message'    => wp_strip_all_tags( $user->get_error_message() ),
+					'link'       => $link['url'],
+					'link_label' => $link['label'],
+				)
+			);
 		}
 
 		if ( is_wp_error( $user ) ) {
@@ -243,6 +269,48 @@ class SML_Login_Handler {
 				'message'  => __( 'Login successful.', 'smart-login' ),
 				'notice'   => $notice,
 			)
+		);
+	}
+
+	/**
+	 * Whether another plugin wants this sign-in error shown as it is instead
+	 * of the generic "incorrect username or password".
+	 *
+	 * @param WP_Error $error The error wp_signon() returned.
+	 * @return bool
+	 */
+	protected static function is_passthrough_error( WP_Error $error ) {
+		/**
+		 * Filters whether a sign-in error is passed through to the visitor.
+		 *
+		 * @param bool     $passthrough Default false.
+		 * @param WP_Error $error       The error returned by wp_signon().
+		 */
+		return (bool) apply_filters( 'sml_login_passthrough_error', false, $error );
+	}
+
+	/**
+	 * First link in an HTML message: its address (http/https only) and its text.
+	 *
+	 * @param string $html
+	 * @return array{url:string,label:string}
+	 */
+	protected static function extract_link( $html ) {
+		$url   = '';
+		$label = '';
+
+		if ( 1 === preg_match( '/<a\s[^>]*?href\s*=\s*(["\'])(.*?)\1[^>]*>(.*?)<\/a>/is', (string) $html, $m ) ) {
+			$url   = $m[2];
+			$label = trim( wp_strip_all_tags( $m[3] ) );
+		} elseif ( 1 === preg_match( '/href\s*=\s*(["\'])(.*?)\1/i', (string) $html, $m ) ) {
+			$url = $m[2];
+		}
+
+		$url = '' !== $url ? esc_url_raw( html_entity_decode( $url, ENT_QUOTES ), array( 'http', 'https' ) ) : '';
+
+		return array(
+			'url'   => $url,
+			'label' => '' !== $url ? $label : '',
 		);
 	}
 

@@ -772,3 +772,9 @@
 .sml-card [data-sml-login-group][hidden] {
 	display: none !important;
 }
+
+.sml-card .sml-message a {
+	color: inherit;
+	font-weight: 600;
+	text-decoration: underline;
+}

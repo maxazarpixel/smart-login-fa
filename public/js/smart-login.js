@@ -169,6 +169,18 @@
 		el.classList.toggle( 'sml-message--ok', ! isError );
 	}
 
+	// Adds a link after the current message. Built node by node so nothing
+	// from the server is ever parsed as HTML; showMessage() clears it again.
+	function appendMessageLink( root, url, label ) {
+		var el = qs( '[data-sml-message]', root );
+		if ( ! el || ! url || ! /^https?:\/\//i.test( url ) ) { return; }
+		var a = document.createElement( 'a' );
+		a.href = url;
+		a.textContent = label || url;
+		el.appendChild( document.createTextNode( ' ' ) );
+		el.appendChild( a );
+	}
+
 	function showPanel( root, name ) {
 		qsa( '[data-sml-panel]', root ).forEach( function ( panel ) {
 			panel.hidden = panel.getAttribute( 'data-sml-panel' ) !== name;
@@ -512,7 +524,15 @@
 								showMessage( root, res.data.message || SmartLogin.i18n.genericError, false );
 								return;
 							}
-							showMessage( root, res.data.message || SmartLogin.i18n.genericError, true );
+							var failText = res.data.message || SmartLogin.i18n.genericError;
+							var linkLabel = res.data.link_label || '';
+							// The message was stripped of its tags, so its link text is
+							// still at the end of it; drop that and show the real link.
+							if ( res.data.link && linkLabel && failText.slice( -linkLabel.length ) === linkLabel ) {
+								failText = failText.slice( 0, -linkLabel.length ).replace( /\s+$/, '' );
+							}
+							showMessage( root, failText, true );
+							appendMessageLink( root, res.data.link, linkLabel );
 						} )
 						.catch( function () {
 							resetTurnstile( 'login' );

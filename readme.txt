@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.34.1
+Stable tag: 1.35.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -68,6 +68,10 @@ After changing any caching configuration, purge the cache and test in a private/
 
 == Changelog ==
 
+= 1.35.0 =
+* Added: two extension points so other plugins can show their own sign-in messages, with no dependency on any particular plugin.
+* Added: the `sml_login_passthrough_error` filter (`false`, the `WP_Error` from `wp_signon()`). Return `true` and the login form shows that error's text — HTML removed — plus the first link in it as a real link, instead of "Incorrect username/email or password.", and the attempt is not counted towards the failed-login lockout. Passed-through errors are also not retried with a converted password.
+* Added: the `sml_login_notice` filter (`''`). Return text and it is shown above the login form on first load as an info message; the filter reads the request itself (for example a query argument). Pages that show a notice are kept out of page caches.
 = 1.34.1 =
 * Changed: with Iran selected, the leading 0 of a mobile number is removed from the box itself as soon as it is typed (0912… shows as 912…), on the registration form and on the login "Mobile number" tab, so it is clear how many digits are left. Other countries are untouched.
 * Changed: a mobile number of the wrong length now says what is wrong — "An Iranian mobile number has 10 digits once the leading 0 is removed … You entered N" — on registration and on the login mobile tab, instead of a generic error or a vague "incorrect password".
