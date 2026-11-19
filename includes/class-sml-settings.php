@@ -101,6 +101,7 @@ class SML_Settings {
 			// Advanced.
 			'delete_data_on_uninstall' => 0,
 			'enable_debug_log'         => 0,
+			'log_level'                => 'errors',
 		);
 	}
 

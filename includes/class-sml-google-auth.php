@@ -226,13 +226,13 @@ class SML_Google_Auth {
 
 		$token = self::exchange_code( $code, isset( $stashed['verifier'] ) ? (string) $stashed['verifier'] : '' );
 		if ( is_wp_error( $token ) ) {
-			SML_Loader::log( 'Google OAuth: ' . $token->get_error_message() );
+			SML_Log::write( 'error', 'Google', 'OAuth token exchange failed: ' . $token->get_error_message() );
 			self::fail( $landing, 'token' );
 		}
 
 		$profile = self::fetch_profile( $token['access_token'] );
 		if ( is_wp_error( $profile ) ) {
-			SML_Loader::log( 'Google OAuth: ' . $profile->get_error_message() );
+			SML_Log::write( 'error', 'Google', 'OAuth profile request failed: ' . $profile->get_error_message() );
 			self::fail( $landing, 'profile' );
 		}
 

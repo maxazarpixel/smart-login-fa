@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.37.0
+Stable tag: 1.38.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -67,6 +67,12 @@ After changing any caching configuration, purge the cache and test in a private/
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.38.0 =
+* Added: Settings → Logs. Smart Login now records what happened when an SMS or an email was sent (gateway, masked recipient, and the reason a send failed) and other problems such as Google sign-in errors, with a viewer: filter by SMS / Email / Other / problems only, refresh, download and clear.
+* Added: "What to log" — problems only (default), everything including sends that worked, or nothing. Codes, passwords and API keys are never written, and phone numbers and email addresses are shortened.
+* Changed: the old "debug log" toggle is replaced by this setting; sites that had it on keep logging everything.
+* Fixed: the log file could stay empty on file systems that cannot lock files.
 
 = 1.37.0 =
 * Added: Settings → General → "Sign-in method": sign in with email and mobile number (two tabs, as before), with email only, or with a mobile number only. The form shows only what is chosen, and a request for the other method is refused on the server too.

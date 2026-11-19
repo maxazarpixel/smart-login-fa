@@ -286,6 +286,8 @@ class SML_SMS {
 		if ( $throttle ) {
 			$budget = self::check_phone_budget( $e164 );
 			if ( is_wp_error( $budget ) ) {
+				SML_Log::write( 'info', 'SMS', sprintf( 'to=%s skipped: too many codes for this number in the last hour', self::mask( $e164 ) ) );
+
 				return $budget;
 			}
 		}
@@ -311,18 +313,22 @@ class SML_SMS {
 			self::record_phone_send( $e164 );
 		}
 
+		$provider = self::provider() ? self::provider() : 'filter';
 		if ( is_wp_error( $result ) ) {
 			$data = $result->get_error_data();
-			SML_Loader::log(
+			SML_Log::write(
+				'error',
+				'SMS',
 				sprintf(
-					'SMS (%s) to %s: FAILED (%s)',
-					self::provider() ? self::provider() : 'filter',
+					'provider=%s to=%s purpose=%s FAILED: %s',
+					$provider,
 					self::mask( $e164 ),
+					$context,
 					is_array( $data ) && ! empty( $data['detail'] ) ? $data['detail'] : $result->get_error_message()
 				)
 			);
-		} elseif ( SML_Settings::get( 'enable_debug_log' ) ) {
-			SML_Loader::log( sprintf( 'SMS (%s) to %s: sent', self::provider() ? self::provider() : 'filter', self::mask( $e164 ) ) );
+		} else {
+			SML_Log::write( 'info', 'SMS', sprintf( 'provider=%s to=%s purpose=%s sent', $provider, self::mask( $e164 ), $context ) );
 		}
 
 		return $result;

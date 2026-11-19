@@ -262,6 +262,7 @@ class SML_Registration_Handler {
 			// behind: they can simply submit the form again.
 			require_once ABSPATH . 'wp-admin/includes/user.php';
 			wp_delete_user( $user_id );
+			SML_Log::write( 'error', 'Register', sprintf( 'Account #%d removed again: the verification code could not be delivered (%s).', $user_id, $sent->get_error_message() ) );
 			wp_send_json_error( array( 'message' => $sent->get_error_message() ) );
 		}
 

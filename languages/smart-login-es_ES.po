@@ -12,447 +12,473 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Domain: smart-login\n"
 
-#: admin/class-sml-admin-page.php:1046
-msgid "Every account, with data pulled together from Smart Login and (when active) WooCommerce."
-msgstr "Todas las cuentas, con datos reunidos de Smart Login y (si está activo) WooCommerce."
+#: admin/class-sml-admin-page.php:1031 admin/class-sml-admin-page.php:1293 includes/class-sml-users-list.php:30
+msgid "Phone"
+msgstr "Teléfono"
 
-#: admin/class-sml-admin-page.php:1093
-msgid "Name, email, address, phone…"
-msgstr "Nombre, correo, dirección, teléfono…"
+#: admin/class-sml-admin-page.php:1033
+msgid "Status"
+msgstr "Estado"
 
-#: admin/class-sml-admin-page.php:1095
-msgid "All statuses"
-msgstr "Todos los estados"
+#: admin/class-sml-admin-page.php:1037
+msgid "Nothing recorded yet."
+msgstr "Aún no hay nada registrado."
 
-#: admin/class-sml-admin-page.php:1102
-msgid "All customers"
-msgstr "Todos los clientes"
+#: admin/class-sml-admin-page.php:1049 admin/class-sml-admin-page.php:1266 admin/class-sml-admin-page.php:1594 includes/class-sml-user-profile.php:96 includes/class-sml-users-list.php:59
+msgid "Pending"
+msgstr "Pendiente"
 
-#: admin/class-sml-admin-page.php:1103
-msgid "Has orders"
-msgstr "Con pedidos"
+#: admin/class-sml-admin-page.php:1051 admin/class-sml-admin-page.php:1267 admin/class-sml-admin-page.php:1596 includes/class-sml-users-list.php:61 includes/class-sml-users-list.php:106
+msgid "Legacy"
+msgstr "Antigua"
 
-#: admin/class-sml-admin-page.php:1104
-msgid "No orders"
-msgstr "Sin pedidos"
-
-#: admin/class-sml-admin-page.php:1108
-msgid "Registered: any time"
-msgstr "Registro: cualquier fecha"
-
-#: admin/class-sml-admin-page.php:1109
-msgid "Registered: last 24h"
-msgstr "Registro: últimas 24 h"
-
-#: admin/class-sml-admin-page.php:1110
-msgid "Registered: last 7 days"
-msgstr "Registro: últimos 7 días"
-
-#: admin/class-sml-admin-page.php:1111
-msgid "Registered: last 30 days"
-msgstr "Registro: últimos 30 días"
-
-#: admin/class-sml-admin-page.php:1112
-msgid "Registered: last 12 months"
-msgstr "Registro: últimos 12 meses"
-
-#: admin/class-sml-admin-page.php:112
+#: admin/class-sml-admin-page.php:114
 msgid "Sign-ups, verification, and recent activity at a glance."
 msgstr "Registros, verificación y actividad reciente de un vistazo."
 
-#: admin/class-sml-admin-page.php:1125
+#. translators: %s: human-readable time difference, e.g. "3 hours"
+#: admin/class-sml-admin-page.php:1147 admin/class-sml-admin-page.php:1183 admin/class-sml-admin-page.php:1608 admin/class-sml-admin-page.php:1780 includes/class-sml-users-list.php:76
+#, php-format
+msgid "%s ago"
+msgstr "hace %s"
+
+#: admin/class-sml-admin-page.php:1215
+msgid "Every account, with data pulled together from Smart Login and (when active) WooCommerce."
+msgstr "Todas las cuentas, con datos reunidos de Smart Login y (si está activo) WooCommerce."
+
+#: admin/class-sml-admin-page.php:1262
+msgid "Name, email, address, phone…"
+msgstr "Nombre, correo, dirección, teléfono…"
+
+#: admin/class-sml-admin-page.php:1264
+msgid "All statuses"
+msgstr "Todos los estados"
+
+#: admin/class-sml-admin-page.php:1271
+msgid "All customers"
+msgstr "Todos los clientes"
+
+#: admin/class-sml-admin-page.php:1272
+msgid "Has orders"
+msgstr "Con pedidos"
+
+#: admin/class-sml-admin-page.php:1273
+msgid "No orders"
+msgstr "Sin pedidos"
+
+#: admin/class-sml-admin-page.php:1277
+msgid "Registered: any time"
+msgstr "Registro: cualquier fecha"
+
+#: admin/class-sml-admin-page.php:1278
+msgid "Registered: last 24h"
+msgstr "Registro: últimas 24 h"
+
+#: admin/class-sml-admin-page.php:1279
+msgid "Registered: last 7 days"
+msgstr "Registro: últimos 7 días"
+
+#: admin/class-sml-admin-page.php:1280
+msgid "Registered: last 30 days"
+msgstr "Registro: últimos 30 días"
+
+#: admin/class-sml-admin-page.php:1281
+msgid "Registered: last 12 months"
+msgstr "Registro: últimos 12 meses"
+
+#: admin/class-sml-admin-page.php:1294
 msgid "Address"
 msgstr "Dirección"
 
-#: admin/class-sml-admin-page.php:1131
+#: admin/class-sml-admin-page.php:1300
 msgid "Resets"
 msgstr "Restablecimientos"
 
-#: admin/class-sml-admin-page.php:1134
+#: admin/class-sml-admin-page.php:1303
 msgid "Orders"
 msgstr "Pedidos"
 
-#: admin/class-sml-admin-page.php:1135
+#: admin/class-sml-admin-page.php:1304
 msgid "Spent"
 msgstr "Gastado"
 
-#: admin/class-sml-admin-page.php:1137
+#: admin/class-sml-admin-page.php:1306
 msgid "Last order"
 msgstr "Último pedido"
 
+#: admin/class-sml-admin-page.php:139
+msgid "Core behaviour of the login and registration form."
+msgstr "Comportamiento principal del formulario de inicio de sesión y registro."
+
+#: admin/class-sml-admin-page.php:142
+msgid "Sign-in method"
+msgstr "Método de inicio de sesión"
+
+#: admin/class-sml-admin-page.php:143
+msgid "Choose what visitors sign in with. The detail that is not used to sign in becomes optional on the registration form — unless verification needs it: email verification needs an email address and mobile verification needs a mobile number. When only one country is allowed its code is filled in automatically, and a number typed as +98…, 0098…, 0912… or 912… (even with Persian digits) is read as the same number."
+msgstr "Elige con qué inician sesión los visitantes. El dato que no se usa para iniciar sesión pasa a ser opcional en el registro, salvo que la verificación lo necesite: la verificación por correo necesita un correo electrónico y la verificación por móvil necesita un número de móvil. Si solo se permite un país, su prefijo se rellena automáticamente, y un número escrito como +98…, 0098…, 0912… o 912… (incluso con dígitos persas) se interpreta como el mismo número."
+
 #. translators: %s: number of users
-#: admin/class-sml-admin-page.php:1281
+#: admin/class-sml-admin-page.php:1450
 #, php-format
 msgid "%s user"
 msgid_plural "%s users"
 msgstr[0] "%s usuario"
 msgstr[1] "%s usuarios"
 
-#: admin/class-sml-admin-page.php:137
-msgid "Core behaviour of the login and registration form."
-msgstr "Comportamiento principal del formulario de inicio de sesión y registro."
-
-#: admin/class-sml-admin-page.php:140
-msgid "Sign-in method"
-msgstr "Método de inicio de sesión"
-
-#: admin/class-sml-admin-page.php:1408
-msgid "No matching users."
-msgstr "No hay usuarios que coincidan."
-
-#: admin/class-sml-admin-page.php:141
-msgid "Choose what visitors sign in with. The detail that is not used to sign in becomes optional on the registration form — unless verification needs it: email verification needs an email address and mobile verification needs a mobile number. When only one country is allowed its code is filled in automatically, and a number typed as +98…, 0098…, 0912… or 912… (even with Persian digits) is read as the same number."
-msgstr "Elige con qué inician sesión los visitantes. El dato que no se usa para iniciar sesión pasa a ser opcional en el registro, salvo que la verificación lo necesite: la verificación por correo necesita un correo electrónico y la verificación por móvil necesita un número de móvil. Si solo se permite un país, su prefijo se rellena automáticamente, y un número escrito como +98…, 0098…, 0912… o 912… (incluso con dígitos persas) se interpreta como el mismo número."
-
-#: admin/class-sml-admin-page.php:146
+#: admin/class-sml-admin-page.php:148
 msgid "Sign in with"
 msgstr "Iniciar sesión con"
 
-#: admin/class-sml-admin-page.php:1479
-msgid "Prev"
-msgstr "Anterior"
-
-#: admin/class-sml-admin-page.php:148
+#: admin/class-sml-admin-page.php:150
 msgid "Email and mobile number (two tabs)"
 msgstr "Correo y número de móvil (dos pestañas)"
 
-#: admin/class-sml-admin-page.php:149
+#: admin/class-sml-admin-page.php:151
 msgid "Email only"
 msgstr "Solo correo electrónico"
 
-#: admin/class-sml-admin-page.php:1499
-msgid "Next"
-msgstr "Siguiente"
-
-#: admin/class-sml-admin-page.php:150
+#: admin/class-sml-admin-page.php:152
 msgid "Mobile number only"
 msgstr "Solo número de móvil"
 
-#: admin/class-sml-admin-page.php:152
+#: admin/class-sml-admin-page.php:154
 msgid "This only changes the Smart Login form; wp-login.php still accepts usernames and emails. With \"Mobile number only\", accounts that have no mobile number — for example administrators created in the dashboard — sign in through wp-login.php instead."
 msgstr "Esto solo cambia el formulario de Smart Login; wp-login.php sigue aceptando nombres de usuario y correos. Con «Solo número de móvil», las cuentas sin número de móvil (por ejemplo, administradores creados en el escritorio) inician sesión por wp-login.php."
 
-#: admin/class-sml-admin-page.php:157
+#: admin/class-sml-admin-page.php:1577
+msgid "No matching users."
+msgstr "No hay usuarios que coincidan."
+
+#: admin/class-sml-admin-page.php:159
 msgid "Behaviour"
 msgstr "Comportamiento"
 
-#: admin/class-sml-admin-page.php:162
+#: admin/class-sml-admin-page.php:164
 msgid "Enable registration"
 msgstr "Activar el registro"
 
-#: admin/class-sml-admin-page.php:163
+#: admin/class-sml-admin-page.php:1648
+msgid "Prev"
+msgstr "Anterior"
+
+#: admin/class-sml-admin-page.php:165
 msgid "When off, the shortcode renders a login-only form and hides the Register tab."
 msgstr "Si está desactivado, el shortcode muestra solo el formulario de inicio de sesión y oculta la pestaña Registrarse."
 
-#: admin/class-sml-admin-page.php:168
+#: admin/class-sml-admin-page.php:1668
+msgid "Next"
+msgstr "Siguiente"
+
+#: admin/class-sml-admin-page.php:170
 msgid "Enable custom login form"
 msgstr "Activar el formulario de inicio de sesión personalizado"
 
-#: admin/class-sml-admin-page.php:169
+#: admin/class-sml-admin-page.php:171
 msgid "Lets an admin disable the entire front-end form (shortcode renders nothing) without deactivating the plugin."
 msgstr "Permite a un administrador desactivar todo el formulario del sitio (el shortcode no muestra nada) sin desactivar el plugin."
 
-#: admin/class-sml-admin-page.php:1720 admin/class-sml-admin-page.php:1801
-msgid "Preview"
-msgstr "Vista previa"
-
-#: admin/class-sml-admin-page.php:1722
-msgid "Preview email"
-msgstr "Vista previa del correo"
-
-#: admin/class-sml-admin-page.php:1723
-msgid "Shows this email exactly as a customer receives it — header, card, button and footer — using sample data. Unsaved edits above are included."
-msgstr "Muestra este correo exactamente como lo recibe un cliente (cabecera, tarjeta, botón y pie) con datos de ejemplo. Se incluyen los cambios sin guardar de arriba."
-
-#: admin/class-sml-admin-page.php:1737 admin/class-sml-admin-page.php:1740
-msgid "Email preview"
-msgstr "Vista previa del correo"
-
-#: admin/class-sml-admin-page.php:174
+#: admin/class-sml-admin-page.php:176
 msgid "Default role for new users"
 msgstr "Rol predeterminado para usuarios nuevos"
 
-#: admin/class-sml-admin-page.php:180
+#: admin/class-sml-admin-page.php:182
 msgid "Redirect after login"
 msgstr "Redirigir tras iniciar sesión"
 
-#: admin/class-sml-admin-page.php:1803
-msgid "Shown with a sample code. Real codes are random."
-msgstr "Se muestra con un código de ejemplo. Los códigos reales son aleatorios."
-
-#: admin/class-sml-admin-page.php:181
+#: admin/class-sml-admin-page.php:183
 msgid "Where users land after logging in, verifying their email, or resetting their password — unless a specific destination was already requested (e.g. Cart/Checkout). Leave unset to use the site home page. Tip: point this at your My Account page."
 msgstr "Dónde llegan los usuarios tras iniciar sesión, verificar su correo o restablecer su contraseña, salvo que ya se haya pedido un destino concreto (p. ej., Carrito/Finalizar compra). Déjalo sin definir para usar la página de inicio. Consejo: apúntalo a tu página Mi cuenta."
 
-#: admin/class-sml-admin-page.php:1834
-msgid "Test SMS"
-msgstr "SMS de prueba"
-
-#: admin/class-sml-admin-page.php:1836
-msgid "Send test SMS"
-msgstr "Enviar SMS de prueba"
-
-#: admin/class-sml-admin-page.php:1838
-msgid "Sends a sample code to this number using the saved gateway settings (save your changes first). Use an Iranian number such as 09123456789, or +<country code><number>."
-msgstr "Envía un código de ejemplo a este número con los ajustes guardados de la pasarela (guarda los cambios antes). Usa un número iraní como 09123456789, o +<prefijo del país><número>."
-
-#: admin/class-sml-admin-page.php:1847 admin/class-sml-admin-page.php:1944 includes/class-sml-shortcode.php:313
-msgid "Sending…"
-msgstr "Enviando…"
-
-#: admin/class-sml-admin-page.php:1858 admin/class-sml-admin-page.php:1953 admin/class-sml-admin-page.php:2085
-msgid "Request failed."
-msgstr "La solicitud falló."
-
-#: admin/class-sml-admin-page.php:186
+#: admin/class-sml-admin-page.php:188
 msgid "Button appearance"
 msgstr "Aspecto del botón"
 
-#: admin/class-sml-admin-page.php:187
+#: admin/class-sml-admin-page.php:1889 admin/class-sml-admin-page.php:1970
+msgid "Preview"
+msgstr "Vista previa"
+
+#: admin/class-sml-admin-page.php:189
 msgid "Colors for the primary button (Log In, Create Account, Verify). Secondary buttons and links are unaffected."
 msgstr "Colores del botón principal (Iniciar sesión, Crear cuenta, Verificar). Los botones secundarios y los enlaces no se ven afectados."
 
-#: admin/class-sml-admin-page.php:189
+#: admin/class-sml-admin-page.php:1891
+msgid "Preview email"
+msgstr "Vista previa del correo"
+
+#: admin/class-sml-admin-page.php:1892
+msgid "Shows this email exactly as a customer receives it — header, card, button and footer — using sample data. Unsaved edits above are included."
+msgstr "Muestra este correo exactamente como lo recibe un cliente (cabecera, tarjeta, botón y pie) con datos de ejemplo. Se incluyen los cambios sin guardar de arriba."
+
+#: admin/class-sml-admin-page.php:1906 admin/class-sml-admin-page.php:1909
+msgid "Email preview"
+msgstr "Vista previa del correo"
+
+#: admin/class-sml-admin-page.php:191
 msgid "Button background color"
 msgstr "Color de fondo del botón"
 
-#: admin/class-sml-admin-page.php:1890 includes/class-sml-password-reset-handler.php:219 includes/class-sml-phone.php:312 includes/class-sml-user-profile.php:141
-msgid "Please enter a valid mobile number."
-msgstr "Introduce un número de móvil válido."
-
-#: admin/class-sml-admin-page.php:1899
-msgid "Fill in the gateway settings and save them first."
-msgstr "Rellena los ajustes de la pasarela y guárdalos primero."
-
-#: admin/class-sml-admin-page.php:190
+#: admin/class-sml-admin-page.php:192
 msgid "Button text color"
 msgstr "Color del texto del botón"
 
+#: admin/class-sml-admin-page.php:196
+msgid "Shortcode & form page"
+msgstr "Shortcode y página del formulario"
+
+#: admin/class-sml-admin-page.php:1972
+msgid "Shown with a sample code. Real codes are random."
+msgstr "Se muestra con un código de ejemplo. Los códigos reales son aleatorios."
+
+#: admin/class-sml-admin-page.php:200
+msgid "Shortcode"
+msgstr "Shortcode"
+
+#: admin/class-sml-admin-page.php:2003
+msgid "Test SMS"
+msgstr "SMS de prueba"
+
+#: admin/class-sml-admin-page.php:2005
+msgid "Send test SMS"
+msgstr "Enviar SMS de prueba"
+
+#: admin/class-sml-admin-page.php:2007
+msgid "Sends a sample code to this number using the saved gateway settings (save your changes first). Use an Iranian number such as 09123456789, or +<country code><number>."
+msgstr "Envía un código de ejemplo a este número con los ajustes guardados de la pasarela (guarda los cambios antes). Usa un número iraní como 09123456789, o +<prefijo del país><número>."
+
+#: admin/class-sml-admin-page.php:2016 admin/class-sml-admin-page.php:2113 includes/class-sml-shortcode.php:313
+msgid "Sending…"
+msgstr "Enviando…"
+
+#: admin/class-sml-admin-page.php:202 admin/class-sml-admin-page.php:344
+msgid "Copied!"
+msgstr "¡Copiado!"
+
+#: admin/class-sml-admin-page.php:202 admin/class-sml-admin-page.php:344
+msgid "Copy"
+msgstr "Copiar"
+
+#: admin/class-sml-admin-page.php:2027 admin/class-sml-admin-page.php:2122 admin/class-sml-admin-page.php:2254
+msgid "Request failed."
+msgstr "La solicitud falló."
+
+#: admin/class-sml-admin-page.php:2059 includes/class-sml-password-reset-handler.php:219 includes/class-sml-phone.php:312 includes/class-sml-user-profile.php:141
+msgid "Please enter a valid mobile number."
+msgstr "Introduce un número de móvil válido."
+
+#: admin/class-sml-admin-page.php:2068
+msgid "Fill in the gateway settings and save them first."
+msgstr "Rellena los ajustes de la pasarela y guárdalos primero."
+
+#: admin/class-sml-admin-page.php:207
+msgid "Login page"
+msgstr "Página de inicio de sesión"
+
+#: admin/class-sml-admin-page.php:208
+msgid "The page that contains the [smart_login_form] shortcode. Password-reset and email-verification links point here so they open the form. Also used as the redirect target for login-gated Cart/Checkout. If left unset, the plugin tries to find the page automatically."
+msgstr "La página que contiene el shortcode [smart_login_form]. Los enlaces de restablecimiento de contraseña y de verificación de correo apuntan aquí para abrir el formulario. También se usa como destino de redirección del Carrito/Finalizar compra con acceso restringido. Si no se define, el plugin intenta encontrar la página automáticamente."
+
 #. translators: %s: error detail from the SMS gateway
-#: admin/class-sml-admin-page.php:1917
+#: admin/class-sml-admin-page.php:2086
 #, php-format
 msgid "The gateway refused the message: %s"
 msgstr "La pasarela rechazó el mensaje: %s"
 
 #. translators: %s: masked phone number
-#: admin/class-sml-admin-page.php:1926
+#: admin/class-sml-admin-page.php:2095
 #, php-format
 msgid "Sample code sent to %s."
 msgstr "Código de ejemplo enviado a %s."
 
-#: admin/class-sml-admin-page.php:1933
+#: admin/class-sml-admin-page.php:2102
 msgid "Test delivery"
 msgstr "Prueba de entrega"
 
-#: admin/class-sml-admin-page.php:1934
+#: admin/class-sml-admin-page.php:2103
 msgid "Send test email"
 msgstr "Enviar correo de prueba"
 
-#: admin/class-sml-admin-page.php:1936
+#: admin/class-sml-admin-page.php:2105
 msgid "Sends a plain test email to your account using the exact same code path as every other Smart Login email. If this fails too, the problem is your SMTP setup (e.g. WP Mail SMTP), not this plugin."
 msgstr "Envía un correo de prueba sencillo a tu cuenta con exactamente el mismo proceso que el resto de correos de Smart Login. Si esto también falla, el problema es tu configuración SMTP (p. ej., WP Mail SMTP), no este plugin."
 
-#: admin/class-sml-admin-page.php:194
-msgid "Shortcode & form page"
-msgstr "Shortcode y página del formulario"
+#: admin/class-sml-admin-page.php:213
+msgid "Allowed countries for registration"
+msgstr "Países permitidos para el registro"
 
-#: admin/class-sml-admin-page.php:198
-msgid "Shortcode"
-msgstr "Shortcode"
+#: admin/class-sml-admin-page.php:214
+msgid "Only checked countries appear in the mobile-number country selector on the registration form; registering with any other country is rejected server-side too. Enabled by default: United States, Canada, and Western Europe."
+msgstr "Solo los países marcados aparecen en el selector de país del número móvil del formulario de registro; registrarse con cualquier otro país también se rechaza en el servidor. Activados por defecto: Estados Unidos, Canadá y Europa occidental."
 
-#: admin/class-sml-admin-page.php:1982
+#: admin/class-sml-admin-page.php:2151
 msgid "Smart Login test email"
 msgstr "Correo de prueba de Smart Login"
 
-#: admin/class-sml-admin-page.php:1983
+#: admin/class-sml-admin-page.php:2152
 msgid "If you are reading this, Smart Login was able to send email through this site's configured mailer."
 msgstr "Si estás leyendo esto, Smart Login pudo enviar correo a través del sistema de envío configurado en este sitio."
 
-#: admin/class-sml-admin-page.php:1997
+#: admin/class-sml-admin-page.php:216
+msgid "Allowed countries"
+msgstr "Países permitidos"
+
+#: admin/class-sml-admin-page.php:2166
 msgid "wp_mail() returned false with no further detail from your mailer."
 msgstr "wp_mail() devolvió false sin más detalles de tu sistema de correo."
 
-#: admin/class-sml-admin-page.php:200 admin/class-sml-admin-page.php:342
-msgid "Copied!"
-msgstr "¡Copiado!"
-
-#: admin/class-sml-admin-page.php:200 admin/class-sml-admin-page.php:342
-msgid "Copy"
-msgstr "Copiar"
-
 #. translators: %s: email address
-#: admin/class-sml-admin-page.php:2006
+#: admin/class-sml-admin-page.php:2175
 #, php-format
 msgid "Sent to %s — check your inbox (and spam folder)."
 msgstr "Enviado a %s: revisa tu bandeja de entrada (y la carpeta de spam)."
 
-#: admin/class-sml-admin-page.php:2021
+#: admin/class-sml-admin-page.php:2190
 msgid "Export"
 msgstr "Exportar"
 
-#: admin/class-sml-admin-page.php:2022
+#: admin/class-sml-admin-page.php:2191
 msgid "Download settings JSON"
 msgstr "Descargar ajustes en JSON"
 
-#: admin/class-sml-admin-page.php:2024
+#: admin/class-sml-admin-page.php:2193
 msgid "Downloads every setting as a JSON file. Bot-protection secret keys are left out, so the file is safe to send for review."
 msgstr "Descarga todos los ajustes como archivo JSON. Las claves secretas de protección contra bots se omiten, así que el archivo es seguro para enviar a revisión."
 
-#: admin/class-sml-admin-page.php:2027 admin/class-sml-admin-page.php:2031
+#: admin/class-sml-admin-page.php:2196 admin/class-sml-admin-page.php:2200
 msgid "Import"
 msgstr "Importar"
 
-#: admin/class-sml-admin-page.php:2028
+#: admin/class-sml-admin-page.php:2197
 msgid "Paste an exported JSON below (or choose a file), then Import. Unknown keys are ignored; secret keys already stored are kept."
 msgstr "Pega abajo un JSON exportado (o elige un archivo) y pulsa Importar. Las claves desconocidas se ignoran; las claves secretas ya guardadas se conservan."
 
-#: admin/class-sml-admin-page.php:205
-msgid "Login page"
-msgstr "Página de inicio de sesión"
-
-#: admin/class-sml-admin-page.php:2053
-msgid "Downloaded."
-msgstr "Descargado."
-
-#: admin/class-sml-admin-page.php:2055
-msgid "Export failed."
-msgstr "La exportación falló."
-
-#: admin/class-sml-admin-page.php:206
-msgid "The page that contains the [smart_login_form] shortcode. Password-reset and email-verification links point here so they open the form. Also used as the redirect target for login-gated Cart/Checkout. If left unset, the plugin tries to find the page automatically."
-msgstr "La página que contiene el shortcode [smart_login_form]. Los enlaces de restablecimiento de contraseña y de verificación de correo apuntan aquí para abrir el formulario. También se usa como destino de redirección del Carrito/Finalizar compra con acceso restringido. Si no se define, el plugin intenta encontrar la página automáticamente."
-
-#: admin/class-sml-admin-page.php:2074
-msgid "Importing…"
-msgstr "Importando…"
-
-#: admin/class-sml-admin-page.php:2081
-msgid "Import failed."
-msgstr "La importación falló."
-
-#: admin/class-sml-admin-page.php:211
-msgid "Allowed countries for registration"
-msgstr "Países permitidos para el registro"
-
-#: admin/class-sml-admin-page.php:212
-msgid "Only checked countries appear in the mobile-number country selector on the registration form; registering with any other country is rejected server-side too. Enabled by default: United States, Canada, and Western Europe."
-msgstr "Solo los países marcados aparecen en el selector de país del número móvil del formulario de registro; registrarse con cualquier otro país también se rechaza en el servidor. Activados por defecto: Estados Unidos, Canadá y Europa occidental."
-
-#: admin/class-sml-admin-page.php:214
-msgid "Allowed countries"
-msgstr "Países permitidos"
-
-#: admin/class-sml-admin-page.php:2141
-msgid "That is not valid JSON."
-msgstr "Eso no es un JSON válido."
-
-#: admin/class-sml-admin-page.php:2149
-msgid "This file is an export from a different plugin."
-msgstr "Este archivo es una exportación de otro plugin."
-
-#: admin/class-sml-admin-page.php:2171
-msgid "No recognised settings found in that file."
-msgstr "No se encontraron ajustes reconocidos en ese archivo."
-
-#: admin/class-sml-admin-page.php:218
+#: admin/class-sml-admin-page.php:220
 msgid "Persian digits"
 msgstr "Dígitos persas"
 
+#: admin/class-sml-admin-page.php:2222
+msgid "Downloaded."
+msgstr "Descargado."
+
+#: admin/class-sml-admin-page.php:2224
+msgid "Export failed."
+msgstr "La exportación falló."
+
+#: admin/class-sml-admin-page.php:2243
+msgid "Importing…"
+msgstr "Importando…"
+
+#: admin/class-sml-admin-page.php:225
+msgid "Convert Persian digits in email and phone fields"
+msgstr "Convertir los dígitos persas en los campos de correo y teléfono"
+
+#: admin/class-sml-admin-page.php:2250
+msgid "Import failed."
+msgstr "La importación falló."
+
+#: admin/class-sml-admin-page.php:226
+msgid "On every email and phone field of the public site — not only Smart Login's own forms, but also the WooCommerce checkout and My Account, contact forms and so on — Persian and Arabic digits are turned into English digits as they are typed. Smart Login's own forms and the user edit screen always do this on the server too."
+msgstr "En cada campo de correo y teléfono del sitio público (no solo en los formularios de Smart Login, también en el pago y Mi cuenta de WooCommerce, formularios de contacto, etc.) los dígitos persas y árabes se convierten en dígitos ingleses mientras se escribe. Los formularios de Smart Login y la pantalla de edición de usuario lo hacen siempre también en el servidor."
+
+#: admin/class-sml-admin-page.php:231
+msgid "Iranian registration"
+msgstr "Registro iraní"
+
+#: admin/class-sml-admin-page.php:2310
+msgid "That is not valid JSON."
+msgstr "Eso no es un JSON válido."
+
+#: admin/class-sml-admin-page.php:2318
+msgid "This file is an export from a different plugin."
+msgstr "Este archivo es una exportación de otro plugin."
+
+#: admin/class-sml-admin-page.php:232
+msgid "Adds Iran to the country list, validates Iranian mobile numbers (10 digits starting with 9, a leading 0 is accepted) and can ask for the national ID when Iran is selected. Persian and Arabic digits are accepted in both fields."
+msgstr "Añade Irán a la lista de países, valida los números móviles iraníes (10 dígitos que empiezan por 9; se acepta un 0 inicial) y puede pedir el documento nacional de identidad cuando se selecciona Irán. En ambos campos se aceptan dígitos persas y árabes."
+
+#: admin/class-sml-admin-page.php:2340
+msgid "No recognised settings found in that file."
+msgstr "No se encontraron ajustes reconocidos en ese archivo."
+
 #. translators: %d: number of settings applied
-#: admin/class-sml-admin-page.php:2181
+#: admin/class-sml-admin-page.php:2350
 #, php-format
 msgid "Imported %d settings. Reloading…"
 msgstr "Se importaron %d ajustes. Recargando…"
 
-#: admin/class-sml-admin-page.php:223
-msgid "Convert Persian digits in email and phone fields"
-msgstr "Convertir los dígitos persas en los campos de correo y teléfono"
-
-#: admin/class-sml-admin-page.php:224
-msgid "On every email and phone field of the public site — not only Smart Login's own forms, but also the WooCommerce checkout and My Account, contact forms and so on — Persian and Arabic digits are turned into English digits as they are typed. Smart Login's own forms and the user edit screen always do this on the server too."
-msgstr "En cada campo de correo y teléfono del sitio público (no solo en los formularios de Smart Login, también en el pago y Mi cuenta de WooCommerce, formularios de contacto, etc.) los dígitos persas y árabes se convierten en dígitos ingleses mientras se escribe. Los formularios de Smart Login y la pantalla de edición de usuario lo hacen siempre también en el servidor."
-
-#: admin/class-sml-admin-page.php:2267
-msgid "— Select a page —"
-msgstr "— Selecciona una página —"
-
-#: admin/class-sml-admin-page.php:229
-msgid "Iranian registration"
-msgstr "Registro iraní"
-
-#: admin/class-sml-admin-page.php:230
-msgid "Adds Iran to the country list, validates Iranian mobile numbers (10 digits starting with 9, a leading 0 is accepted) and can ask for the national ID when Iran is selected. Persian and Arabic digits are accepted in both fields."
-msgstr "Añade Irán a la lista de países, valida los números móviles iraníes (10 dígitos que empiezan por 9; se acepta un 0 inicial) y puede pedir el documento nacional de identidad cuando se selecciona Irán. En ambos campos se aceptan dígitos persas y árabes."
-
-#: admin/class-sml-admin-page.php:2342
-msgid "Search countries…"
-msgstr "Buscar países…"
-
-#: admin/class-sml-admin-page.php:2343
-msgid "Only checked countries appear in the mobile-number country selector."
-msgstr "Solo los países marcados aparecen en el selector de país del número móvil."
-
-#: admin/class-sml-admin-page.php:235
+#: admin/class-sml-admin-page.php:237
 msgid "Iranian mobile numbers & national ID"
 msgstr "Móviles iraníes y documento de identidad"
 
-#: admin/class-sml-admin-page.php:2358
-msgid "Search roles…"
-msgstr "Buscar roles…"
-
-#: admin/class-sml-admin-page.php:2359
-msgid "None selected = every role allowed."
-msgstr "Si no se selecciona ninguno, se permiten todos los roles."
-
-#: admin/class-sml-admin-page.php:2374
-msgid "Saved — leave unchanged, or type a new value to replace it"
-msgstr "Guardado: déjalo sin cambios o escribe un valor nuevo para reemplazarlo"
-
-#: admin/class-sml-admin-page.php:241
+#: admin/class-sml-admin-page.php:243
 msgid "Require the national ID"
 msgstr "Exigir el documento nacional de identidad"
 
-#: admin/class-sml-admin-page.php:242
+#: admin/class-sml-admin-page.php:244
 msgid "When off, the field is still shown but may be left empty. Anything entered is always checked and must not already belong to another account."
 msgstr "Si está desactivado, el campo se sigue mostrando pero puede dejarse vacío. Lo que se introduzca siempre se comprueba y no debe pertenecer ya a otra cuenta."
 
-#: admin/class-sml-admin-page.php:2436
-msgid "No matches."
-msgstr "Sin coincidencias."
+#: admin/class-sml-admin-page.php:2456
+msgid "— Select a page —"
+msgstr "— Selecciona una página —"
 
-#: admin/class-sml-admin-page.php:248
+#: admin/class-sml-admin-page.php:250
 msgid "Disposable email protection"
 msgstr "Protección contra correos desechables"
 
-#: admin/class-sml-admin-page.php:249
+#: admin/class-sml-admin-page.php:251
 msgid "Rejects registration when the email address's domain matches the list below — reduces fake/fraudulent sign-ups from throwaway inboxes."
 msgstr "Rechaza el registro cuando el dominio del correo coincide con la lista de abajo; reduce los registros falsos o fraudulentos con bandejas desechables."
 
-#: admin/class-sml-admin-page.php:254
+#: admin/class-sml-admin-page.php:2531
+msgid "Search countries…"
+msgstr "Buscar países…"
+
+#: admin/class-sml-admin-page.php:2532
+msgid "Only checked countries appear in the mobile-number country selector."
+msgstr "Solo los países marcados aparecen en el selector de país del número móvil."
+
+#: admin/class-sml-admin-page.php:2547
+msgid "Search roles…"
+msgstr "Buscar roles…"
+
+#: admin/class-sml-admin-page.php:2548
+msgid "None selected = every role allowed."
+msgstr "Si no se selecciona ninguno, se permiten todos los roles."
+
+#: admin/class-sml-admin-page.php:256
 msgid "Block disposable/temporary email addresses"
 msgstr "Bloquear correos desechables o temporales"
 
-#: admin/class-sml-admin-page.php:259
+#: admin/class-sml-admin-page.php:2563
+msgid "Saved — leave unchanged, or type a new value to replace it"
+msgstr "Guardado: déjalo sin cambios o escribe un valor nuevo para reemplazarlo"
+
+#: admin/class-sml-admin-page.php:261
 msgid "Blocked domains"
 msgstr "Dominios bloqueados"
 
-#: admin/class-sml-admin-page.php:260
+#: admin/class-sml-admin-page.php:262
 msgid "One domain per line, e.g. mailinator.com — no @ sign."
 msgstr "Un dominio por línea, p. ej. mailinator.com, sin el signo @."
 
-#: admin/class-sml-admin-page.php:278
+#: admin/class-sml-admin-page.php:2625
+msgid "No matches."
+msgstr "Sin coincidencias."
+
+#: admin/class-sml-admin-page.php:280
 msgid "Let visitors sign in or register with their Google account. Independent of the email/password flow — off by default."
 msgstr "Permite que los visitantes inicien sesión o se registren con su cuenta de Google. Es independiente del flujo de correo/contraseña y está desactivado por defecto."
 
-#: admin/class-sml-admin-page.php:281
+#: admin/class-sml-admin-page.php:283
 msgid "Google"
 msgstr "Google"
 
-#: admin/class-sml-admin-page.php:286
+#: admin/class-sml-admin-page.php:288
 msgid "Enable \"Continue with Google\""
 msgstr "Activar «Continuar con Google»"
 
-#: admin/class-sml-admin-page.php:287
+#: admin/class-sml-admin-page.php:289
 msgid "Adds a Google button above the Log In and Create Account forms. Requires a Client ID and Secret below."
 msgstr "Añade un botón de Google sobre los formularios de Iniciar sesión y Crear cuenta. Requiere un ID de cliente y un secreto (abajo)."
 
@@ -460,79 +486,79 @@ msgstr "Añade un botón de Google sobre los formularios de Iniciar sesión y Cr
 msgid "Overview"
 msgstr "Resumen"
 
-#: admin/class-sml-admin-page.php:292 admin/class-sml-admin-page.php:340
+#: admin/class-sml-admin-page.php:294 admin/class-sml-admin-page.php:342
 msgid "Redirect URI"
 msgstr "URI de redirección"
 
-#: admin/class-sml-admin-page.php:293
+#: admin/class-sml-admin-page.php:295
 msgid "Add this exact URL to the OAuth client's \"Authorized redirect URIs\" in the Google Cloud Console — Google will refuse to sign in otherwise."
 msgstr "Añade esta URL exacta a los «URI de redireccionamiento autorizados» del cliente OAuth en Google Cloud Console; de lo contrario, Google rechazará el inicio de sesión."
 
-#: admin/class-sml-admin-page.php:299
+#: admin/class-sml-admin-page.php:301
 msgid "Credentials"
 msgstr "Credenciales"
 
-#: admin/class-sml-admin-page.php:300
+#: admin/class-sml-admin-page.php:302
 msgid "From an OAuth 2.0 \"Web application\" client in Google Cloud Console → APIs & Services → Credentials. Upload the downloaded client JSON to fill both fields, or paste them in by hand."
 msgstr "De un cliente OAuth 2.0 de tipo «Aplicación web» en Google Cloud Console → APIs y servicios → Credenciales. Sube el JSON del cliente descargado para rellenar ambos campos, o pégalos a mano."
 
-#: admin/class-sml-admin-page.php:303
+#: admin/class-sml-admin-page.php:305
 msgid "Client ID"
 msgstr "ID de cliente"
 
-#: admin/class-sml-admin-page.php:304
+#: admin/class-sml-admin-page.php:306
 msgid "Client secret"
 msgstr "Secreto de cliente"
 
-#: admin/class-sml-admin-page.php:304 admin/class-sml-admin-page.php:550
+#: admin/class-sml-admin-page.php:306 admin/class-sml-admin-page.php:730
 msgid "Stored with autoload disabled and never rendered back in plaintext. Leave blank to keep the current value."
 msgstr "Se guarda con la carga automática desactivada y nunca se muestra en texto plano. Déjalo en blanco para conservar el valor actual."
 
-#: admin/class-sml-admin-page.php:308
-msgid "Access &amp; account linking"
-msgstr "Acceso y vinculación de cuentas"
-
-#: admin/class-sml-admin-page.php:309
-msgid "Google sign-in does not go through the normal WordPress login, so plugins that add two-factor authentication there do not run on it. These settings decide how far that shortcut is allowed to reach."
-msgstr "El inicio de sesión con Google no pasa por el inicio de sesión normal de WordPress, por lo que los plugins que añaden autenticación de dos factores ahí no se ejecutan. Estos ajustes deciden hasta dónde puede llegar ese atajo."
-
-#: admin/class-sml-admin-page.php:31 admin/class-sml-admin-page.php:111
+#: admin/class-sml-admin-page.php:31 admin/class-sml-admin-page.php:113
 msgid "Dashboard"
 msgstr "Panel"
 
-#: admin/class-sml-admin-page.php:314
+#: admin/class-sml-admin-page.php:310
+msgid "Access &amp; account linking"
+msgstr "Acceso y vinculación de cuentas"
+
+#: admin/class-sml-admin-page.php:311
+msgid "Google sign-in does not go through the normal WordPress login, so plugins that add two-factor authentication there do not run on it. These settings decide how far that shortcut is allowed to reach."
+msgstr "El inicio de sesión con Google no pasa por el inicio de sesión normal de WordPress, por lo que los plugins que añaden autenticación de dos factores ahí no se ejecutan. Estos ajustes deciden hasta dónde puede llegar ese atajo."
+
+#: admin/class-sml-admin-page.php:316
 msgid "Link Google to existing accounts"
 msgstr "Vincular Google a cuentas existentes"
 
-#: admin/class-sml-admin-page.php:315
+#: admin/class-sml-admin-page.php:317
 msgid "When someone signs in with a Google address that already has an account here, connect the two. Google confirms the address belongs to them first. Turning this off means those visitors must use their password instead. The account owner is emailed the first time a link is made."
 msgstr "Cuando alguien inicia sesión con una dirección de Google que ya tiene una cuenta aquí, se conectan ambas. Google confirma primero que la dirección le pertenece. Si lo desactivas, esos visitantes deberán usar su contraseña. Se envía un correo al propietario de la cuenta la primera vez que se crea el vínculo."
 
-#: admin/class-sml-admin-page.php:32 admin/class-sml-admin-page.php:1045
+#: admin/class-sml-admin-page.php:32 admin/class-sml-admin-page.php:1214
 msgid "Users"
 msgstr "Usuarios"
 
-#: admin/class-sml-admin-page.php:320
+#: admin/class-sml-admin-page.php:322
 msgid "Allow Google sign-in for site administrators"
 msgstr "Permitir el inicio de sesión con Google a los administradores del sitio"
 
-#: admin/class-sml-admin-page.php:321
+#: admin/class-sml-admin-page.php:323
 msgid "Off by default, and best left off: with it on, anyone who controls an administrator's Google mailbox can sign in as that administrator without the WordPress password and without any second factor."
 msgstr "Desactivado por defecto y mejor así: si se activa, cualquiera que controle el buzón de Google de un administrador puede iniciar sesión como ese administrador sin la contraseña de WordPress y sin ningún segundo factor."
 
-#: admin/class-sml-admin-page.php:326
+#: admin/class-sml-admin-page.php:328
 msgid "Keep Google sign-ins signed in"
 msgstr "Mantener abiertas las sesiones de Google"
 
-#: admin/class-sml-admin-page.php:327
+#: admin/class-sml-admin-page.php:329
 msgid "Stay signed in for 14 days after a Google sign-in. Turn off for shared or public computers, so the session ends when the browser closes."
 msgstr "Mantén la sesión iniciada durante 14 días tras iniciar sesión con Google. Desactívalo en equipos compartidos o públicos para que la sesión termine al cerrar el navegador."
 
-#: admin/class-sml-admin-page.php:354
+#: admin/class-sml-admin-page.php:356
 msgid "Upload client JSON"
 msgstr "Subir el JSON del cliente"
 
-#: admin/class-sml-admin-page.php:355
+#: admin/class-sml-admin-page.php:357
 msgid "The file Google Cloud Console offers to download for this OAuth client. Read locally in your browser — it is never uploaded to this server as a file."
 msgstr "El archivo que Google Cloud Console ofrece descargar para este cliente OAuth. Se lee localmente en tu navegador; nunca se sube a este servidor como archivo."
 
@@ -540,609 +566,671 @@ msgstr "El archivo que Google Cloud Console ofrece descargar para este cliente O
 msgid "Setup"
 msgstr "Configuración"
 
-#: admin/class-sml-admin-page.php:38 admin/class-sml-admin-page.php:136
+#: admin/class-sml-admin-page.php:38 admin/class-sml-admin-page.php:138
 msgid "General"
 msgstr "General"
 
-#: admin/class-sml-admin-page.php:380
+#: admin/class-sml-admin-page.php:382
 msgid "That does not look like a Google OAuth client JSON."
 msgstr "Eso no parece un JSON de cliente OAuth de Google."
 
-#: admin/class-sml-admin-page.php:386
+#: admin/class-sml-admin-page.php:388
 msgid "Filled in below — review and Save."
 msgstr "Rellenado abajo: revisa y guarda."
 
-#: admin/class-sml-admin-page.php:39 admin/class-sml-admin-page.php:277
+#: admin/class-sml-admin-page.php:39 admin/class-sml-admin-page.php:279
 msgid "Social Login"
 msgstr "Inicio de sesión social"
 
-#: admin/class-sml-admin-page.php:40 admin/class-sml-admin-page.php:454
+#: admin/class-sml-admin-page.php:40 admin/class-sml-admin-page.php:634
 msgid "Verification"
 msgstr "Verificación"
 
-#: admin/class-sml-admin-page.php:401
+#: admin/class-sml-admin-page.php:403
 msgid "Sends verification and password-reset codes by SMS to Iranian mobile numbers."
 msgstr "Envía por SMS los códigos de verificación y de restablecimiento de contraseña a números móviles iraníes."
 
-#: admin/class-sml-admin-page.php:41 admin/class-sml-admin-page.php:400 admin/class-sml-admin-page.php:407 admin/class-sml-admin-page.php:431
+#: admin/class-sml-admin-page.php:41 admin/class-sml-admin-page.php:402 admin/class-sml-admin-page.php:409 admin/class-sml-admin-page.php:433
 msgid "SMS gateway"
 msgstr "Pasarela SMS"
 
-#: admin/class-sml-admin-page.php:412
+#: admin/class-sml-admin-page.php:414
 msgid "SMS gateways are used for Iranian mobile numbers. Allow Iran under General → \"Allowed countries for registration\" (or switch on \"Iranian registration\") and this section opens up."
 msgstr "Las pasarelas SMS se usan para números móviles iraníes. Permite Irán en General → «Países permitidos para el registro» (o activa «Registro iraní») y esta sección se abrirá."
 
-#: admin/class-sml-admin-page.php:42 admin/class-sml-admin-page.php:517
+#: admin/class-sml-admin-page.php:42 admin/class-sml-admin-page.php:697
 msgid "Security"
 msgstr "Seguridad"
 
-#: admin/class-sml-admin-page.php:425
+#: admin/class-sml-admin-page.php:427
 msgid "Gateway"
 msgstr "Pasarela"
 
-#: admin/class-sml-admin-page.php:426
+#: admin/class-sml-admin-page.php:428
 msgid "Choose your SMS provider and enter its credentials, then use the test box to check them. Codes only go to numbers the gateway can reach: Iranian (+98) ones."
 msgstr "Elige tu proveedor de SMS e introduce sus credenciales; después usa el cuadro de prueba para comprobarlas. Los códigos solo se envían a números que la pasarela puede alcanzar: los iraníes (+98)."
 
-#: admin/class-sml-admin-page.php:43 admin/class-sml-admin-page.php:560
+#: admin/class-sml-admin-page.php:43 admin/class-sml-admin-page.php:740
 msgid "Emails"
 msgstr "Correos"
 
-#: admin/class-sml-admin-page.php:435
+#: admin/class-sml-admin-page.php:437
 msgid "Printed wherever a message uses {site}, for example example.com. Leave empty to use this site's own address."
 msgstr "Se imprime donde un mensaje use {site}, por ejemplo example.com. Déjalo vacío para usar la dirección de este sitio."
 
-#: admin/class-sml-admin-page.php:435
+#: admin/class-sml-admin-page.php:437
 msgid "Site address for messages"
 msgstr "Dirección del sitio para los mensajes"
 
-#: admin/class-sml-admin-page.php:436
+#: admin/class-sml-admin-page.php:438
 msgid "Melipayamak only."
 msgstr "Solo Melipayamak."
 
-#: admin/class-sml-admin-page.php:436
+#: admin/class-sml-admin-page.php:438
 msgid "Username"
 msgstr "Usuario"
 
-#: admin/class-sml-admin-page.php:437
+#: admin/class-sml-admin-page.php:439
 msgid "API key"
 msgstr "Clave de API"
 
-#: admin/class-sml-admin-page.php:437
+#: admin/class-sml-admin-page.php:439
 msgid "IPPanel: the API token (sent as the Authorization header). For Melipayamak this is the account password or API key. Stored with autoload disabled and never rendered back in plaintext. Leave blank to keep the current value."
 msgstr "IPPanel: el token de la API (se envía como cabecera Authorization). En Melipayamak es la contraseña de la cuenta o la clave de API. Se guarda con la carga automática desactivada y nunca se muestra en texto plano. Déjalo en blanco para conservar el valor actual."
 
-#: admin/class-sml-admin-page.php:438
+#: admin/class-sml-admin-page.php:44 admin/class-sml-admin-page.php:459
+msgid "Logs"
+msgstr "Registros"
+
+#: admin/class-sml-admin-page.php:440
 msgid "Sender line number"
 msgstr "Número de línea del remitente"
 
-#: admin/class-sml-admin-page.php:438
+#: admin/class-sml-admin-page.php:440
 msgid "The line your messages are sent from. For the IPPanel web service use the international form, for example +983000505."
 msgstr "La línea desde la que se envían tus mensajes. Para el servicio web de IPPanel usa la forma internacional, por ejemplo +983000505."
 
-#: admin/class-sml-admin-page.php:439
+#: admin/class-sml-admin-page.php:441
 msgid "The text of the sign-up and login code message. Placeholders: {code} (or %code%), {site}, {site_name}, {expiry_minutes}. Plain text only; keep it short and leave out links. The code is a random number of the length set under Verification → Code length (6 by default). If the placeholder is missing the code is added at the end."
 msgstr "El texto del mensaje con el código de registro e inicio de sesión. Marcadores: {code} (o %code%), {site}, {site_name}, {expiry_minutes}. Solo texto sin formato; que sea corto y sin enlaces. El código es un número aleatorio de la longitud definida en Verificación → Longitud del código (6 por defecto). Si falta el marcador, el código se añade al final."
 
-#: admin/class-sml-admin-page.php:439
+#: admin/class-sml-admin-page.php:441
 msgid "Verification message text"
 msgstr "Texto del mensaje de verificación"
 
-#: admin/class-sml-admin-page.php:440
+#: admin/class-sml-admin-page.php:442
 msgid "Optional. The text of the password-reset code message; leave empty to use the verification message above."
 msgstr "Opcional. El texto del mensaje con el código de restablecimiento de contraseña; déjalo vacío para usar el mensaje de verificación de arriba."
 
-#: admin/class-sml-admin-page.php:440
+#: admin/class-sml-admin-page.php:442
 msgid "Password-reset message text"
 msgstr "Texto del mensaje de restablecimiento de contraseña"
 
-#: admin/class-sml-admin-page.php:442
+#: admin/class-sml-admin-page.php:444
 msgid "Kavenegar: the verification template name. FarazSMS and IPPanel (legacy): the pattern code. Melipayamak: the bodyId of the approved template."
 msgstr "Kavenegar: el nombre de la plantilla de verificación. FarazSMS e IPPanel (antiguo): el código del patrón. Melipayamak: el bodyId de la plantilla aprobada."
 
-#: admin/class-sml-admin-page.php:442
+#: admin/class-sml-admin-page.php:444
 msgid "Template / pattern code"
 msgstr "Código de plantilla / patrón"
 
-#: admin/class-sml-admin-page.php:443
+#: admin/class-sml-admin-page.php:445
 msgid "Optional. A separate approved template for password-reset codes; leave empty to reuse the verification template above."
 msgstr "Opcional. Una plantilla aprobada aparte para los códigos de restablecimiento de contraseña; déjalo vacío para reutilizar la plantilla de verificación de arriba."
 
-#: admin/class-sml-admin-page.php:443
+#: admin/class-sml-admin-page.php:445
 msgid "Password-reset template / pattern code"
 msgstr "Código de plantilla / patrón de restablecimiento de contraseña"
 
-#: admin/class-sml-admin-page.php:444
+#: admin/class-sml-admin-page.php:446
 msgid "Code variable name"
 msgstr "Nombre de la variable del código"
 
-#: admin/class-sml-admin-page.php:444
+#: admin/class-sml-admin-page.php:446
 msgid "FarazSMS and IPPanel (legacy): the variable in your pattern that receives the code, for example code."
 msgstr "FarazSMS e IPPanel (antiguo): la variable de tu patrón que recibe el código, por ejemplo code."
 
-#: admin/class-sml-admin-page.php:455
-msgid "Controls how new accounts confirm their email address or mobile number."
-msgstr "Controla cómo confirman su correo electrónico o su número de móvil las cuentas nuevas."
+#: admin/class-sml-admin-page.php:460
+msgid "What happened when Smart Login sent an SMS or an email, and other problems."
+msgstr "Qué ocurrió cuando Smart Login envió un SMS o un correo, y otros problemas."
 
-#: admin/class-sml-admin-page.php:458
-msgid "Verification method"
-msgstr "Método de verificación"
-
-#: admin/class-sml-admin-page.php:459
-msgid "Choose what new accounts must prove they own — or nothing at all. Mobile verification needs an SMS gateway (Settings → SMS gateway); until it is fully set up the site keeps verifying by email, so nobody is locked out of registering. Accounts created with Google sign-in are verified by Google and are never sent an SMS."
-msgstr "Elige qué debe demostrar que posee una cuenta nueva, o nada en absoluto. La verificación por móvil necesita una pasarela SMS (Ajustes → Pasarela SMS); hasta que esté totalmente configurada, el sitio sigue verificando por correo, así que nadie se queda sin poder registrarse. Las cuentas creadas con Google las verifica Google y nunca reciben SMS."
-
-#: admin/class-sml-admin-page.php:464
-msgid "Verify accounts by"
-msgstr "Verificar las cuentas mediante"
-
-#: admin/class-sml-admin-page.php:466
-msgid "No verification (signed in right away)"
-msgstr "Sin verificación (inicio de sesión inmediato)"
-
-#: admin/class-sml-admin-page.php:467
-msgid "Email (code and link)"
-msgstr "Correo electrónico (código y enlace)"
+#: admin/class-sml-admin-page.php:463
+msgid "Logging"
+msgstr "Registro"
 
 #: admin/class-sml-admin-page.php:468
-msgid "Mobile number (SMS code)"
-msgstr "Número de móvil (código por SMS)"
+msgid "What to log"
+msgstr "Qué registrar"
 
 #: admin/class-sml-admin-page.php:470
-msgid "With no verification a new account is signed in as soon as it is created and nothing is sent. With mobile verification the email field on the registration form becomes optional, and a password-reset link no longer counts as verification."
-msgstr "Sin verificación, una cuenta nueva inicia sesión en cuanto se crea y no se envía nada. Con la verificación por móvil, el campo de correo del formulario de registro pasa a ser opcional y un enlace de restablecimiento de contraseña deja de contar como verificación."
+msgid "Problems only (recommended)"
+msgstr "Solo problemas (recomendado)"
 
-#: admin/class-sml-admin-page.php:475
-msgid "Code & link"
-msgstr "Código y enlace"
+#: admin/class-sml-admin-page.php:471
+msgid "Everything, including sends that worked"
+msgstr "Todo, incluidos los envíos correctos"
 
-#: admin/class-sml-admin-page.php:477
-msgid "Code length"
-msgstr "Longitud del código"
+#: admin/class-sml-admin-page.php:472
+msgid "Nothing"
+msgstr "Nada"
 
-#: admin/class-sml-admin-page.php:477
-msgid "Number of digits in the verification code."
-msgstr "Número de dígitos del código de verificación."
-
-#: admin/class-sml-admin-page.php:478
-msgid "Code expiry (minutes)"
-msgstr "Caducidad del código (minutos)"
-
-#: admin/class-sml-admin-page.php:478
-msgid "Drives both the backend TTL and the front-end countdown."
-msgstr "Controla tanto la caducidad en el servidor como la cuenta atrás en la interfaz."
+#: admin/class-sml-admin-page.php:474
+msgid "Entries never contain codes, passwords or API keys, and phone numbers and email addresses are shortened. They are kept in a file under wp-content/uploads/smart-login-logs/ (the latest 2 MB). Switching logging off only stops new entries; use \"Clear log\" to delete the old ones."
+msgstr "Las entradas nunca contienen códigos, contraseñas ni claves de API, y los números de teléfono y correos se acortan. Se guardan en un archivo en wp-content/uploads/smart-login-logs/ (los últimos 2 MB). Desactivar el registro solo detiene las entradas nuevas; usa «Vaciar registro» para borrar las antiguas."
 
 #: admin/class-sml-admin-page.php:479
-msgid "Independent from the code expiry — the link uses its own signed, single-use token."
-msgstr "Independiente de la caducidad del código: el enlace usa su propio token firmado de un solo uso."
+msgid "Recent entries"
+msgstr "Entradas recientes"
 
-#: admin/class-sml-admin-page.php:479
-msgid "Link expiry (minutes)"
-msgstr "Caducidad del enlace (minutos)"
+#: admin/class-sml-admin-page.php:493
+msgid "All entries"
+msgstr "Todas las entradas"
 
-#: admin/class-sml-admin-page.php:480
-msgid "Resend cooldown (seconds)"
-msgstr "Espera para reenviar (segundos)"
+#: admin/class-sml-admin-page.php:494
+msgid "SMS"
+msgstr "SMS"
 
-#: admin/class-sml-admin-page.php:480
-msgid "The Resend button is disabled client-side for this long, and the server rejects early resend requests too."
-msgstr "El botón Reenviar queda desactivado en el navegador durante este tiempo, y el servidor también rechaza los reenvíos anticipados."
+#: admin/class-sml-admin-page.php:495 admin/class-sml-admin-page.php:969 admin/class-sml-admin-page.php:1030 admin/class-sml-admin-page.php:1291 includes/class-sml-shortcode.php:581 includes/class-sml-shortcode.php:640
+msgid "Email"
+msgstr "Correo"
 
-#: admin/class-sml-admin-page.php:481
-msgid "Shown above the code input on the verify step."
-msgstr "Se muestra sobre el campo del código en el paso de verificación."
+#: admin/class-sml-admin-page.php:496
+msgid "Other"
+msgstr "Otros"
 
-#: admin/class-sml-admin-page.php:481
-msgid "Verify page intro text"
-msgstr "Texto introductorio de la página de verificación"
+#: admin/class-sml-admin-page.php:497
+msgid "Problems only"
+msgstr "Solo problemas"
 
-#: admin/class-sml-admin-page.php:485
-msgid "Access before verification"
-msgstr "Acceso antes de la verificación"
+#: admin/class-sml-admin-page.php:498
+msgid "Refresh"
+msgstr "Actualizar"
 
-#: admin/class-sml-admin-page.php:49 admin/class-sml-admin-page.php:627
+#: admin/class-sml-admin-page.php:499
+msgid "Download"
+msgstr "Descargar"
+
+#: admin/class-sml-admin-page.php:50 admin/class-sml-admin-page.php:807
 msgid "WooCommerce"
 msgstr "WooCommerce"
 
-#: admin/class-sml-admin-page.php:490
-msgid "Block login until verified"
-msgstr "Bloquear el inicio de sesión hasta verificar"
-
-#: admin/class-sml-admin-page.php:492
-msgid "Block completely"
-msgstr "Bloquear por completo"
-
-#: admin/class-sml-admin-page.php:493
-msgid "Allow with notice"
-msgstr "Permitir con aviso"
-
-#: admin/class-sml-admin-page.php:494
-msgid "Allow for a grace period"
-msgstr "Permitir durante un periodo de gracia"
-
-#: admin/class-sml-admin-page.php:497
-msgid "Grace period before block (days)"
-msgstr "Periodo de gracia antes del bloqueo (días)"
-
-#: admin/class-sml-admin-page.php:497
-msgid "Only used when \"Allow for a grace period\" is selected above. 0 blocks immediately."
-msgstr "Solo se usa cuando arriba se selecciona «Permitir durante un periodo de gracia». Con 0 se bloquea de inmediato."
+#: admin/class-sml-admin-page.php:500
+msgid "Clear log"
+msgstr "Vaciar registro"
 
 #: admin/class-sml-admin-page.php:501
-msgid "Pre-existing unverified accounts"
-msgstr "Cuentas antiguas sin verificar"
+msgid "Delete all log entries?"
+msgstr "¿Eliminar todas las entradas del registro?"
+
+#: admin/class-sml-admin-page.php:502
+msgid "Nothing logged yet."
+msgstr "Aún no se ha registrado nada."
 
 #: admin/class-sml-admin-page.php:503
-msgid "No verification needed — log them straight in"
-msgstr "No requiere verificación: iniciar sesión directamente"
+msgid "Time (UTC)"
+msgstr "Hora (UTC)"
 
 #: admin/class-sml-admin-page.php:504
-msgid "Send a reminder email only"
-msgstr "Enviar solo un correo recordatorio"
+msgid "Level"
+msgstr "Nivel"
 
 #: admin/class-sml-admin-page.php:505
-msgid "Show a verification screen they can skip"
-msgstr "Mostrar una pantalla de verificación que pueden omitir"
+msgid "Channel"
+msgstr "Canal"
+
+#: admin/class-sml-admin-page.php:506
+msgid "Message"
+msgstr "Mensaje"
 
 #: admin/class-sml-admin-page.php:507
-msgid "How to treat accounts that existed before Smart Login was installed and never verified their email. They are never blocked. Only new registrations are ever required to verify. \"Show a verification screen\" adds the code entry on login with a \"Not now\" button."
-msgstr "Cómo tratar las cuentas que existían antes de instalar Smart Login y nunca verificaron su correo. Nunca se bloquean; solo a los registros nuevos se les exige verificar. «Mostrar una pantalla de verificación» añade la introducción del código al iniciar sesión con un botón «Ahora no»."
+msgid "Problem"
+msgstr "Problema"
 
-#: admin/class-sml-admin-page.php:518
-msgid "Lockouts, bot protection, and rate limiting."
-msgstr "Bloqueos, protección contra bots y limitación de solicitudes."
+#: admin/class-sml-admin-page.php:508
+msgid "OK"
+msgstr "Correcto"
 
-#: admin/class-sml-admin-page.php:52 admin/class-sml-admin-page.php:651
+#: admin/class-sml-admin-page.php:509
+msgid "Could not load the log."
+msgstr "No se pudo cargar el registro."
+
+#: admin/class-sml-admin-page.php:53 admin/class-sml-admin-page.php:831
 msgid "Advanced"
 msgstr "Avanzado"
 
-#: admin/class-sml-admin-page.php:521
+#: admin/class-sml-admin-page.php:635
+msgid "Controls how new accounts confirm their email address or mobile number."
+msgstr "Controla cómo confirman su correo electrónico o su número de móvil las cuentas nuevas."
+
+#: admin/class-sml-admin-page.php:638
+msgid "Verification method"
+msgstr "Método de verificación"
+
+#: admin/class-sml-admin-page.php:639
+msgid "Choose what new accounts must prove they own — or nothing at all. Mobile verification needs an SMS gateway (Settings → SMS gateway); until it is fully set up the site keeps verifying by email, so nobody is locked out of registering. Accounts created with Google sign-in are verified by Google and are never sent an SMS."
+msgstr "Elige qué debe demostrar que posee una cuenta nueva, o nada en absoluto. La verificación por móvil necesita una pasarela SMS (Ajustes → Pasarela SMS); hasta que esté totalmente configurada, el sitio sigue verificando por correo, así que nadie se queda sin poder registrarse. Las cuentas creadas con Google las verifica Google y nunca reciben SMS."
+
+#: admin/class-sml-admin-page.php:644
+msgid "Verify accounts by"
+msgstr "Verificar las cuentas mediante"
+
+#: admin/class-sml-admin-page.php:646
+msgid "No verification (signed in right away)"
+msgstr "Sin verificación (inicio de sesión inmediato)"
+
+#: admin/class-sml-admin-page.php:647
+msgid "Email (code and link)"
+msgstr "Correo electrónico (código y enlace)"
+
+#: admin/class-sml-admin-page.php:648
+msgid "Mobile number (SMS code)"
+msgstr "Número de móvil (código por SMS)"
+
+#: admin/class-sml-admin-page.php:650
+msgid "With no verification a new account is signed in as soon as it is created and nothing is sent. With mobile verification the email field on the registration form becomes optional, and a password-reset link no longer counts as verification."
+msgstr "Sin verificación, una cuenta nueva inicia sesión en cuanto se crea y no se envía nada. Con la verificación por móvil, el campo de correo del formulario de registro pasa a ser opcional y un enlace de restablecimiento de contraseña deja de contar como verificación."
+
+#: admin/class-sml-admin-page.php:655
+msgid "Code & link"
+msgstr "Código y enlace"
+
+#: admin/class-sml-admin-page.php:657
+msgid "Code length"
+msgstr "Longitud del código"
+
+#: admin/class-sml-admin-page.php:657
+msgid "Number of digits in the verification code."
+msgstr "Número de dígitos del código de verificación."
+
+#: admin/class-sml-admin-page.php:658
+msgid "Code expiry (minutes)"
+msgstr "Caducidad del código (minutos)"
+
+#: admin/class-sml-admin-page.php:658
+msgid "Drives both the backend TTL and the front-end countdown."
+msgstr "Controla tanto la caducidad en el servidor como la cuenta atrás en la interfaz."
+
+#: admin/class-sml-admin-page.php:659
+msgid "Independent from the code expiry — the link uses its own signed, single-use token."
+msgstr "Independiente de la caducidad del código: el enlace usa su propio token firmado de un solo uso."
+
+#: admin/class-sml-admin-page.php:659
+msgid "Link expiry (minutes)"
+msgstr "Caducidad del enlace (minutos)"
+
+#: admin/class-sml-admin-page.php:660
+msgid "Resend cooldown (seconds)"
+msgstr "Espera para reenviar (segundos)"
+
+#: admin/class-sml-admin-page.php:660
+msgid "The Resend button is disabled client-side for this long, and the server rejects early resend requests too."
+msgstr "El botón Reenviar queda desactivado en el navegador durante este tiempo, y el servidor también rechaza los reenvíos anticipados."
+
+#: admin/class-sml-admin-page.php:661
+msgid "Shown above the code input on the verify step."
+msgstr "Se muestra sobre el campo del código en el paso de verificación."
+
+#: admin/class-sml-admin-page.php:661
+msgid "Verify page intro text"
+msgstr "Texto introductorio de la página de verificación"
+
+#: admin/class-sml-admin-page.php:665
+msgid "Access before verification"
+msgstr "Acceso antes de la verificación"
+
+#: admin/class-sml-admin-page.php:670
+msgid "Block login until verified"
+msgstr "Bloquear el inicio de sesión hasta verificar"
+
+#: admin/class-sml-admin-page.php:672
+msgid "Block completely"
+msgstr "Bloquear por completo"
+
+#: admin/class-sml-admin-page.php:673
+msgid "Allow with notice"
+msgstr "Permitir con aviso"
+
+#: admin/class-sml-admin-page.php:674
+msgid "Allow for a grace period"
+msgstr "Permitir durante un periodo de gracia"
+
+#: admin/class-sml-admin-page.php:677
+msgid "Grace period before block (days)"
+msgstr "Periodo de gracia antes del bloqueo (días)"
+
+#: admin/class-sml-admin-page.php:677
+msgid "Only used when \"Allow for a grace period\" is selected above. 0 blocks immediately."
+msgstr "Solo se usa cuando arriba se selecciona «Permitir durante un periodo de gracia». Con 0 se bloquea de inmediato."
+
+#: admin/class-sml-admin-page.php:681
+msgid "Pre-existing unverified accounts"
+msgstr "Cuentas antiguas sin verificar"
+
+#: admin/class-sml-admin-page.php:683
+msgid "No verification needed — log them straight in"
+msgstr "No requiere verificación: iniciar sesión directamente"
+
+#: admin/class-sml-admin-page.php:684
+msgid "Send a reminder email only"
+msgstr "Enviar solo un correo recordatorio"
+
+#: admin/class-sml-admin-page.php:685
+msgid "Show a verification screen they can skip"
+msgstr "Mostrar una pantalla de verificación que pueden omitir"
+
+#: admin/class-sml-admin-page.php:687
+msgid "How to treat accounts that existed before Smart Login was installed and never verified their email. They are never blocked. Only new registrations are ever required to verify. \"Show a verification screen\" adds the code entry on login with a \"Not now\" button."
+msgstr "Cómo tratar las cuentas que existían antes de instalar Smart Login y nunca verificaron su correo. Nunca se bloquean; solo a los registros nuevos se les exige verificar. «Mostrar una pantalla de verificación» añade la introducción del código al iniciar sesión con un botón «Ahora no»."
+
+#: admin/class-sml-admin-page.php:698
+msgid "Lockouts, bot protection, and rate limiting."
+msgstr "Bloqueos, protección contra bots y limitación de solicitudes."
+
+#: admin/class-sml-admin-page.php:701
 msgid "Lockouts"
 msgstr "Bloqueos"
 
-#: admin/class-sml-admin-page.php:523
+#: admin/class-sml-admin-page.php:703
 msgid "Max code attempts before lockout"
 msgstr "Máximo de intentos de código antes del bloqueo"
 
-#: admin/class-sml-admin-page.php:524
+#: admin/class-sml-admin-page.php:704
 msgid "Login attempt lockout threshold"
 msgstr "Umbral de bloqueo por intentos de inicio de sesión"
 
-#: admin/class-sml-admin-page.php:525
+#: admin/class-sml-admin-page.php:705
 msgid "Lockout duration (minutes)"
 msgstr "Duración del bloqueo (minutos)"
 
-#: admin/class-sml-admin-page.php:529
+#: admin/class-sml-admin-page.php:709
 msgid "Login access"
 msgstr "Acceso al inicio de sesión"
 
-#: admin/class-sml-admin-page.php:530
+#: admin/class-sml-admin-page.php:710
 msgid "Restrict which user roles are permitted to log in through this form. Leave empty to allow every role (default). A user whose role isn't selected is signed back out immediately with a clear message — this only affects the [smart_login_form] form, not wp-login.php."
 msgstr "Restringe qué roles de usuario pueden iniciar sesión mediante este formulario. Déjalo vacío para permitir todos los roles (predeterminado). Un usuario cuyo rol no esté seleccionado se desconecta de inmediato con un mensaje claro; esto solo afecta al formulario [smart_login_form], no a wp-login.php."
 
-#: admin/class-sml-admin-page.php:532
+#: admin/class-sml-admin-page.php:712
 msgid "Roles allowed to log in"
 msgstr "Roles con permiso para iniciar sesión"
 
-#: admin/class-sml-admin-page.php:536
+#: admin/class-sml-admin-page.php:716
 msgid "Bot protection"
 msgstr "Protección contra bots"
 
-#: admin/class-sml-admin-page.php:538
+#: admin/class-sml-admin-page.php:718
 msgid "Adds a hidden field and a time-trap; submissions filled or submitted too fast are rejected as bots. This is a minor speed bump — the time-trap is a client-supplied value a scripted attacker can back-date. For real coverage on a public site, also select a bot-protection provider below."
 msgstr "Añade un campo oculto y una trampa de tiempo; los envíos con el campo relleno o demasiado rápidos se rechazan como bots. Es un obstáculo menor: la trampa de tiempo es un valor que envía el cliente y un atacante con scripts puede falsificarlo. Para una cobertura real en un sitio público, selecciona también un proveedor de protección contra bots abajo."
 
-#: admin/class-sml-admin-page.php:538
+#: admin/class-sml-admin-page.php:718
 msgid "Enable honeypot field"
 msgstr "Activar el campo trampa (honeypot)"
 
-#: admin/class-sml-admin-page.php:542
+#: admin/class-sml-admin-page.php:722
 msgid "Bot protection provider"
 msgstr "Proveedor de protección contra bots"
 
-#: admin/class-sml-admin-page.php:544 includes/class-sml-sms.php:44
+#: admin/class-sml-admin-page.php:724 includes/class-sml-sms.php:44
 msgid "None"
 msgstr "Ninguno"
 
-#: admin/class-sml-admin-page.php:545
+#: admin/class-sml-admin-page.php:725
 msgid "Google reCAPTCHA v3"
 msgstr "Google reCAPTCHA v3"
 
-#: admin/class-sml-admin-page.php:546
+#: admin/class-sml-admin-page.php:726
 msgid "Cloudflare Turnstile"
 msgstr "Cloudflare Turnstile"
 
-#: admin/class-sml-admin-page.php:549
+#: admin/class-sml-admin-page.php:729
 msgid "Site key"
 msgstr "Clave del sitio"
 
-#: admin/class-sml-admin-page.php:549
+#: admin/class-sml-admin-page.php:729
 msgid "Used by whichever provider is selected above."
 msgstr "Lo usa el proveedor que selecciones arriba."
 
-#: admin/class-sml-admin-page.php:550
+#: admin/class-sml-admin-page.php:730
 msgid "Secret key"
 msgstr "Clave secreta"
 
-#: admin/class-sml-admin-page.php:551
+#: admin/class-sml-admin-page.php:731
 msgid "Only used when the provider is reCAPTCHA v3 (Turnstile is pass/fail)."
 msgstr "Solo se usa cuando el proveedor es reCAPTCHA v3 (Turnstile es de aprobado/suspenso)."
 
-#: admin/class-sml-admin-page.php:551
+#: admin/class-sml-admin-page.php:731
 msgid "reCAPTCHA v3 score threshold"
 msgstr "Umbral de puntuación de reCAPTCHA v3"
 
-#: admin/class-sml-admin-page.php:561
+#: admin/class-sml-admin-page.php:741
 msgid "Sender identity and message templates. Available placeholders: {code}, {link}, {user}, {site_name}, {expiry_minutes}"
 msgstr "Identidad del remitente y plantillas de mensajes. Marcadores disponibles: {code}, {link}, {user}, {site_name}, {expiry_minutes}"
 
-#: admin/class-sml-admin-page.php:564
+#: admin/class-sml-admin-page.php:744
 msgid "Sender"
 msgstr "Remitente"
 
-#: admin/class-sml-admin-page.php:566
+#: admin/class-sml-admin-page.php:746
 msgid "From name"
 msgstr "Nombre del remitente"
 
-#: admin/class-sml-admin-page.php:567
+#: admin/class-sml-admin-page.php:747
 msgid "From email"
 msgstr "Correo del remitente"
 
-#: admin/class-sml-admin-page.php:573
+#: admin/class-sml-admin-page.php:753
 msgid "Branding & footer"
 msgstr "Marca y pie de página"
 
-#: admin/class-sml-admin-page.php:574
+#: admin/class-sml-admin-page.php:754
 msgid "Shown at the top and bottom of every email this plugin sends. {site_name} is available in the footer text."
 msgstr "Se muestra en la parte superior e inferior de cada correo que envía este plugin. {site_name} está disponible en el texto del pie."
 
-#: admin/class-sml-admin-page.php:576
+#: admin/class-sml-admin-page.php:756
 msgid "Heading shown at the top of the email and in the footer line. Leave blank to use the WordPress site title."
 msgstr "Título mostrado en la parte superior del correo y en la línea del pie. Déjalo en blanco para usar el título del sitio de WordPress."
 
-#: admin/class-sml-admin-page.php:576
+#: admin/class-sml-admin-page.php:756
 msgid "Site name in email"
 msgstr "Nombre del sitio en el correo"
 
-#: admin/class-sml-admin-page.php:577
+#: admin/class-sml-admin-page.php:757
 msgid "Extra footer text"
 msgstr "Texto adicional del pie"
 
-#: admin/class-sml-admin-page.php:577
+#: admin/class-sml-admin-page.php:757
 msgid "Optional lines below the automated-message notice — company name, postal address, support contact, etc. Basic HTML and line breaks are allowed."
 msgstr "Líneas opcionales bajo el aviso de mensaje automático: nombre de la empresa, dirección postal, contacto de soporte, etc. Se permite HTML básico y saltos de línea."
 
-#: admin/class-sml-admin-page.php:581
-msgid "Verification email"
-msgstr "Correo de verificación"
-
-#: admin/class-sml-admin-page.php:583 admin/class-sml-admin-page.php:591 admin/class-sml-admin-page.php:599 admin/class-sml-admin-page.php:607 admin/class-sml-admin-page.php:616
-msgid "Subject"
-msgstr "Asunto"
-
-#: admin/class-sml-admin-page.php:584 admin/class-sml-admin-page.php:592 admin/class-sml-admin-page.php:600 admin/class-sml-admin-page.php:608 admin/class-sml-admin-page.php:617
-msgid "Body"
-msgstr "Cuerpo"
-
-#: admin/class-sml-admin-page.php:589
-msgid "Resend email"
-msgstr "Correo de reenvío"
-
-#: admin/class-sml-admin-page.php:597
-msgid "Welcome email"
-msgstr "Correo de bienvenida"
-
-#: admin/class-sml-admin-page.php:605
-msgid "Password reset email"
-msgstr "Correo de restablecimiento de contraseña"
-
-#: admin/class-sml-admin-page.php:613
-msgid "Google linked email"
-msgstr "Correo de vinculación con Google"
-
-#: admin/class-sml-admin-page.php:614
-msgid "Sent once, the first time a Google account is linked to an existing account — that account can be signed into without its password from then on, so its owner is told."
-msgstr "Se envía una vez, la primera vez que se vincula una cuenta de Google a una cuenta existente; desde entonces se puede acceder a esa cuenta sin su contraseña, así que se avisa a su propietario."
-
-#: admin/class-sml-admin-page.php:628
-msgid "Optional integration with the WooCommerce My Account page."
-msgstr "Integración opcional con la página Mi cuenta de WooCommerce."
-
-#: admin/class-sml-admin-page.php:631
-msgid "My Account forms"
-msgstr "Formularios de Mi cuenta"
-
-#: admin/class-sml-admin-page.php:633
-msgid "Replace My Account login form"
-msgstr "Reemplazar el formulario de inicio de sesión de Mi cuenta"
-
-#: admin/class-sml-admin-page.php:633
-msgid "Swaps WooCommerce's default login form for the Smart Login form."
-msgstr "Sustituye el formulario de inicio de sesión predeterminado de WooCommerce por el de Smart Login."
-
-#: admin/class-sml-admin-page.php:634
-msgid "Replace My Account register form"
-msgstr "Reemplazar el formulario de registro de Mi cuenta"
-
-#: admin/class-sml-admin-page.php:634
-msgid "Swaps WooCommerce's default register form and applies the same verification flow."
-msgstr "Sustituye el formulario de registro predeterminado de WooCommerce y aplica el mismo flujo de verificación."
-
-#: admin/class-sml-admin-page.php:638
-msgid "Require login for these pages"
-msgstr "Exigir inicio de sesión en estas páginas"
-
-#: admin/class-sml-admin-page.php:639
-msgid "A visitor who isn't logged in is redirected to the Login page (set under General → \"Shortcode & form page\"), then sent back to the page they wanted once they log in or verify their email. If the Login page isn't set, this protection does nothing rather than risk locking visitors out."
-msgstr "Un visitante sin sesión iniciada es redirigido a la página de inicio de sesión (definida en General → «Shortcode y página del formulario») y, al iniciar sesión o verificar su correo, vuelve a la página que quería. Si la página de inicio de sesión no está definida, esta protección no hace nada para no arriesgarse a dejar fuera a los visitantes."
-
-#: admin/class-sml-admin-page.php:641
-msgid "Require login: Cart"
-msgstr "Exigir inicio de sesión: Carrito"
-
-#: admin/class-sml-admin-page.php:642
-msgid "Require login: Checkout"
-msgstr "Exigir inicio de sesión: Finalizar compra"
-
-#: admin/class-sml-admin-page.php:652
-msgid "Uninstall behaviour and diagnostics."
-msgstr "Comportamiento al desinstalar y diagnóstico."
-
-#: admin/class-sml-admin-page.php:655
-msgid "Danger zone"
-msgstr "Zona de peligro"
-
-#: admin/class-sml-admin-page.php:660
-msgid "Delete plugin data on uninstall"
-msgstr "Eliminar los datos del plugin al desinstalar"
-
-#: admin/class-sml-admin-page.php:661
-msgid "When on, deleting the plugin from Plugins → Installed Plugins permanently drops the verification table and settings. This cannot be undone."
-msgstr "Si está activado, al eliminar el plugin desde Plugins → Plugins instalados se borran de forma permanente la tabla de verificación y los ajustes. No se puede deshacer."
-
-#: admin/class-sml-admin-page.php:666
-msgid "Diagnostics"
-msgstr "Diagnóstico"
-
-#: admin/class-sml-admin-page.php:671
-msgid "Enable debug log"
-msgstr "Activar el registro de depuración"
-
-#: admin/class-sml-admin-page.php:672
-msgid "Writes to wp-content/uploads/smart-login-logs/. Codes and secrets are never written in plaintext."
-msgstr "Escribe en wp-content/uploads/smart-login-logs/. Los códigos y secretos nunca se escriben en texto plano."
-
-#: admin/class-sml-admin-page.php:677
-msgid "Import / export settings"
-msgstr "Importar / exportar ajustes"
-
-#: admin/class-sml-admin-page.php:74 includes/class-sml-user-profile.php:59
+#: admin/class-sml-admin-page.php:76 includes/class-sml-user-profile.php:59
 msgid "Smart Login"
 msgstr "Smart Login"
 
-#: admin/class-sml-admin-page.php:748
-msgid "All users"
-msgstr "Todos los usuarios"
+#: admin/class-sml-admin-page.php:761
+msgid "Verification email"
+msgstr "Correo de verificación"
 
-#: admin/class-sml-admin-page.php:75
+#: admin/class-sml-admin-page.php:763 admin/class-sml-admin-page.php:771 admin/class-sml-admin-page.php:779 admin/class-sml-admin-page.php:787 admin/class-sml-admin-page.php:796
+msgid "Subject"
+msgstr "Asunto"
+
+#: admin/class-sml-admin-page.php:764 admin/class-sml-admin-page.php:772 admin/class-sml-admin-page.php:780 admin/class-sml-admin-page.php:788 admin/class-sml-admin-page.php:797
+msgid "Body"
+msgstr "Cuerpo"
+
+#: admin/class-sml-admin-page.php:769
+msgid "Resend email"
+msgstr "Correo de reenvío"
+
+#: admin/class-sml-admin-page.php:77
 msgid "Smart Login Settings"
 msgstr "Ajustes de Smart Login"
 
-#: admin/class-sml-admin-page.php:750 admin/class-sml-admin-page.php:878 admin/class-sml-admin-page.php:1096 admin/class-sml-admin-page.php:1130 admin/class-sml-admin-page.php:1423 includes/class-sml-user-profile.php:91 includes/class-sml-users-list.php:29 includes/class-sml-users-list.php:56 includes/class-sml-users-list.php:104
+#: admin/class-sml-admin-page.php:777
+msgid "Welcome email"
+msgstr "Correo de bienvenida"
+
+#: admin/class-sml-admin-page.php:785
+msgid "Password reset email"
+msgstr "Correo de restablecimiento de contraseña"
+
+#: admin/class-sml-admin-page.php:793
+msgid "Google linked email"
+msgstr "Correo de vinculación con Google"
+
+#: admin/class-sml-admin-page.php:794
+msgid "Sent once, the first time a Google account is linked to an existing account — that account can be signed into without its password from then on, so its owner is told."
+msgstr "Se envía una vez, la primera vez que se vincula una cuenta de Google a una cuenta existente; desde entonces se puede acceder a esa cuenta sin su contraseña, así que se avisa a su propietario."
+
+#: admin/class-sml-admin-page.php:808
+msgid "Optional integration with the WooCommerce My Account page."
+msgstr "Integración opcional con la página Mi cuenta de WooCommerce."
+
+#: admin/class-sml-admin-page.php:811
+msgid "My Account forms"
+msgstr "Formularios de Mi cuenta"
+
+#: admin/class-sml-admin-page.php:813
+msgid "Replace My Account login form"
+msgstr "Reemplazar el formulario de inicio de sesión de Mi cuenta"
+
+#: admin/class-sml-admin-page.php:813
+msgid "Swaps WooCommerce's default login form for the Smart Login form."
+msgstr "Sustituye el formulario de inicio de sesión predeterminado de WooCommerce por el de Smart Login."
+
+#: admin/class-sml-admin-page.php:814
+msgid "Replace My Account register form"
+msgstr "Reemplazar el formulario de registro de Mi cuenta"
+
+#: admin/class-sml-admin-page.php:814
+msgid "Swaps WooCommerce's default register form and applies the same verification flow."
+msgstr "Sustituye el formulario de registro predeterminado de WooCommerce y aplica el mismo flujo de verificación."
+
+#: admin/class-sml-admin-page.php:818
+msgid "Require login for these pages"
+msgstr "Exigir inicio de sesión en estas páginas"
+
+#: admin/class-sml-admin-page.php:819
+msgid "A visitor who isn't logged in is redirected to the Login page (set under General → \"Shortcode & form page\"), then sent back to the page they wanted once they log in or verify their email. If the Login page isn't set, this protection does nothing rather than risk locking visitors out."
+msgstr "Un visitante sin sesión iniciada es redirigido a la página de inicio de sesión (definida en General → «Shortcode y página del formulario») y, al iniciar sesión o verificar su correo, vuelve a la página que quería. Si la página de inicio de sesión no está definida, esta protección no hace nada para no arriesgarse a dejar fuera a los visitantes."
+
+#: admin/class-sml-admin-page.php:821
+msgid "Require login: Cart"
+msgstr "Exigir inicio de sesión: Carrito"
+
+#: admin/class-sml-admin-page.php:822
+msgid "Require login: Checkout"
+msgstr "Exigir inicio de sesión: Finalizar compra"
+
+#: admin/class-sml-admin-page.php:832
+msgid "Uninstall behaviour and settings import / export."
+msgstr "Comportamiento al desinstalar e importación / exportación de ajustes."
+
+#: admin/class-sml-admin-page.php:835
+msgid "Danger zone"
+msgstr "Zona de peligro"
+
+#: admin/class-sml-admin-page.php:840
+msgid "Delete plugin data on uninstall"
+msgstr "Eliminar los datos del plugin al desinstalar"
+
+#: admin/class-sml-admin-page.php:841
+msgid "When on, deleting the plugin from Plugins → Installed Plugins permanently drops the verification table and settings. This cannot be undone."
+msgstr "Si está activado, al eliminar el plugin desde Plugins → Plugins instalados se borran de forma permanente la tabla de verificación y los ajustes. No se puede deshacer."
+
+#: admin/class-sml-admin-page.php:846
+msgid "Import / export settings"
+msgstr "Importar / exportar ajustes"
+
+#. translators: %s: shortcode
+#: admin/class-sml-admin-page.php:88
+#, php-format
+msgid "Place %s on any page to render the login/register form."
+msgstr "Coloca %s en cualquier página para mostrar el formulario de inicio de sesión/registro."
+
+#: admin/class-sml-admin-page.php:917
+msgid "All users"
+msgstr "Todos los usuarios"
+
+#: admin/class-sml-admin-page.php:919 admin/class-sml-admin-page.php:1047 admin/class-sml-admin-page.php:1265 admin/class-sml-admin-page.php:1299 admin/class-sml-admin-page.php:1592 includes/class-sml-user-profile.php:91 includes/class-sml-users-list.php:29 includes/class-sml-users-list.php:56 includes/class-sml-users-list.php:104
 msgid "Verified"
 msgstr "Verificado"
 
-#: admin/class-sml-admin-page.php:755 includes/class-sml-users-list.php:105
+#: admin/class-sml-admin-page.php:924 includes/class-sml-users-list.php:105
 msgid "Pending verification"
 msgstr "Pendientes de verificación"
 
-#: admin/class-sml-admin-page.php:756
+#: admin/class-sml-admin-page.php:925
 msgid "Legacy accounts"
 msgstr "Cuentas antiguas"
 
-#: admin/class-sml-admin-page.php:762
+#: admin/class-sml-admin-page.php:931
 msgid "New sign-ups"
 msgstr "Registros nuevos"
 
-#: admin/class-sml-admin-page.php:764
+#: admin/class-sml-admin-page.php:933
 msgid "last 24h"
 msgstr "últimas 24 h"
 
-#: admin/class-sml-admin-page.php:765
+#: admin/class-sml-admin-page.php:934
 msgid "last 7 days"
 msgstr "últimos 7 días"
 
-#: admin/class-sml-admin-page.php:766
+#: admin/class-sml-admin-page.php:935
 msgid "last 30 days"
 msgstr "últimos 30 días"
 
-#: admin/class-sml-admin-page.php:769
+#: admin/class-sml-admin-page.php:938
 msgid "Logins (24h)"
 msgstr "Inicios de sesión (24 h)"
 
-#: admin/class-sml-admin-page.php:773
+#: admin/class-sml-admin-page.php:942
 msgid "Sign-ups — last 6 months"
 msgstr "Registros: últimos 6 meses"
 
 #. translators: %s: number of sign-ups
-#: admin/class-sml-admin-page.php:778
+#: admin/class-sml-admin-page.php:947
 #, php-format
 msgid "%s total"
 msgid_plural "%s total"
 msgstr[0] "%s en total"
 msgstr[1] "%s en total"
 
-#: admin/class-sml-admin-page.php:786
+#: admin/class-sml-admin-page.php:955
 msgid "Recent sign-ups"
 msgstr "Registros recientes"
 
-#: admin/class-sml-admin-page.php:787 admin/class-sml-admin-page.php:1127 includes/class-sml-users-list.php:32
+#: admin/class-sml-admin-page.php:956 admin/class-sml-admin-page.php:1296 includes/class-sml-users-list.php:32
 msgid "Registered"
 msgstr "Registrado"
 
-#: admin/class-sml-admin-page.php:790
+#: admin/class-sml-admin-page.php:959
 msgid "Recent logins"
 msgstr "Inicios de sesión recientes"
 
-#: admin/class-sml-admin-page.php:791 admin/class-sml-admin-page.php:1128 includes/class-sml-users-list.php:31
+#: admin/class-sml-admin-page.php:960 admin/class-sml-admin-page.php:1297 includes/class-sml-users-list.php:31
 msgid "Last login"
 msgstr "Último inicio de sesión"
 
-#: admin/class-sml-admin-page.php:795
+#: admin/class-sml-admin-page.php:964
 msgid "Most password-reset requests"
 msgstr "Más solicitudes de restablecimiento de contraseña"
 
-#: admin/class-sml-admin-page.php:799 admin/class-sml-admin-page.php:860 admin/class-sml-admin-page.php:1121
+#: admin/class-sml-admin-page.php:968 admin/class-sml-admin-page.php:1029 admin/class-sml-admin-page.php:1290
 msgid "User"
 msgstr "Usuario"
 
-#: admin/class-sml-admin-page.php:800 admin/class-sml-admin-page.php:861 admin/class-sml-admin-page.php:1122 includes/class-sml-shortcode.php:581 includes/class-sml-shortcode.php:640
-msgid "Email"
-msgstr "Correo"
-
-#: admin/class-sml-admin-page.php:801
+#: admin/class-sml-admin-page.php:970
 msgid "Requests"
 msgstr "Solicitudes"
 
-#: admin/class-sml-admin-page.php:802
+#: admin/class-sml-admin-page.php:971
 msgid "Last request"
 msgstr "Última solicitud"
 
-#: admin/class-sml-admin-page.php:806
+#: admin/class-sml-admin-page.php:975
 msgid "No password-reset requests yet."
 msgstr "Aún no hay solicitudes de restablecimiento de contraseña."
-
-#. translators: %s: shortcode
-#: admin/class-sml-admin-page.php:86
-#, php-format
-msgid "Place %s on any page to render the login/register form."
-msgstr "Coloca %s en cualquier página para mostrar el formulario de inicio de sesión/registro."
-
-#: admin/class-sml-admin-page.php:862 admin/class-sml-admin-page.php:1124 includes/class-sml-users-list.php:30
-msgid "Phone"
-msgstr "Teléfono"
-
-#: admin/class-sml-admin-page.php:864
-msgid "Status"
-msgstr "Estado"
-
-#: admin/class-sml-admin-page.php:868
-msgid "Nothing recorded yet."
-msgstr "Aún no hay nada registrado."
-
-#: admin/class-sml-admin-page.php:880 admin/class-sml-admin-page.php:1097 admin/class-sml-admin-page.php:1425 includes/class-sml-user-profile.php:96 includes/class-sml-users-list.php:59
-msgid "Pending"
-msgstr "Pendiente"
-
-#: admin/class-sml-admin-page.php:882 admin/class-sml-admin-page.php:1098 admin/class-sml-admin-page.php:1427 includes/class-sml-users-list.php:61 includes/class-sml-users-list.php:106
-msgid "Legacy"
-msgstr "Antigua"
-
-#. translators: %s: human-readable time difference, e.g. "3 hours"
-#: admin/class-sml-admin-page.php:978 admin/class-sml-admin-page.php:1014 admin/class-sml-admin-page.php:1439 admin/class-sml-admin-page.php:1611 includes/class-sml-users-list.php:76
-#, php-format
-msgid "%s ago"
-msgstr "hace %s"
 
 #: admin/ui-kit/includes/class-apx-admin-page.php:122
 msgid "You have 1 unsaved change."
@@ -1204,16 +1292,16 @@ msgstr "Cancelar"
 msgid "Save"
 msgstr "Guardar"
 
-#: includes/class-sml-email.php:107 includes/class-sml-email.php:271 includes/class-sml-shortcode.php:680 includes/class-sml-shortcode.php:717
+#: includes/class-sml-email.php:107 includes/class-sml-email.php:272 includes/class-sml-shortcode.php:680 includes/class-sml-shortcode.php:717
 msgid "Reset Password"
 msgstr "Restablecer contraseña"
 
-#: includes/class-sml-email.php:302
+#: includes/class-sml-email.php:303
 msgid "Verify Email"
 msgstr "Verificar correo"
 
 #. translators: %s: site name
-#: includes/class-sml-email.php:367
+#: includes/class-sml-email.php:368
 #, php-format
 msgid "This is an automated message from %s. If you did not request this, you can safely ignore it."
 msgstr "Este es un mensaje automático de %s. Si no lo solicitaste, puedes ignorarlo sin problema."
@@ -1250,7 +1338,7 @@ msgstr "El registro de cuentas nuevas está desactivado actualmente."
 msgid "Temporary or disposable email addresses are not allowed."
 msgstr "No se permiten direcciones de correo temporales o desechables."
 
-#: includes/class-sml-loader.php:150
+#: includes/class-sml-loader.php:151
 msgid "Settings"
 msgstr "Ajustes"
 
@@ -1406,23 +1494,23 @@ msgstr "Tu cuenta se ha creado, pero tu tipo de cuenta no tiene permiso para ini
 msgid "Your account has been created. You are now logged in."
 msgstr "Tu cuenta se ha creado. Ya has iniciado sesión."
 
-#: includes/class-sml-registration-handler.php:286
+#: includes/class-sml-registration-handler.php:287
 msgid "Missing verification data."
 msgstr "Faltan datos de verificación."
 
-#: includes/class-sml-registration-handler.php:306
+#: includes/class-sml-registration-handler.php:307
 msgid "Your email has been verified, but your account type is not permitted to sign in through this form."
 msgstr "Tu correo se ha verificado, pero tu tipo de cuenta no tiene permiso para iniciar sesión mediante este formulario."
 
-#: includes/class-sml-registration-handler.php:317
+#: includes/class-sml-registration-handler.php:318
 msgid "Your email has been verified."
 msgstr "Tu correo se ha verificado."
 
-#: includes/class-sml-registration-handler.php:405 includes/class-sml-registration-handler.php:410
+#: includes/class-sml-registration-handler.php:406 includes/class-sml-registration-handler.php:411
 msgid "Submission rejected."
 msgstr "Envío rechazado."
 
-#: includes/class-sml-registration-handler.php:436
+#: includes/class-sml-registration-handler.php:437
 msgid "Bot verification failed. Please try again."
 msgstr "Falló la verificación anti-bots. Inténtalo de nuevo."
 
@@ -1779,19 +1867,19 @@ msgstr "Ahora no"
 msgid "Country code"
 msgstr "Prefijo del país"
 
-#: includes/class-sml-sms.php:299
+#: includes/class-sml-sms.php:301
 msgid "SMS sending is not configured."
 msgstr "El envío de SMS no está configurado."
 
-#: includes/class-sml-sms.php:303
+#: includes/class-sml-sms.php:305
 msgid "SMS verification is only available for Iranian mobile numbers."
 msgstr "La verificación por SMS solo está disponible para números móviles iraníes."
 
-#: includes/class-sml-sms.php:332 includes/class-sml-verification.php:143
+#: includes/class-sml-sms.php:338 includes/class-sml-verification.php:143
 msgid "We could not send the SMS. Please try again in a few minutes."
 msgstr "No pudimos enviar el SMS. Inténtalo de nuevo en unos minutos."
 
-#: includes/class-sml-sms.php:346
+#: includes/class-sml-sms.php:352
 msgid "Too many codes have been requested for this number. Please try again later."
 msgstr "Se han solicitado demasiados códigos para este número. Inténtalo más tarde."
 

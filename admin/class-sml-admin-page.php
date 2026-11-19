@@ -41,6 +41,7 @@ class SML_Admin_Page extends APX_Admin_Page {
 					array( 'key' => 'sms', 'label' => __( 'SMS gateway', 'smart-login' ), 'icon' => 'cloud' ),
 					array( 'key' => 'security', 'label' => __( 'Security', 'smart-login' ), 'icon' => 'lock' ),
 					array( 'key' => 'emails', 'label' => __( 'Emails', 'smart-login' ), 'icon' => 'cloud' ),
+					array( 'key' => 'logs', 'label' => __( 'Logs', 'smart-login' ), 'icon' => 'gauge' ),
 				),
 			),
 		);
@@ -60,6 +61,7 @@ class SML_Admin_Page extends APX_Admin_Page {
 			'sms'          => $this->panel_sms(),
 			'security'     => $this->panel_security(),
 			'emails'       => $this->panel_emails(),
+			'logs'         => $this->panel_logs(),
 		);
 
 		if ( $wc_active ) {
@@ -449,6 +451,184 @@ class SML_Admin_Page extends APX_Admin_Page {
 		return $panel;
 	}
 
+	/**
+	 * Logs screen: what to log, and the recent entries.
+	 */
+	protected function panel_logs() {
+		return array(
+			'title'    => __( 'Logs', 'smart-login' ),
+			'desc'     => __( 'What happened when Smart Login sent an SMS or an email, and other problems.', 'smart-login' ),
+			'sections' => array(
+				array(
+					'heading' => __( 'Logging', 'smart-login' ),
+					'fields'  => array(
+						array(
+							'type'    => 'select',
+							'name'    => 'log_level',
+							'label'   => __( 'What to log', 'smart-login' ),
+							'options' => array(
+								'errors' => __( 'Problems only (recommended)', 'smart-login' ),
+								'all'    => __( 'Everything, including sends that worked', 'smart-login' ),
+								'off'    => __( 'Nothing', 'smart-login' ),
+							),
+							'desc'    => __( 'Entries never contain codes, passwords or API keys, and phone numbers and email addresses are shortened. They are kept in a file under wp-content/uploads/smart-login-logs/ (the latest 2 MB). Switching logging off only stops new entries; use "Clear log" to delete the old ones.', 'smart-login' ),
+						),
+					),
+				),
+				array(
+					'heading' => __( 'Recent entries', 'smart-login' ),
+					'fields'  => array(
+						array( 'type' => 'html', 'html' => $this->logs_viewer_html() ),
+					),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Table of recent log entries with a filter, refresh, download and clear.
+	 */
+	protected function logs_viewer_html() {
+		$t = array(
+			'all'      => __( 'All entries', 'smart-login' ),
+			'sms'      => __( 'SMS', 'smart-login' ),
+			'email'    => __( 'Email', 'smart-login' ),
+			'other'    => __( 'Other', 'smart-login' ),
+			'errors'   => __( 'Problems only', 'smart-login' ),
+			'refresh'  => __( 'Refresh', 'smart-login' ),
+			'download' => __( 'Download', 'smart-login' ),
+			'clear'    => __( 'Clear log', 'smart-login' ),
+			'confirm'  => __( 'Delete all log entries?', 'smart-login' ),
+			'empty'    => __( 'Nothing logged yet.', 'smart-login' ),
+			'time'     => __( 'Time (UTC)', 'smart-login' ),
+			'level'    => __( 'Level', 'smart-login' ),
+			'channel'  => __( 'Channel', 'smart-login' ),
+			'message'  => __( 'Message', 'smart-login' ),
+			'error'    => __( 'Problem', 'smart-login' ),
+			'info'     => __( 'OK', 'smart-login' ),
+			'failed'   => __( 'Could not load the log.', 'smart-login' ),
+		);
+
+		return '<div id="sml-logs" class="apx-row">'
+			. '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;">'
+			. '<select id="sml-logs-filter">'
+			. '<option value="">' . esc_html( $t['all'] ) . '</option>'
+			. '<option value="SMS">' . esc_html( $t['sms'] ) . '</option>'
+			. '<option value="Email">' . esc_html( $t['email'] ) . '</option>'
+			. '<option value="Other">' . esc_html( $t['other'] ) . '</option>'
+			. '<option value="errors">' . esc_html( $t['errors'] ) . '</option>'
+			. '</select>'
+			. '<button type="button" class="button" id="sml-logs-refresh">' . esc_html( $t['refresh'] ) . '</button>'
+			. '<button type="button" class="button" id="sml-logs-download">' . esc_html( $t['download'] ) . '</button>'
+			. '<button type="button" class="button" id="sml-logs-clear">' . esc_html( $t['clear'] ) . '</button>'
+			. '<span id="sml-logs-meta" style="font-size:12px;color:#7a7a85;"></span>'
+			. '</div>'
+			. '<div style="overflow:auto;max-height:520px;border:1px solid #dcdcde;border-radius:6px;">'
+			. '<table class="widefat striped" style="border:0;"><thead><tr>'
+			. '<th style="width:150px;">' . esc_html( $t['time'] ) . '</th>'
+			. '<th style="width:80px;">' . esc_html( $t['level'] ) . '</th>'
+			. '<th style="width:90px;">' . esc_html( $t['channel'] ) . '</th>'
+			. '<th>' . esc_html( $t['message'] ) . '</th>'
+			. '</tr></thead><tbody id="sml-logs-body"></tbody></table>'
+			. '</div>'
+			. '</div>'
+			. '<script>(function(){
+				var T = ' . wp_json_encode( $t ) . ';
+				var body = document.getElementById("sml-logs-body");
+				if (!body) { return; }
+				var filter = document.getElementById("sml-logs-filter");
+				var meta = document.getElementById("sml-logs-meta");
+				var last = [];
+				function rest(path, opts) {
+					opts = opts || {};
+					opts.credentials = "same-origin";
+					opts.headers = Object.assign({ "X-WP-Nonce": window.APX_UI.restNonce }, opts.headers || {});
+					return fetch(window.APX_UI.restUrl.replace(/\\/$/, "") + path, opts).then(function(r){ return r.json(); });
+				}
+				function query(limit) {
+					var v = filter.value, q = "?limit=" + limit;
+					if (v === "errors") { q += "&only=errors"; } else if (v) { q += "&channel=" + encodeURIComponent(v); }
+					return q;
+				}
+				function cell(text, style) {
+					var td = document.createElement("td");
+					td.textContent = text;
+					if (style) { td.setAttribute("style", style); }
+					return td;
+				}
+				function draw(entries) {
+					body.textContent = "";
+					if (!entries.length) {
+						var tr = document.createElement("tr");
+						var td = cell(T.empty); td.colSpan = 4; tr.appendChild(td); body.appendChild(tr);
+						return;
+					}
+					entries.forEach(function(e){
+						var tr = document.createElement("tr");
+						tr.appendChild(cell(e.time, "white-space:nowrap;"));
+						tr.appendChild(cell(e.level === "error" ? T.error : T.info, e.level === "error" ? "color:#d92d20;font-weight:600;" : "color:#12805c;"));
+						tr.appendChild(cell(e.channel || "—"));
+						tr.appendChild(cell(e.message, "word-break:break-word;"));
+						body.appendChild(tr);
+					});
+				}
+				function load() {
+					rest("/logs" + query(200)).then(function(d){
+						last = d.entries || [];
+						draw(last);
+						meta.textContent = (d.size ? Math.round(d.size / 1024) + " KB" : "0 KB");
+					}).catch(function(){ meta.textContent = T.failed; });
+				}
+				document.getElementById("sml-logs-refresh").addEventListener("click", load);
+				filter.addEventListener("change", load);
+				document.getElementById("sml-logs-clear").addEventListener("click", function(){
+					if (!window.confirm(T.confirm)) { return; }
+					rest("/logs/clear", { method: "POST" }).then(load);
+				});
+				document.getElementById("sml-logs-download").addEventListener("click", function(){
+					rest("/logs" + query(2000)).then(function(d){
+						var text = (d.entries || []).map(function(e){ return "[" + e.time + "] [" + e.level.toUpperCase() + "] [" + e.channel + "] " + e.message; }).join("\\n");
+						var a = document.createElement("a");
+						a.href = URL.createObjectURL(new Blob([text + "\\n"], { type: "text/plain" }));
+						a.download = "smart-login-log.txt";
+						document.body.appendChild(a); a.click(); a.remove();
+					});
+				});
+				document.addEventListener("click", function(e){
+					var tab = e.target.closest ? e.target.closest("[data-apx-tab=\\"logs\\"]") : null;
+					if (tab) { load(); }
+				});
+				if (location.hash === "#logs") { load(); }
+			})();</script>';
+	}
+
+	/**
+	 * @param WP_REST_Request $req
+	 * @return WP_REST_Response
+	 */
+	public function rest_logs( WP_REST_Request $req ) {
+		$limit   = max( 1, min( 2000, (int) $req->get_param( 'limit' ) ) );
+		$channel = sanitize_text_field( (string) $req->get_param( 'channel' ) );
+		$errors  = 'errors' === (string) $req->get_param( 'only' );
+
+		return rest_ensure_response(
+			array(
+				'level'   => SML_Log::level(),
+				'size'    => SML_Log::size(),
+				'entries' => SML_Log::read( $limit, $channel, $errors ),
+			)
+		);
+	}
+
+	/**
+	 * @return WP_REST_Response
+	 */
+	public function rest_logs_clear() {
+		SML_Log::clear();
+
+		return rest_ensure_response( array( 'cleared' => true ) );
+	}
+
 	protected function panel_verification() {
 		return array(
 			'title'    => __( 'Verification', 'smart-login' ),
@@ -649,7 +829,7 @@ class SML_Admin_Page extends APX_Admin_Page {
 	protected function panel_advanced() {
 		return array(
 			'title'    => __( 'Advanced', 'smart-login' ),
-			'desc'     => __( 'Uninstall behaviour and diagnostics.', 'smart-login' ),
+			'desc'     => __( 'Uninstall behaviour and settings import / export.', 'smart-login' ),
 			'sections' => array(
 				array(
 					'heading' => __( 'Danger zone', 'smart-login' ),
@@ -659,17 +839,6 @@ class SML_Admin_Page extends APX_Admin_Page {
 							'name'  => 'delete_data_on_uninstall',
 							'label' => __( 'Delete plugin data on uninstall', 'smart-login' ),
 							'desc'  => __( 'When on, deleting the plugin from Plugins → Installed Plugins permanently drops the verification table and settings. This cannot be undone.', 'smart-login' ),
-						),
-					),
-				),
-				array(
-					'heading' => __( 'Diagnostics', 'smart-login' ),
-					'fields'  => array(
-						array(
-							'type'  => 'toggle',
-							'name'  => 'enable_debug_log',
-							'label' => __( 'Enable debug log', 'smart-login' ),
-							'desc'  => __( 'Writes to wp-content/uploads/smart-login-logs/. Codes and secrets are never written in plaintext.', 'smart-login' ),
 						),
 					),
 				),
@@ -2185,6 +2354,26 @@ class SML_Admin_Page extends APX_Admin_Page {
 
 	public function register_rest() {
 		parent::register_rest();
+
+		register_rest_route(
+			$this->cfg['rest_ns'],
+			'/logs',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'rest_logs' ),
+				'permission_callback' => array( $this, 'rest_permission' ),
+			)
+		);
+
+		register_rest_route(
+			$this->cfg['rest_ns'],
+			'/logs/clear',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'rest_logs_clear' ),
+				'permission_callback' => array( $this, 'rest_permission' ),
+			)
+		);
 
 		register_rest_route(
 			$this->cfg['rest_ns'],
