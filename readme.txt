@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.35.0
+Stable tag: 1.36.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -68,6 +68,12 @@ After changing any caching configuration, purge the cache and test in a private/
 
 == Changelog ==
 
+= 1.36.0 =
+* Added: IPPanel as a web-service SMS gateway (Settings → SMS gateway → "IPPanel (web service)"). Smart Login sends the text you write, through `POST https://edge.ippanel.com/v1/api/send` with your API token as the Authorization header, from your sender line (for example +983000505), to the number in international form. The gateway's own error message is shown on the test box and kept for the log. The IPPanel and Arvan servers may only answer requests coming from Iranian addresses, so the site's hosting needs to reach them.
+* Added: the SMS settings now live in their own "SMS gateway" screen and open up only while Iran is an allowed country (General → Allowed countries, or "Iranian registration"). Until then the screen says how to enable it, and SMS verification stays off.
+* Added: the verification message text is editable. Placeholders: `{code}` (or `%code%`), `{site}`, `{site_name}` and `{expiry_minutes}`; a separate optional text can be set for password-reset codes. The default is "Verification code / Code: {code} / {site}", with a live preview under the field. The text is plain (markup is removed), limited to what one SMS carries, and the code is appended if the placeholder is missing. The code itself is a random number of the configured length (6 by default); the test box now sends a fresh random code instead of a fixed one.
+* Added: a "Site address for messages" field fills `{site}` (for example example.com); empty uses this site's own address.
+* Changed: gateways that only reach Iran (IPPanel, FarazSMS, Melipayamak) are no longer asked to text a number from another country. Such a visitor verifies by email instead, and is asked for one at registration when it is the only way.
 = 1.35.0 =
 * Added: two extension points so other plugins can show their own sign-in messages, with no dependency on any particular plugin.
 * Added: the `sml_login_passthrough_error` filter (`false`, the `WP_Error` from `wp_signon()`). Return `true` and the login form shows that error's text — HTML removed — plus the first link in it as a real link, instead of "Incorrect username/email or password.", and the attempt is not counted towards the failed-login lockout. Passed-through errors are also not retried with a converted password.

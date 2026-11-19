@@ -71,7 +71,9 @@ class SML_Verification {
 	 * @return string 'sms'|'email'
 	 */
 	public static function channel_for( $user_id ) {
-		return ( 'mobile' === self::method() && '' !== self::user_e164( $user_id ) ) ? 'sms' : 'email';
+		$e164 = self::user_e164( $user_id );
+
+		return ( 'mobile' === self::method() && '' !== $e164 && SML_SMS::can_send_to( $e164 ) ) ? 'sms' : 'email';
 	}
 
 	/**

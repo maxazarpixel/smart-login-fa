@@ -81,7 +81,7 @@ class SML_Password_Reset_Handler {
 
 				// A failed send is logged by SML_SMS; the visitor still gets the
 				// uniform answer below so the response reveals nothing.
-				$sent = SML_SMS::send_code( $e164, $code, true, (string) SML_Settings::get( 'sms_reset_template' ) );
+				$sent = SML_SMS::send_code( $e164, $code, true, (string) SML_Settings::get( 'sms_reset_template' ), 'reset' );
 				if ( is_wp_error( $sent ) ) {
 					delete_user_meta( $user->ID, self::SMS_META );
 				}

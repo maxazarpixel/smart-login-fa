@@ -124,6 +124,12 @@ class SML_Registration_Handler {
 		$phone_e164 = '+' . preg_replace( '/\D/', '', $phone_dial ) . preg_replace( '/^0/', '', $phone_number );
 
 		if ( $mobile_mode ) {
+			// The gateways are Iranian: a number from elsewhere cannot get a code
+			// by SMS, so that visitor verifies by email instead.
+			if ( ! $email_given && ! SML_SMS::can_send_to( $phone_e164 ) ) {
+				wp_send_json_error( array( 'message' => __( 'SMS verification is only available for Iranian mobile numbers. Please enter an email address instead.', 'smart-login' ) ) );
+			}
+
 			// Only a *verified* owner blocks the number: otherwise anyone could
 			// register a stranger's number and lock them out of signing up.
 			$owners = get_users(

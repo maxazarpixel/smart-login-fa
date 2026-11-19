@@ -38,6 +38,7 @@ class SML_Admin_Page extends APX_Admin_Page {
 					array( 'key' => 'general', 'label' => __( 'General', 'smart-login' ), 'icon' => 'gear' ),
 					array( 'key' => 'social', 'label' => __( 'Social Login', 'smart-login' ), 'icon' => 'key' ),
 					array( 'key' => 'verification', 'label' => __( 'Verification', 'smart-login' ), 'icon' => 'check' ),
+					array( 'key' => 'sms', 'label' => __( 'SMS gateway', 'smart-login' ), 'icon' => 'cloud' ),
 					array( 'key' => 'security', 'label' => __( 'Security', 'smart-login' ), 'icon' => 'lock' ),
 					array( 'key' => 'emails', 'label' => __( 'Emails', 'smart-login' ), 'icon' => 'cloud' ),
 				),
@@ -56,6 +57,7 @@ class SML_Admin_Page extends APX_Admin_Page {
 			'general'      => $this->panel_general(),
 			'social'       => $this->panel_social(),
 			'verification' => $this->panel_verification(),
+			'sms'          => $this->panel_sms(),
 			'security'     => $this->panel_security(),
 			'emails'       => $this->panel_emails(),
 		);
@@ -371,6 +373,65 @@ class SML_Admin_Page extends APX_Admin_Page {
 			} )();</script>';
 	}
 
+	/**
+	 * SMS gateway settings. The gateways are Iranian services, so the fields
+	 * only appear once Iran is an allowed country; until then a note says how
+	 * to get there.
+	 */
+	protected function panel_sms() {
+		$panel = array(
+			'title'    => __( 'SMS gateway', 'smart-login' ),
+			'desc'     => __( 'Sends verification and password-reset codes by SMS to Iranian mobile numbers.', 'smart-login' ),
+			'sections' => array(),
+		);
+
+		if ( ! SML_SMS::iran_allowed() ) {
+			$panel['sections'][] = array(
+				'heading' => __( 'SMS gateway', 'smart-login' ),
+				'fields'  => array(
+					array(
+						'type' => 'html',
+						'html' => '<div class="apx-row"><p class="description" style="max-width:640px;">'
+							. esc_html__( 'SMS gateways are used for Iranian mobile numbers. Allow Iran under General → "Allowed countries for registration" (or switch on "Iranian registration") and this section opens up.', 'smart-login' )
+							. '</p></div>',
+					),
+				),
+			);
+
+			return $panel;
+		}
+
+		$all      = implode( ',', array_diff( array_keys( SML_SMS::providers() ), array( 'none' ) ) );
+		$patterns = 'kavenegar,farazsms,ippanel,melipayamak';
+
+		$panel['sections'][] = array(
+			'heading' => __( 'Gateway', 'smart-login' ),
+			'desc'    => __( 'Choose your SMS provider and enter its credentials, then use the test box to check them. Codes only go to numbers the gateway can reach: Iranian (+98) ones.', 'smart-login' ),
+			'fields'  => array(
+				array(
+					'type'       => 'select',
+					'name'       => 'sms_provider',
+					'label'      => __( 'SMS gateway', 'smart-login' ),
+					'options'    => SML_SMS::providers(),
+					'dep_master' => 'smsprov',
+				),
+				array( 'type' => 'text', 'name' => 'sms_site', 'label' => __( 'Site address for messages', 'smart-login' ), 'desc' => __( 'Printed wherever a message uses {site}, for example example.com. Leave empty to use this site\'s own address.', 'smart-login' ), 'dep' => 'smsprov', 'dep_value' => $all ),
+				array( 'type' => 'text', 'name' => 'sms_username', 'label' => __( 'Username', 'smart-login' ), 'desc' => __( 'Melipayamak only.', 'smart-login' ), 'dep' => 'smsprov', 'dep_value' => 'melipayamak' ),
+				array( 'type' => 'password', 'name' => 'sms_api_key', 'label' => __( 'API key', 'smart-login' ), 'secret' => true, 'desc' => __( 'IPPanel: the API token (sent as the Authorization header). For Melipayamak this is the account password or API key. Stored with autoload disabled and never rendered back in plaintext. Leave blank to keep the current value.', 'smart-login' ), 'dep' => 'smsprov', 'dep_value' => $all ),
+				array( 'type' => 'text', 'name' => 'sms_sender', 'label' => __( 'Sender line number', 'smart-login' ), 'desc' => __( 'The line your messages are sent from. For the IPPanel web service use the international form, for example +983000505.', 'smart-login' ), 'dep' => 'smsprov', 'dep_value' => 'ippanel_ws,farazsms,ippanel' ),
+				array( 'type' => 'textarea', 'name' => 'sms_message', 'label' => __( 'Verification message text', 'smart-login' ), 'desc' => __( 'The text of the sign-up and login code message. Placeholders: {code} (or %code%), {site}, {site_name}, {expiry_minutes}. Plain text only; keep it short and leave out links. The code is a random number of the length set under Verification → Code length (6 by default). If the placeholder is missing the code is added at the end.', 'smart-login' ), 'dep' => 'smsprov', 'dep_value' => 'ippanel_ws' ),
+				array( 'type' => 'textarea', 'name' => 'sms_reset_message', 'label' => __( 'Password-reset message text', 'smart-login' ), 'desc' => __( 'Optional. The text of the password-reset code message; leave empty to use the verification message above.', 'smart-login' ), 'dep' => 'smsprov', 'dep_value' => 'ippanel_ws' ),
+				array( 'type' => 'html', 'html' => $this->sms_preview_html() ),
+				array( 'type' => 'text', 'name' => 'sms_template', 'label' => __( 'Template / pattern code', 'smart-login' ), 'desc' => __( 'Kavenegar: the verification template name. FarazSMS and IPPanel (legacy): the pattern code. Melipayamak: the bodyId of the approved template.', 'smart-login' ), 'dep' => 'smsprov', 'dep_value' => $patterns ),
+				array( 'type' => 'text', 'name' => 'sms_reset_template', 'label' => __( 'Password-reset template / pattern code', 'smart-login' ), 'desc' => __( 'Optional. A separate approved template for password-reset codes; leave empty to reuse the verification template above.', 'smart-login' ), 'dep' => 'smsprov', 'dep_value' => $patterns ),
+				array( 'type' => 'text', 'name' => 'sms_code_variable', 'label' => __( 'Code variable name', 'smart-login' ), 'desc' => __( 'FarazSMS and IPPanel (legacy): the variable in your pattern that receives the code, for example code.', 'smart-login' ), 'dep' => 'smsprov', 'dep_value' => 'farazsms,ippanel' ),
+				array( 'type' => 'html', 'html' => $this->test_sms_html() ),
+			),
+		);
+
+		return $panel;
+	}
+
 	protected function panel_verification() {
 		return array(
 			'title'    => __( 'Verification', 'smart-login' ),
@@ -378,13 +439,12 @@ class SML_Admin_Page extends APX_Admin_Page {
 			'sections' => array(
 				array(
 					'heading' => __( 'Verification method', 'smart-login' ),
-					'desc'    => __( 'Choose what new accounts must prove they own — or nothing at all. Mobile verification needs the SMS gateway below; until it is fully set up the site keeps verifying by email, so nobody is locked out of registering. Accounts created with Google sign-in are verified by Google and are never sent an SMS.', 'smart-login' ),
+					'desc'    => __( 'Choose what new accounts must prove they own — or nothing at all. Mobile verification needs an SMS gateway (Settings → SMS gateway); until it is fully set up the site keeps verifying by email, so nobody is locked out of registering. Accounts created with Google sign-in are verified by Google and are never sent an SMS.', 'smart-login' ),
 					'fields'  => array(
 						array(
 							'type'       => 'select',
 							'name'       => 'verification_method',
 							'label'      => __( 'Verify accounts by', 'smart-login' ),
-							'dep_master' => 'vmethod',
 							'options'    => array(
 								'none'   => __( 'No verification (signed in right away)', 'smart-login' ),
 								'email'  => __( 'Email (code and link)', 'smart-login' ),
@@ -392,27 +452,6 @@ class SML_Admin_Page extends APX_Admin_Page {
 							),
 							'desc'       => __( 'With no verification a new account is signed in as soon as it is created and nothing is sent. With mobile verification the email field on the registration form becomes optional, and a password-reset link no longer counts as verification.', 'smart-login' ),
 						),
-					),
-				),
-				array(
-					'heading' => __( 'SMS gateway', 'smart-login' ),
-					'desc'    => __( 'Used when accounts are verified by mobile number. Create an approved verification template at your gateway whose text contains the code placeholder — Smart Login only sends the code.', 'smart-login' ),
-					'fields'  => array(
-						array(
-							'type'      => 'select',
-							'name'      => 'sms_provider',
-							'label'     => __( 'SMS gateway', 'smart-login' ),
-							'options'   => SML_SMS::providers(),
-							'dep'       => 'vmethod',
-							'dep_value' => 'mobile',
-						),
-						array( 'type' => 'text', 'name' => 'sms_username', 'label' => __( 'Username', 'smart-login' ), 'desc' => __( 'Melipayamak only.', 'smart-login' ), 'dep' => 'vmethod', 'dep_value' => 'mobile' ),
-						array( 'type' => 'password', 'name' => 'sms_api_key', 'label' => __( 'API key', 'smart-login' ), 'secret' => true, 'desc' => __( 'For Melipayamak this is the account password or API key. Stored with autoload disabled and never rendered back in plaintext. Leave blank to keep the current value.', 'smart-login' ), 'dep' => 'vmethod', 'dep_value' => 'mobile' ),
-						array( 'type' => 'text', 'name' => 'sms_sender', 'label' => __( 'Sender line number', 'smart-login' ), 'desc' => __( 'FarazSMS and IPPanel only.', 'smart-login' ), 'dep' => 'vmethod', 'dep_value' => 'mobile' ),
-						array( 'type' => 'text', 'name' => 'sms_template', 'label' => __( 'Template / pattern code', 'smart-login' ), 'desc' => __( 'Kavenegar: the verification template name. FarazSMS and IPPanel: the pattern code. Melipayamak: the bodyId of the approved template.', 'smart-login' ), 'dep' => 'vmethod', 'dep_value' => 'mobile' ),
-						array( 'type' => 'text', 'name' => 'sms_reset_template', 'label' => __( 'Password-reset template / pattern code', 'smart-login' ), 'desc' => __( 'Optional. A separate approved template for password-reset codes; leave empty to reuse the verification template above.', 'smart-login' ), 'dep' => 'vmethod', 'dep_value' => 'mobile' ),
-						array( 'type' => 'text', 'name' => 'sms_code_variable', 'label' => __( 'Code variable name', 'smart-login' ), 'desc' => __( 'FarazSMS and IPPanel only: the variable in your pattern that receives the code, for example code.', 'smart-login' ), 'dep' => 'vmethod', 'dep_value' => 'mobile' ),
-						array( 'type' => 'html', 'html' => $this->test_sms_html() ),
 					),
 				),
 				array(
@@ -625,6 +664,27 @@ class SML_Admin_Page extends APX_Admin_Page {
 				),
 			),
 		);
+	}
+
+	/**
+	 * data-apx-dep attributes for a field row, so the settings screen can show
+	 * the field only while its master (a toggle or a select) is on / has one
+	 * of the listed values.
+	 *
+	 * @param array $f Field config.
+	 * @return string
+	 */
+	protected static function dep_attrs( array $f ) {
+		if ( empty( $f['dep'] ) ) {
+			return '';
+		}
+
+		$out = ' data-apx-dep="' . esc_attr( $f['dep'] ) . '"';
+		if ( ! empty( $f['dep_value'] ) ) {
+			$out .= ' data-apx-dep-value="' . esc_attr( $f['dep_value'] ) . '"';
+		}
+
+		return $out;
 	}
 
 	/**
@@ -1714,11 +1774,46 @@ class SML_Admin_Page extends APX_Admin_Page {
 	 * the site's mailer (e.g. WP Mail SMTP) or server, not this plugin.
 	 */
 	/**
+	 * Live preview of the verification message with a sample code, so the
+	 * wording (and where {site} lands) can be judged before saving.
+	 */
+	protected function sms_preview_html() {
+		$default_site = (string) wp_parse_url( home_url(), PHP_URL_HOST );
+
+		return '<div class="apx-row" data-apx-dep="smsprov" data-apx-dep-value="ippanel_ws">'
+			. '<label>' . esc_html__( 'Preview', 'smart-login' ) . '</label>'
+			. '<pre id="sml-sms-preview" dir="auto" style="white-space:pre-wrap;margin:6px 0;padding:10px 12px;max-width:640px;background:#f6f7f7;border:1px solid #dcdcde;border-radius:6px;font:inherit;"></pre>'
+			. '<p class="description">' . esc_html__( 'Shown with a sample code. Real codes are random.', 'smart-login' ) . '</p>'
+			. '</div>'
+			. '<script>(function(){
+				var out = document.getElementById("sml-sms-preview");
+				if (!out) { return; }
+				var fallbackSite = ' . wp_json_encode( $default_site ) . ';
+				var minutes = ' . (int) SML_Settings::get( 'code_expiry_minutes', 10 ) . ';
+				function field(n){ return document.querySelector("[name=\"" + n + "\"]"); }
+				function render(){
+					var t = field("sms_message") ? field("sms_message").value : "";
+					t = t.replace(/<[^>]*>/g, "").replace(/\r\n?/g, "\n").slice(0, 280);
+					if (t.indexOf("{code}") === -1 && t.indexOf("%code%") === -1) { t += "\n{code}"; }
+					var site = field("sms_site") ? field("sms_site").value.trim() : "";
+					site = (site || fallbackSite).replace(/^https?:\/\//i, "").replace(/\/+$/, "");
+					out.textContent = t.split("{code}").join("123456").split("%code%").join("123456")
+						.split("{site}").join(site).split("{site_name}").join(document.title.split(" ‹ ")[0])
+						.split("{expiry_minutes}").join(String(minutes));
+				}
+				document.addEventListener("input", function(e){
+					if (e.target && /^sms_(message|site)$/.test(e.target.name || "")) { render(); }
+				});
+				render();
+			})();</script>';
+	}
+
+	/**
 	 * Phone box + button that sends a sample code through the saved SMS
 	 * settings (save first — the test reads the stored values).
 	 */
 	protected function test_sms_html() {
-		return '<div class="apx-row" data-apx-dep="vmethod" data-apx-dep-value="mobile">'
+		return '<div class="apx-row" data-apx-dep="smsprov" data-apx-dep-value="' . esc_attr( implode( ',', array_diff( array_keys( SML_SMS::providers() ), array( 'none' ) ) ) ) . '">'
 			. '<label>' . esc_html__( 'Test SMS', 'smart-login' ) . '</label>'
 			. '<input type="text" id="sml-test-sms-number" dir="ltr" placeholder="09123456789" style="max-width:200px;"> '
 			. '<button type="button" class="button button-secondary" id="sml-test-sms-btn">' . esc_html__( 'Send test SMS', 'smart-login' ) . '</button> '
@@ -1789,7 +1884,10 @@ class SML_Admin_Page extends APX_Admin_Page {
 			);
 		}
 
-		$result = SML_SMS::send_code( $e164, '12345', false );
+		// A fresh random code of the configured length, never a fixed one.
+		$length = max( 4, min( 8, (int) SML_Settings::get( 'code_length', 6 ) ) );
+		$sample = str_pad( (string) random_int( 0, (int) ( 10 ** $length ) - 1 ), $length, '0', STR_PAD_LEFT );
+		$result = SML_SMS::send_code( $e164, $sample, false );
 
 		if ( is_wp_error( $result ) ) {
 			$data   = $result->get_error_data();
@@ -2128,7 +2226,7 @@ class SML_Admin_Page extends APX_Admin_Page {
 		if ( 'textarea' === $f['type'] ) {
 			$name = $f['name'];
 			$val  = isset( $s[ $name ] ) ? $s[ $name ] : '';
-			echo '<div class="apx-field-row">';
+			echo '<div class="apx-field-row"' . self::dep_attrs( $f ) . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			printf( '<label for="%1$s"><strong>%2$s</strong></label>', esc_attr( $name ), esc_html( $f['label'] ) );
 			if ( $f['desc'] ) {
 				echo '<p class="description">' . wp_kses_post( $f['desc'] ) . '</p>'; // phpcs:ignore
@@ -2250,11 +2348,7 @@ class SML_Admin_Page extends APX_Admin_Page {
 			$name    = $f['name'];
 			$hasval  = '' !== (string) ( isset( $s[ $name ] ) ? $s[ $name ] : '' );
 			$display = $hasval ? self::SECRET_PLACEHOLDER : '';
-			$dep = ! empty( $f['dep'] ) ? ' data-apx-dep="' . esc_attr( $f['dep'] ) . '"' : '';
-			if ( $dep && ! empty( $f['dep_value'] ) ) {
-				$dep .= ' data-apx-dep-value="' . esc_attr( $f['dep_value'] ) . '"';
-			}
-			echo '<div class="apx-row"' . $dep . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo '<div class="apx-row"' . self::dep_attrs( $f ) . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			printf( '<label for="%1$s">%2$s</label>', esc_attr( $name ), esc_html( $f['label'] ) );
 			printf(
 				'<input type="password" id="%1$s" name="%1$s" value="%2$s" autocomplete="new-password" placeholder="%3$s" style="min-width:340px" data-apx-field data-apx-secret="1">',
