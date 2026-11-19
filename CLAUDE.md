@@ -54,8 +54,20 @@ Two machines/sessions work on this project. To stay in sync:
 
 ## Build / packaging
 
-- Do **not** create a zip file after developing the plugin.
+- Do **not** create a zip file after developing the plugin, unless asked. The zip
+  that users download is built by GitHub, not locally (see Releases).
 - Keep to the standard WordPress plugin file layout already in place.
+
+## Releases (GitHub)
+
+The latest version must always be in the repository's **Releases** section.
+After the commit that bumps the version is pushed to `main`:
+
+1. Tag it: `git tag v<version>` (the tag must equal the plugin header `Version:`).
+2. Push the tag: `git push origin v<version>`.
+3. `.github/workflows/release.yml` then builds `smart-login-fa-<version>.zip` (folder
+   `smart-login-fa`) and publishes the Release with that version's changelog entry
+   from `readme.txt`. Check the Actions tab if the Release does not appear.
 
 ## Auth note
 

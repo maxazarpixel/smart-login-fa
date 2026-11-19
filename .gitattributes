@@ -11,3 +11,4 @@
 
 # Compiled translation catalogues are binary
 *.mo binary
+/.github        export-ignore

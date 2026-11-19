@@ -1,0 +1,48 @@
+name: Release
+
+# Pushing a tag such as v1.37.0 publishes a GitHub Release with the plugin zip
+# and that version's changelog entry from readme.txt.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the tag matches the plugin version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          HEADER="$(grep -m1 -E '^\s*\*\s*Version:' smart-login.php | sed -E 's/.*Version:[[:space:]]*//' | tr -d '[:space:]')"
+          if [ "$VERSION" != "$HEADER" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match the plugin header version $HEADER"
+            exit 1
+          fi
+
+      - name: Build the zip
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          # .gitattributes export-ignore keeps development files out of the zip
+          git archive --format=zip --prefix=smart-login-fa/ -o "smart-login-fa-${VERSION}.zip" "$GITHUB_REF_NAME"
+
+      - name: Release notes from readme.txt
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          awk -v v="= ${VERSION} =" '$0 == v { found = 1; next } /^= / { if (found) exit } found' readme.txt > notes.md
+          if [ ! -s notes.md ]; then echo "Smart Login FA ${VERSION}" > notes.md; fi
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          gh release create "$GITHUB_REF_NAME" "smart-login-fa-${VERSION}.zip" \
+            --title "Smart Login FA ${VERSION}" \
+            --notes-file notes.md \
+            --latest
