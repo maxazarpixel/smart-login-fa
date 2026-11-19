@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.36.0
+Stable tag: 1.37.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -68,6 +68,13 @@ After changing any caching configuration, purge the cache and test in a private/
 
 == Changelog ==
 
+= 1.37.0 =
+* Added: Settings → General → "Sign-in method": sign in with email and mobile number (two tabs, as before), with email only, or with a mobile number only. The form shows only what is chosen, and a request for the other method is refused on the server too.
+* Added: the detail that is not used to sign in becomes optional on the registration form — with mobile-only sign-in the email is optional (an empty one gets an internal address that is never mailed), with email-only sign-in the mobile number is optional — unless verification needs it: email verification needs an email address and SMS verification needs a mobile number.
+* Added: when only one country is allowed, the form has no country selector; its code (+98 for Iran) is shown as fixed text and filled in automatically, on registration and on the login mobile tab.
+* Added: a mobile number is read the same however it is written. +98 912…, 0098 912…, 98912…, 0912…, 912… and Persian digits all become the same number, in the box as it is typed and again on the server.
+* Changed: a mobile number with no matching account is now a plain failed sign-in; it no longer passes a made-up username to WordPress's sign-in hooks that other plugins (for example Smart CopyGuard) listen to, and it takes the same time to answer as a wrong password, so the response does not reveal whether a number is registered.
+* Changed: password reset follows the sign-in method — mobile-only sign-in asks for a mobile number, email-only sign-in asks for an email.
 = 1.36.0 =
 * Added: IPPanel as a web-service SMS gateway (Settings → SMS gateway → "IPPanel (web service)"). Smart Login sends the text you write, through `POST https://edge.ippanel.com/v1/api/send` with your API token as the Authorization header, from your sender line (for example +983000505), to the number in international form. The gateway's own error message is shown on the test box and kept for the log. The IPPanel and Arvan servers may only answer requests coming from Iranian addresses, so the site's hosting needs to reach them.
 * Added: the SMS settings now live in their own "SMS gateway" screen and open up only while Iran is an allowed country (General → Allowed countries, or "Iranian registration"). Until then the screen says how to enable it, and SMS verification stays off.

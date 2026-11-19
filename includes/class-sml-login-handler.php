@@ -56,6 +56,15 @@ class SML_Login_Handler {
 		check_ajax_referer( self::NONCE_ACTION, 'nonce' );
 
 		$mobile_tab = isset( $_POST['login_mode'] ) && 'mobile' === sanitize_key( wp_unslash( $_POST['login_mode'] ) );
+
+		// The form only offers the chosen method; a request for the other one
+		// is refused here too.
+		if ( $mobile_tab && ! SML_Settings::login_allows_mobile() ) {
+			wp_send_json_error( array( 'message' => __( 'Please enter your username/email and password.', 'smart-login' ) ) );
+		}
+		if ( ! $mobile_tab && ! SML_Settings::login_allows_email() ) {
+			wp_send_json_error( array( 'message' => __( 'Please sign in with your mobile number and password.', 'smart-login' ) ) );
+		}
 		$username   = isset( $_POST['username'] ) ? sanitize_text_field( wp_unslash( $_POST['username'] ) ) : '';
 		$password   = isset( $_POST['password'] ) ? (string) wp_unslash( $_POST['password'] ) : '';
 		$e164       = '';
@@ -64,6 +73,9 @@ class SML_Login_Handler {
 			// "Mobile number" tab: country code + national number, as on the
 			// registration form. The leading zero is dropped for the lookup.
 			$country_id = isset( $_POST['phone_country'] ) ? sanitize_key( wp_unslash( $_POST['phone_country'] ) ) : '';
+			if ( '' === $country_id ) {
+				$country_id = SML_Countries::single();
+			}
 			$typed      = isset( $_POST['phone_number'] ) ? sanitize_text_field( wp_unslash( $_POST['phone_number'] ) ) : '';
 			$countries  = SML_Countries::all();
 
@@ -78,9 +90,9 @@ class SML_Login_Handler {
 			if ( 0 === strpos( $e164, '+98' ) && 1 !== preg_match( '/^\+989\d{9}$/', $e164 ) ) {
 				wp_send_json_error( array( 'message' => SML_Phone::iranian_mobile_error( $typed ) ) );
 			}
-			// Nothing real can be signed in with this; it only lets the normal
-			// failure path (and lockout) run with the same generic message.
-			$username = '' !== $e164 ? $e164 : 'sml-no-such-user';
+			// Only used for the lockout key below; the sign-in itself goes by the
+			// account found for this number, never by this string.
+			$username = $e164;
 		} else {
 			// An email address typed with Persian digits is stored with ASCII
 			// ones, so look it up that way. (Plain usernames are left as typed.)
@@ -101,10 +113,11 @@ class SML_Login_Handler {
 		// A mobile number can stand in for the username. Lockout counts by the
 		// normalised number, so 0912…, +98912… and Persian digits share one
 		// counter instead of each format getting its own attempts.
-		if ( ! $mobile_tab ) {
+		if ( ! $mobile_tab && SML_Settings::login_allows_mobile() ) {
 			$e164 = SML_Phone::parse_e164( $username );
 		}
 		$lock_key = '' !== $e164 ? $e164 : $username;
+		$matched = '';
 		if ( '' !== $e164 ) {
 			// Accounts made by older versions have no E.164 copy yet.
 			SML_Phone::maybe_backfill_e164();
@@ -115,26 +128,35 @@ class SML_Login_Handler {
 			}
 		}
 
+		// A mobile number that matches no account (or whose password is wrong)
+		// is a plain failure. wp_signon() is not called for it, so other
+		// plugins' sign-in hooks never see a made-up username.
+		$no_account = $mobile_tab && '' === $matched;
+
 		$lock_check = SML_Lockout::check( $lock_key );
 		if ( is_wp_error( $lock_check ) ) {
 			wp_send_json_error( array( 'message' => $lock_check->get_error_message() ) );
 		}
 
-		$user = wp_signon(
-			array(
-				'user_login'    => $username,
-				'user_password' => $password,
-				'remember'      => true,
-			),
-			is_ssl()
-		);
+		if ( $no_account ) {
+			$user = new WP_Error( 'sml_no_account', 'No account matches this number and password.' );
+		} else {
+			$user = wp_signon(
+				array(
+					'user_login'    => $username,
+					'user_password' => $password,
+					'remember'      => true,
+				),
+				is_ssl()
+			);
+		}
 
 		// Passwords are stored with ASCII digits (see registration and reset),
 		// so a password typed with Persian digits is retried converted. The
 		// as-typed attempt goes first so older passwords that really contain
 		// Persian digits keep working.
 		$passthrough = false;
-		if ( is_wp_error( $user ) ) {
+		if ( is_wp_error( $user ) && ! $no_account ) {
 			$passthrough = self::is_passthrough_error( $user );
 
 			// A passed-through error is not a wrong password, so there is

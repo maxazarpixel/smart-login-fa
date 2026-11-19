@@ -778,3 +778,14 @@
 	font-weight: 600;
 	text-decoration: underline;
 }
+
+/* The fixed country code shown instead of a selector (single allowed country) */
+.sml-card .sml-phone-dial {
+	flex: 0 0 auto;
+	padding: 0 6px 0 2px;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 19px;
+	white-space: nowrap;
+	color: var(--sml-fg);
+}

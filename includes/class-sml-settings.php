@@ -32,6 +32,7 @@ class SML_Settings {
 			'disposable_email_domains' => implode( "\n", SML_Disposable_Email::default_domains() ),
 			'allowed_login_roles'      => '',
 			'convert_digits_sitewide'  => 1,
+			'login_identifier'         => 'both',
 			'enable_iran_fields'       => 0,
 			'iran_national_id_required' => 1,
 
@@ -119,6 +120,27 @@ class SML_Settings {
 	public static function get( $key, $fallback = '' ) {
 		$all = self::all();
 		return array_key_exists( $key, $all ) ? $all[ $key ] : $fallback;
+	}
+
+	/**
+	 * What the Smart Login form signs visitors in with.
+	 *
+	 * @return string 'both'|'email'|'mobile'
+	 */
+	public static function login_identifier() {
+		$value = (string) self::get( 'login_identifier', 'both' );
+
+		return in_array( $value, array( 'email', 'mobile' ), true ) ? $value : 'both';
+	}
+
+	/** @return bool Whether an email address / username can be used to sign in. */
+	public static function login_allows_email() {
+		return 'mobile' !== self::login_identifier();
+	}
+
+	/** @return bool Whether a mobile number can be used to sign in. */
+	public static function login_allows_mobile() {
+		return 'email' !== self::login_identifier();
 	}
 
 	/**

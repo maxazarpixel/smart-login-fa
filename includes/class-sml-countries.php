@@ -300,6 +300,18 @@ class SML_Countries {
 	}
 
 	/**
+	 * The only allowed country, when exactly one is — the form then has no
+	 * country selector and its code is filled in for the visitor.
+	 *
+	 * @return string Country id, or '' when there are several.
+	 */
+	public static function single() {
+		$ids = self::allowed_ids();
+
+		return 1 === count( $ids ) ? (string) reset( $ids ) : '';
+	}
+
+	/**
 	 * @param string $id
 	 * @return bool
 	 */

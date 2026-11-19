@@ -63,19 +63,53 @@ class SML_Phone {
 	 * @param string $digits Digits typed, ASCII.
 	 * @return string '' when nothing usable was typed.
 	 */
-	public static function e164_for( $dial, $digits ) {
-		$dial   = preg_replace( '/\D/', '', (string) $dial );
-		$digits = preg_replace( '/\D/', '', SML_Iran::to_latin_digits( (string) $digits ) );
+	public static function e164_for( $dial, $typed ) {
+		$dial_digits = preg_replace( '/\D/', '', (string) $dial );
+		$digits      = self::national_digits( $dial, $typed );
 
-		if ( '' === $dial || '' === $digits ) {
+		if ( '' === $dial_digits || '' === $digits ) {
 			return '';
 		}
 
-		if ( '98' === $dial ) {
-			$digits = preg_replace( '/^(?:0098|98)(?=9\d{9}$)/', '', $digits );
+		return '+' . $dial_digits . preg_replace( '/^0/', '', $digits );
+	}
+
+	/**
+	 * The national number out of whatever was typed: Persian digits become
+	 * ASCII, and the country code is dropped when the visitor included it —
+	 * +98 912…, 0098 912…, or (for Iran) 98912… — so +98, 0912… and 912… all
+	 * end up as the same number. The trunk 0 is handled by the caller.
+	 *
+	 * @param string $dial  Dial code of the selected country, e.g. +98.
+	 * @param string $typed What was typed into the number box.
+	 * @return string Digits only.
+	 */
+	public static function national_digits( $dial, $typed ) {
+		$dial   = preg_replace( '/\D/', '', (string) $dial );
+		$raw    = SML_Iran::to_latin_digits( trim( (string) $typed ) );
+		$digits = preg_replace( '/\D/', '', $raw );
+
+		if ( '' === $digits ) {
+			return '';
 		}
 
-		return '+' . $dial . preg_replace( '/^0/', '', $digits );
+		$explicit = false;
+		if ( 1 === preg_match( '/^\s*\+/', $raw ) ) {
+			$explicit = true;
+		} elseif ( 1 === preg_match( '/^\s*00/', $raw ) ) {
+			$explicit = true;
+			$digits   = substr( $digits, 2 );
+		}
+
+		if ( '' !== $dial ) {
+			if ( $explicit && 0 === strpos( $digits, $dial ) ) {
+				$digits = substr( $digits, strlen( $dial ) );
+			} elseif ( '98' === $dial && strlen( $digits ) >= 12 && 0 === strpos( $digits, '98' ) ) {
+				$digits = substr( $digits, 2 );
+			}
+		}
+
+		return $digits;
 	}
 
 	/**
@@ -213,7 +247,21 @@ class SML_Phone {
 	 * @return string user_login, or '' when none matches.
 	 */
 	public static function login_for( $e164, $password ) {
-		foreach ( self::users_for( $e164 ) as $user ) {
+		$users = self::users_for( $e164 );
+
+		if ( ! $users ) {
+			// Spend the time a real password check costs, so a number with no
+			// account answers no faster than one with a wrong password.
+			static $dummy = '';
+			if ( '' === $dummy ) {
+				$dummy = wp_hash_password( 'smart-login-dummy' );
+			}
+			wp_check_password( (string) $password, $dummy );
+
+			return '';
+		}
+
+		foreach ( $users as $user ) {
 			if ( wp_check_password( $password, $user->user_pass, $user->ID )
 				|| wp_check_password( SML_Iran::to_latin_digits( $password ), $user->user_pass, $user->ID ) ) {
 				return $user->user_login;

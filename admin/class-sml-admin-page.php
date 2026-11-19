@@ -137,6 +137,23 @@ class SML_Admin_Page extends APX_Admin_Page {
 			'desc'     => __( 'Core behaviour of the login and registration form.', 'smart-login' ),
 			'sections' => array(
 				array(
+					'heading' => __( 'Sign-in method', 'smart-login' ),
+					'desc'    => __( 'Choose what visitors sign in with. The detail that is not used to sign in becomes optional on the registration form — unless verification needs it: email verification needs an email address and mobile verification needs a mobile number. When only one country is allowed its code is filled in automatically, and a number typed as +98…, 0098…, 0912… or 912… (even with Persian digits) is read as the same number.', 'smart-login' ),
+					'fields'  => array(
+						array(
+							'type'    => 'select',
+							'name'    => 'login_identifier',
+							'label'   => __( 'Sign in with', 'smart-login' ),
+							'options' => array(
+								'both'   => __( 'Email and mobile number (two tabs)', 'smart-login' ),
+								'email'  => __( 'Email only', 'smart-login' ),
+								'mobile' => __( 'Mobile number only', 'smart-login' ),
+							),
+							'desc'    => __( 'This only changes the Smart Login form; wp-login.php still accepts usernames and emails. With "Mobile number only", accounts that have no mobile number — for example administrators created in the dashboard — sign in through wp-login.php instead.', 'smart-login' ),
+						),
+					),
+				),
+				array(
 					'heading' => __( 'Behaviour', 'smart-login' ),
 					'fields'  => array(
 						array(

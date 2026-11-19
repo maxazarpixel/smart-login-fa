@@ -212,9 +212,11 @@ class SML_Password_Reset_Handler {
 		}
 		SML_Rate_Limit::record( 'forgot', self::FORGOT_IP_WINDOW );
 
-		$e164 = SML_Phone::parse_e164( $login );
+		$e164 = SML_Settings::login_allows_mobile() ? SML_Phone::parse_e164( $login ) : '';
 		if ( '' !== $e164 ) {
 			self::forgot_by_sms( $e164 );
+		} elseif ( 'mobile' === SML_Settings::login_identifier() ) {
+			wp_send_json_error( array( 'message' => __( 'Please enter a valid mobile number.', 'smart-login' ) ) );
 		}
 
 		$user        = is_email( $login ) ? get_user_by( 'email', $login ) : get_user_by( 'login', $login );

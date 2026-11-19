@@ -64,6 +64,46 @@ JS;
 	}
 
 	/**
+	 * The country-code + number box. With a single allowed country there is no
+	 * selector: the code is shown as plain text and sent along as a hidden
+	 * value, so the visitor only types the number.
+	 *
+	 * @param string $input_id  id of the number input.
+	 * @param string $select_id id of the country selector / hidden field.
+	 * @param array  $countries SML_Countries::allowed().
+	 * @param string $default   Country id to start on.
+	 * @param bool   $required  Whether the number is required.
+	 * @return string
+	 */
+	protected static function phone_group_html( $input_id, $select_id, array $countries, $default, $required ) {
+		$single = 1 === count( $countries ) ? (string) array_key_first( $countries ) : '';
+		$dial   = function ( $id ) use ( $countries ) {
+			return isset( $countries[ $id ] ) ? preg_replace( '/\D/', '', $countries[ $id ]['dial'] ) : '';
+		};
+
+		ob_start();
+		?>
+		<div class="sml-phone-group">
+			<div class="sml-phone-code">
+				<span class="sml-phone-flag" data-sml-flag-wrap><?php echo SML_Flags::icon( $default ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+				<?php if ( '' !== $single ) : ?>
+					<span class="sml-phone-dial" dir="ltr"><?php echo esc_html( $countries[ $single ]['dial'] ); ?></span>
+					<input type="hidden" name="phone_country" id="<?php echo esc_attr( $select_id ); ?>" value="<?php echo esc_attr( $single ); ?>" data-max="<?php echo esc_attr( SML_Phone::max_length( $single ) ); ?>" data-dial="<?php echo esc_attr( $dial( $single ) ); ?>" data-sml-flag-select>
+				<?php else : ?>
+					<select name="phone_country" id="<?php echo esc_attr( $select_id ); ?>" class="sml-input" aria-label="<?php esc_attr_e( 'Country code', 'smart-login' ); ?>" data-sml-flag-select>
+						<?php foreach ( $countries as $id => $country ) : ?>
+							<option value="<?php echo esc_attr( $id ); ?>" data-max="<?php echo esc_attr( SML_Phone::max_length( $id ) ); ?>" data-dial="<?php echo esc_attr( $dial( $id ) ); ?>" data-flag="<?php echo esc_attr( base64_encode( SML_Flags::icon( $id ) ) ); ?>"<?php selected( $default, $id ); ?>><?php echo esc_html( $country['dial'] . ' ' . SML_Countries::name( $id ) ); ?></option>
+						<?php endforeach; ?>
+					</select>
+				<?php endif; ?>
+			</div>
+			<input type="tel" id="<?php echo esc_attr( $input_id ); ?>" class="sml-input" name="phone_number" data-sml-phone-input autocomplete="tel-national" inputmode="numeric" dir="ltr" placeholder="<?php esc_attr_e( 'Phone number', 'smart-login' ); ?>" maxlength="<?php echo esc_attr( SML_Phone::max_length( $default ) + 4 ); ?>"<?php echo $required ? ' required' : ''; ?>>
+		</div>
+		<?php
+		return ob_get_clean();
+	}
+
+	/**
 	 * The country the phone fields start on: the US when it is allowed,
 	 * otherwise the first allowed one; Iran on a Persian site with the Iranian
 	 * rules on.
@@ -465,37 +505,34 @@ JS;
 				<form data-sml-form="login" novalidate>
 					<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>">
 					<?php
+					$sml_login_mode      = SML_Settings::login_identifier();
 					$sml_login_countries = SML_Countries::allowed();
 					$sml_login_country   = self::default_country( $sml_login_countries );
 					SML_Flags::sprite();
 					?>
-					<input type="hidden" name="login_mode" value="account" data-sml-login-mode>
-					<div class="sml-login-tabs" role="tablist">
-						<button type="button" class="sml-login-tab is-active" role="tab" aria-selected="true" data-sml-login-tab="account"><?php esc_html_e( 'Email or username', 'smart-login' ); ?></button>
-						<button type="button" class="sml-login-tab" role="tab" aria-selected="false" data-sml-login-tab="mobile"><?php esc_html_e( 'Mobile number', 'smart-login' ); ?></button>
-					</div>
-					<div data-sml-login-group="account">
-						<div class="sml-field-boxed">
-							<input type="text" id="sml-login-user" class="sml-input" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" dir="ltr" placeholder=" " required>
-							<label for="sml-login-user"><?php esc_html_e( 'Email or username', 'smart-login' ); ?></label>
+					<input type="hidden" name="login_mode" value="<?php echo 'mobile' === $sml_login_mode ? 'mobile' : 'account'; ?>" data-sml-login-mode>
+					<?php if ( 'both' === $sml_login_mode ) : ?>
+						<div class="sml-login-tabs" role="tablist">
+							<button type="button" class="sml-login-tab is-active" role="tab" aria-selected="true" data-sml-login-tab="account"><?php esc_html_e( 'Email or username', 'smart-login' ); ?></button>
+							<button type="button" class="sml-login-tab" role="tab" aria-selected="false" data-sml-login-tab="mobile"><?php esc_html_e( 'Mobile number', 'smart-login' ); ?></button>
 						</div>
-					</div>
-					<div data-sml-login-group="mobile" hidden>
-						<div class="sml-field-boxed">
-							<div class="sml-phone-group">
-								<div class="sml-phone-code">
-									<span class="sml-phone-flag" data-sml-flag-wrap><?php echo SML_Flags::icon( $sml_login_country ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
-									<select name="phone_country" id="sml-login-phone-country" class="sml-input" aria-label="<?php esc_attr_e( 'Country code', 'smart-login' ); ?>" data-sml-flag-select>
-										<?php foreach ( $sml_login_countries as $id => $country ) : ?>
-											<option value="<?php echo esc_attr( $id ); ?>" data-max="<?php echo esc_attr( SML_Phone::max_length( $id ) ); ?>" data-flag="<?php echo esc_attr( base64_encode( SML_Flags::icon( $id ) ) ); ?>"<?php selected( $sml_login_country, $id ); ?>><?php echo esc_html( $country['dial'] . ' ' . SML_Countries::name( $id ) ); ?></option>
-										<?php endforeach; ?>
-									</select>
-								</div>
-								<input type="tel" id="sml-login-phone" class="sml-input" name="phone_number" data-sml-phone-input autocomplete="tel-national" inputmode="numeric" dir="ltr" placeholder="<?php esc_attr_e( 'Phone number', 'smart-login' ); ?>" maxlength="<?php echo esc_attr( SML_Phone::max_length( $sml_login_country ) + 4 ); ?>">
+					<?php endif; ?>
+					<?php if ( 'mobile' !== $sml_login_mode ) : ?>
+						<div data-sml-login-group="account">
+							<div class="sml-field-boxed">
+								<input type="text" id="sml-login-user" class="sml-input" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" dir="ltr" placeholder=" " required>
+								<label for="sml-login-user"><?php esc_html_e( 'Email or username', 'smart-login' ); ?></label>
 							</div>
-							<label for="sml-login-phone"><?php esc_html_e( 'Mobile number', 'smart-login' ); ?></label>
 						</div>
-					</div>
+					<?php endif; ?>
+					<?php if ( 'email' !== $sml_login_mode ) : ?>
+						<div data-sml-login-group="mobile"<?php echo 'both' === $sml_login_mode ? ' hidden' : ''; ?>>
+							<div class="sml-field-boxed">
+								<?php echo self::phone_group_html( 'sml-login-phone', 'sml-login-phone-country', $sml_login_countries, $sml_login_country, 'mobile' === $sml_login_mode ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+								<label for="sml-login-phone"><?php esc_html_e( 'Mobile number', 'smart-login' ); ?></label>
+							</div>
+						</div>
+					<?php endif; ?>
 					<div class="sml-field-boxed">
 						<div class="sml-password-group">
 							<input type="password" id="sml-login-pass" class="sml-input" name="password" autocomplete="current-password" placeholder=" " required>
@@ -539,7 +576,7 @@ JS;
 							</div>
 						</div>
 						<div class="sml-field-boxed">
-							<?php $sml_email_required = 'mobile' !== SML_Verification::method(); ?>
+							<?php $sml_email_required = SML_Verification::email_required(); ?>
 							<input type="email" id="sml-reg-email" class="sml-input" name="email" autocomplete="email" placeholder=" "<?php echo $sml_email_required ? ' required' : ''; ?>>
 							<label for="sml-reg-email"><?php esc_html_e( 'Email', 'smart-login' ); ?><?php if ( $sml_email_required ) : ?> <span class="sml-required">*</span><?php else : ?> <span class="sml-optional">(<?php esc_html_e( 'optional', 'smart-login' ); ?>)</span><?php endif; ?></label>
 						</div>
@@ -548,19 +585,10 @@ JS;
 						$sml_default_country   = self::default_country( $sml_allowed_countries );
 						?>
 						<?php SML_Flags::sprite(); ?>
+						<?php $sml_phone_required = SML_Verification::phone_required(); ?>
 						<div class="sml-field-boxed">
-							<div class="sml-phone-group">
-								<div class="sml-phone-code">
-									<span class="sml-phone-flag" data-sml-flag-wrap><?php echo SML_Flags::icon( $sml_default_country ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
-									<select name="phone_country" id="sml-reg-phone-country" class="sml-input" aria-label="<?php esc_attr_e( 'Country code', 'smart-login' ); ?>" data-sml-flag-select>
-										<?php foreach ( $sml_allowed_countries as $id => $country ) : ?>
-											<option value="<?php echo esc_attr( $id ); ?>" data-max="<?php echo esc_attr( SML_Phone::max_length( $id ) ); ?>" data-flag="<?php echo esc_attr( base64_encode( SML_Flags::icon( $id ) ) ); ?>"<?php selected( $sml_default_country, $id ); ?>><?php echo esc_html( $country['dial'] . ' ' . SML_Countries::name( $id ) ); ?></option>
-										<?php endforeach; ?>
-									</select>
-								</div>
-								<input type="tel" id="sml-reg-phone" class="sml-input" name="phone_number" data-sml-phone-input autocomplete="tel-national" inputmode="numeric" placeholder="<?php esc_attr_e( 'Phone number', 'smart-login' ); ?>" maxlength="<?php echo esc_attr( SML_Phone::max_length( $sml_default_country ) + 4 ); ?>" required>
-							</div>
-							<label for="sml-reg-phone"><?php esc_html_e( 'Mobile number', 'smart-login' ); ?> <span class="sml-required">*</span></label>
+							<?php echo self::phone_group_html( 'sml-reg-phone', 'sml-reg-phone-country', $sml_allowed_countries, $sml_default_country, $sml_phone_required ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+							<label for="sml-reg-phone"><?php esc_html_e( 'Mobile number', 'smart-login' ); ?><?php if ( $sml_phone_required ) : ?> <span class="sml-required">*</span><?php else : ?> <span class="sml-optional">(<?php esc_html_e( 'optional', 'smart-login' ); ?>)</span><?php endif; ?></label>
 						</div>
 						<?php if ( SML_Iran::enabled() ) : ?>
 							<?php $sml_national_id_required = SML_Iran::national_id_required(); ?>
@@ -590,10 +618,15 @@ JS;
 					<div class="sml-heading-line1"><?php esc_html_e( 'Reset Your', 'smart-login' ); ?></div>
 					<div class="sml-heading-line2"><?php esc_html_e( 'Password', 'smart-login' ); ?></div>
 				</div>
-				<?php $sml_sms_reset = SML_SMS::is_configured(); ?>
+				<?php
+				$sml_sms_reset  = SML_SMS::is_configured() && SML_Settings::login_allows_mobile();
+				$sml_forgot_mob = 'mobile' === SML_Settings::login_identifier();
+				?>
 				<p class="sml-verify-intro">
 					<?php
-					if ( $sml_sms_reset ) {
+					if ( $sml_forgot_mob ) {
+						esc_html_e( 'Enter your mobile number and we\'ll send you an SMS code to reset your password.', 'smart-login' );
+					} elseif ( $sml_sms_reset ) {
 						esc_html_e( 'Enter your email address or mobile number and we\'ll send you a link or an SMS code to reset your password.', 'smart-login' );
 					} else {
 						esc_html_e( 'Enter your email address and we\'ll send you a link to reset your password.', 'smart-login' );
@@ -604,7 +637,7 @@ JS;
 					<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>">
 					<div class="sml-field-boxed">
 						<input type="text" id="sml-forgot-email" class="sml-input" name="login" autocomplete="username" autocapitalize="none" spellcheck="false" dir="ltr" placeholder=" " required>
-						<label for="sml-forgot-email"><?php echo $sml_sms_reset ? esc_html__( 'Email or mobile number', 'smart-login' ) : esc_html__( 'Email', 'smart-login' ); ?></label>
+						<label for="sml-forgot-email"><?php echo $sml_forgot_mob ? esc_html__( 'Mobile number', 'smart-login' ) : ( $sml_sms_reset ? esc_html__( 'Email or mobile number', 'smart-login' ) : esc_html__( 'Email', 'smart-login' ) ); ?></label>
 					</div>
 					<?php echo $sml_bot_fields; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 					<button type="submit" class="sml-btn sml-btn--primary"><?php esc_html_e( 'Send Reset Link', 'smart-login' ); ?></button>

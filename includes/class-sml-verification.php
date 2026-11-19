@@ -65,6 +65,31 @@ class SML_Verification {
 	}
 
 	/**
+	 * Whether registration must collect an email address. It does when email
+	 * is how people sign in, when email verification needs it, and — with both
+	 * sign-in methods — unless an SMS code does the verifying.
+	 *
+	 * @return bool
+	 */
+	public static function email_required() {
+		$login = SML_Settings::login_identifier();
+
+		return 'email' === $login
+			|| 'email' === self::method()
+			|| ( 'both' === $login && 'mobile' !== self::method() );
+	}
+
+	/**
+	 * Whether registration must collect a mobile number: when it is a way to
+	 * sign in, or when an SMS code does the verifying.
+	 *
+	 * @return bool
+	 */
+	public static function phone_required() {
+		return SML_Settings::login_allows_mobile() || 'mobile' === self::method();
+	}
+
+	/**
 	 * Which channel a code for this user goes out on.
 	 *
 	 * @param int $user_id

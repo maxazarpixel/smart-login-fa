@@ -394,13 +394,30 @@
 				// Digits the visitor may type for the selected country. With Iran
 				// selected the trunk 0 is removed from the box as soon as it is
 				// typed (0912… becomes 912…), so 10 digits are what is left.
+				// With a single allowed country the "select" is a hidden field.
+				var selectedOption = function () {
+					return select.options ? select.options[ select.selectedIndex ] : null;
+				};
+				var attrOfSelected = function ( name ) {
+					var opt = selectedOption();
+					return ( opt ? opt.getAttribute( name ) : select.getAttribute( name ) ) || '';
+				};
 				var phoneLimit = function () {
 					if ( 'ir' === select.value ) { return 10; }
-					var opt = select.options[ select.selectedIndex ];
-					return opt ? parseInt( opt.getAttribute( 'data-max' ), 10 ) || 14 : 14;
+					return parseInt( attrOfSelected( 'data-max' ), 10 ) || 14;
 				};
 				var tidyPhone = function () {
-					var digits = toLatinDigits( phoneInput.value ).replace( /\D/g, '' );
+					var raw = toLatinDigits( phoneInput.value );
+					var digits = raw.replace( /\D/g, '' );
+					var dial = attrOfSelected( 'data-dial' );
+					// A typed country code (+98 912…, 0098 912…, 98912… for Iran) is
+					// dropped, so every way of writing the number ends up the same.
+					if ( /^\s*00/.test( raw ) ) { digits = digits.slice( 2 ); }
+					if ( dial && ( /^\s*(\+|00)/.test( raw ) ) && 0 === digits.indexOf( dial ) ) {
+						digits = digits.slice( dial.length );
+					} else if ( '98' === dial && digits.length >= 12 && 0 === digits.indexOf( '98' ) ) {
+						digits = digits.slice( 2 );
+					}
 					if ( 'ir' === select.value ) { digits = digits.replace( /^0+/, '' ); }
 					return formatPhoneDigits( digits, phoneLimit() );
 				};
@@ -431,13 +448,15 @@
 					} );
 				}
 
+				if ( ! select.options ) { syncNationalId(); }
+
 				select.addEventListener( 'change', function () {
 					syncNationalId();
 					// Swapped as markup (not a sprite <use> href) so the
 					// neutral fallback badge for countries without a hand
 					// drawn flag also displays correctly.
 					var wrap = select.parentElement && select.parentElement.querySelector( '[data-sml-flag-wrap]' );
-					var opt = select.options[ select.selectedIndex ];
+					var opt = selectedOption();
 					if ( wrap && opt && opt.getAttribute( 'data-flag' ) ) {
 						try {
 							wrap.innerHTML = atob( opt.getAttribute( 'data-flag' ) );

@@ -53,7 +53,7 @@ class SML_Registration_Handler {
 		$last_name     = isset( $_POST['last_name'] ) ? sanitize_text_field( wp_unslash( $_POST['last_name'] ) ) : '';
 		$email         = isset( $_POST['email'] ) ? sanitize_email( SML_Iran::to_latin_digits( wp_unslash( $_POST['email'] ) ) ) : '';
 		$country_id    = isset( $_POST['phone_country'] ) ? sanitize_key( wp_unslash( $_POST['phone_country'] ) ) : '';
-		$phone_number  = isset( $_POST['phone_number'] ) ? preg_replace( '/[^0-9]/', '', SML_Iran::to_latin_digits( wp_unslash( $_POST['phone_number'] ) ) ) : '';
+		$typed_phone   = isset( $_POST['phone_number'] ) ? sanitize_text_field( wp_unslash( $_POST['phone_number'] ) ) : '';
 		$national_id   = isset( $_POST['national_id'] ) ? preg_replace( '/[^0-9]/', '', SML_Iran::to_latin_digits( wp_unslash( $_POST['national_id'] ) ) ) : '';
 		$password      = isset( $_POST['password'] ) ? SML_Iran::to_latin_digits( (string) wp_unslash( $_POST['password'] ) ) : '';
 
@@ -62,7 +62,19 @@ class SML_Registration_Handler {
 		$mobile_mode = 'mobile' === SML_Verification::method();
 		$email_given = isset( $_POST['email'] ) && '' !== trim( (string) wp_unslash( $_POST['email'] ) );
 
-		if ( ! $first_name || ! $last_name || ( ! $email_given && ! $mobile_mode ) || ! $phone_number || ! $password ) {
+		// With one allowed country the form has no selector, so it is filled in
+		// here; the number is reduced to its national digits whatever way it
+		// was typed (+98…, 0098…, 0912…, 912…, Persian digits).
+		$countries = SML_Countries::all();
+		if ( '' === $country_id ) {
+			$country_id = SML_Countries::single();
+		}
+		$phone_number = SML_Phone::national_digits( isset( $countries[ $country_id ] ) ? $countries[ $country_id ]['dial'] : '', $typed_phone );
+		$has_phone    = '' !== $phone_number;
+
+		// The detail that is not a way to sign in is optional, unless
+		// verification needs it (see SML_Verification::email_required()).
+		if ( ! $first_name || ! $last_name || ( ! $email_given && SML_Verification::email_required() ) || ( ! $has_phone && SML_Verification::phone_required() ) || ! $password ) {
 			wp_send_json_error( array( 'message' => __( 'Please fill in all fields.', 'smart-login' ) ) );
 		}
 
@@ -85,32 +97,35 @@ class SML_Registration_Handler {
 			wp_send_json_error( array( 'message' => __( 'Temporary or disposable email addresses are not allowed. Please register with a permanent email address.', 'smart-login' ) ) );
 		}
 
-		$countries = SML_Countries::all();
+		$phone_dial = '';
+		$iran_rules = false;
 
-		if ( ! isset( $countries[ $country_id ] ) || ! SML_Countries::is_allowed( $country_id ) ) {
-			wp_send_json_error( array( 'message' => __( 'Registration from the selected country is not available.', 'smart-login' ) ) );
-		}
+		if ( $has_phone ) {
+			if ( ! isset( $countries[ $country_id ] ) || ! SML_Countries::is_allowed( $country_id ) ) {
+				wp_send_json_error( array( 'message' => __( 'Registration from the selected country is not available.', 'smart-login' ) ) );
+			}
 
-		$phone_dial = $countries[ $country_id ]['dial'];
+			$phone_dial = $countries[ $country_id ]['dial'];
 
-		$phone_check = SML_Phone::validate( $country_id, $phone_number );
-		if ( is_wp_error( $phone_check ) ) {
-			wp_send_json_error( array( 'message' => $phone_check->get_error_message() ) );
-		}
+			$phone_check = SML_Phone::validate( $country_id, $phone_number );
+			if ( is_wp_error( $phone_check ) ) {
+				wp_send_json_error( array( 'message' => $phone_check->get_error_message() ) );
+			}
 
-		$iran_rules = SML_Iran::applies_to( $country_id );
-		if ( $iran_rules ) {
-			$phone_number = SML_Iran::normalize_mobile( $phone_number );
+			$iran_rules = SML_Iran::applies_to( $country_id );
+			if ( $iran_rules ) {
+				$phone_number = SML_Iran::normalize_mobile( $phone_number );
 
-			// Optional means "may be left empty", not "may be wrong": anything
-			// that is entered is still checked and must be unique.
-			if ( '' !== $national_id || SML_Iran::national_id_required() ) {
-				if ( ! SML_Iran::is_valid_national_id( $national_id ) ) {
-					wp_send_json_error( array( 'message' => __( 'Please enter a valid national ID (10 digits).', 'smart-login' ) ) );
-				}
+				// Optional means "may be left empty", not "may be wrong": anything
+				// that is entered is still checked and must be unique.
+				if ( '' !== $national_id || SML_Iran::national_id_required() ) {
+					if ( ! SML_Iran::is_valid_national_id( $national_id ) ) {
+						wp_send_json_error( array( 'message' => __( 'Please enter a valid national ID (10 digits).', 'smart-login' ) ) );
+					}
 
-				if ( SML_Iran::national_id_exists( $national_id ) ) {
-					wp_send_json_error( array( 'message' => __( 'An account with that national ID already exists.', 'smart-login' ) ) );
+					if ( SML_Iran::national_id_exists( $national_id ) ) {
+						wp_send_json_error( array( 'message' => __( 'An account with that national ID already exists.', 'smart-login' ) ) );
+					}
 				}
 			}
 		}
@@ -121,9 +136,9 @@ class SML_Registration_Handler {
 
 		// E.164 form of the number (one trunk zero dropped), kept on every
 		// account so switching the verification method later needs no migration.
-		$phone_e164 = '+' . preg_replace( '/\D/', '', $phone_dial ) . preg_replace( '/^0/', '', $phone_number );
+		$phone_e164 = $has_phone ? '+' . preg_replace( '/\D/', '', $phone_dial ) . preg_replace( '/^0/', '', $phone_number ) : '';
 
-		if ( $mobile_mode ) {
+		if ( $mobile_mode && $has_phone ) {
 			// The gateways are Iranian: a number from elsewhere cannot get a code
 			// by SMS, so that visitor verifies by email instead.
 			if ( ! $email_given && ! SML_SMS::can_send_to( $phone_e164 ) ) {
@@ -191,8 +206,10 @@ class SML_Registration_Handler {
 		}
 
 		update_user_meta( $user_id, 'sml_email_verified', 0 );
-		update_user_meta( $user_id, 'sml_phone', $phone_dial . ' ' . SML_Phone::format( $phone_number ) );
-		update_user_meta( $user_id, 'sml_phone_e164', $phone_e164 );
+		if ( $has_phone ) {
+			update_user_meta( $user_id, 'sml_phone', $phone_dial . ' ' . SML_Phone::format( $phone_number ) );
+			update_user_meta( $user_id, 'sml_phone_e164', $phone_e164 );
+		}
 		if ( $placeholder_email ) {
 			update_user_meta( $user_id, 'sml_placeholder_email', 1 );
 		}
