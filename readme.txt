@@ -4,7 +4,7 @@ Tags: login, registration, email verification, security, woocommerce
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 1.38.0
+Stable tag: 1.38.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -67,6 +67,9 @@ After changing any caching configuration, purge the cache and test in a private/
 4. Place `[smart_login_form]` on any page or post.
 
 == Changelog ==
+
+= 1.38.1 =
+* Fixed: translations are now loaded on the `init` hook and the settings page is built after that, as WordPress 6.7+ requires, which removes early-textdomain notices.
 
 = 1.38.0 =
 * Added: Settings → Logs. Smart Login now records what happened when an SMS or an email was sent (gateway, masked recipient, and the reason a send failed) and other problems such as Google sign-in errors, with a viewer: filter by SMS / Email / Other / problems only, refresh, download and clear.

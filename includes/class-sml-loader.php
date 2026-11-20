@@ -15,10 +15,9 @@ class SML_Loader {
 	public static function init() {
 		self::load_files();
 
-		// Translations must be ready before the admin page config is built
-		// (its constructor runs on this same hook and calls __() directly).
+		// Defer translation loading to init hook as required by WordPress 6.7+.
 		add_filter( 'load_textdomain_mofile', array( __CLASS__, 'locale_fallback_mofile' ), 10, 2 );
-		self::load_textdomain();
+		add_action( 'init', array( __CLASS__, 'load_textdomain' ), 1 );
 		add_action( 'sml_cleanup_expired_verifications', array( 'SML_Verification', 'cleanup_expired' ) );
 
 		// "Settings" link on the Plugins screen row.
@@ -43,14 +42,10 @@ class SML_Loader {
 		// wp_authenticate() always trigger it.
 		add_action( 'wp_login', array( __CLASS__, 'track_last_login' ), 10, 2 );
 
-		// Not gated by is_admin(): the settings page's Save button calls the
-		// REST route this class registers (via rest_api_init), and REST API
-		// requests are not admin requests — gating construction to admin
-		// context meant that route never got registered, so saving from the
-		// browser always failed. The menu/enqueue pieces inside the class
-		// are still only reachable through admin-only hooks, so constructing
-		// it here has no front-end effect beyond registering the route.
-		new SML_Admin_Page();
+		// SML_Admin_Page calls translation functions __() during construction.
+		// Defer initialization to the `init` hook (priority 2, after load_textdomain at priority 1)
+		// to comply with WordPress 6.7+ just-in-time textdomain rules.
+		add_action( 'init', array( __CLASS__, 'init_admin_page' ), 2 );
 
 		if ( is_admin() ) {
 			SML_Users_List::init();
@@ -100,6 +95,10 @@ class SML_Loader {
 
 	public static function load_textdomain() {
 		load_plugin_textdomain( 'smart-login', false, dirname( SML_PLUGIN_BASENAME ) . '/languages' );
+	}
+
+	public static function init_admin_page() {
+		new SML_Admin_Page();
 	}
 
 	/**
